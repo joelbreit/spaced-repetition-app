@@ -36,9 +36,23 @@ export default function DeckView({
 		? appData.decks.find((d) => d.deckId === selectedDeckId)
 		: null;
 
-	const filteredDecks = appData.decks.filter((deck) =>
-		deck.deckName.toLowerCase().includes(searchTerm.toLowerCase())
-	);
+	const filteredDecks = appData.decks.filter((deck) => {
+		if (!searchTerm) return true;
+
+		const searchLower = searchTerm.toLowerCase();
+
+		// Search deck name
+		if (deck.deckName.toLowerCase().includes(searchLower)) {
+			return true;
+		}
+
+		// Search card content (front and back)
+		return deck.cards.some(
+			(card) =>
+				card.front.toLowerCase().includes(searchLower) ||
+				card.back.toLowerCase().includes(searchLower)
+		);
+	});
 
 	const handleAddDeck = () => {
 		if (newDeckName.trim()) {
@@ -284,7 +298,7 @@ export default function DeckView({
 							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
 							<input
 								type="text"
-								placeholder="Search decks..."
+								placeholder="Search decks and cards..."
 								value={searchTerm}
 								onChange={(e) => setSearchTerm(e.target.value)}
 								className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"

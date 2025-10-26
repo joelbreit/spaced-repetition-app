@@ -1,0 +1,60 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Soft shadow for main background -->
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="12"/>
+      <feOffset dx="0" dy="6" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.12"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Card shadow -->
+    <filter id="cardShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="3" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Gradient for cards -->
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f9fafb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer rounded square background with shadow -->
+  <rect x="150" y="150" width="724" height="724" rx="160" fill="#ffffff" filter="url(#softShadow)"/>
+  
+  <!-- Back card (teal, slightly offset up and left) -->
+  <rect x="300" y="270" width="400" height="480" rx="48" 
+        fill="#14b8a6" 
+        filter="url(#cardShadow)"/>
+  
+  <!-- Front card (white/light, main card) -->
+  <rect x="324" y="310" width="400" height="480" rx="48" 
+        fill="url(#cardGradient)" 
+        stroke="#14b8a6" 
+        stroke-width="6"
+        filter="url(#cardShadow)"/>
+  
+  <!-- Large checkmark on front card -->
+  <g>
+    <path d="M 410,535 L 475,600 L 615,440" 
+          stroke="#14b8a6" 
+          stroke-width="52" 
+          fill="none" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+  </g>
+</svg>
