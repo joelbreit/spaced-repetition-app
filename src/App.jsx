@@ -11,10 +11,8 @@ import {
 import DeckView from "./components/DeckView";
 import CardEditView from "./components/CardEditView";
 import CardReviewView from "./components/CardReviewView";
-import {
-	NotificationProvider,
-	useNotification,
-} from "./contexts/NotificationContext";
+import { NotificationProvider } from "./contexts/NotificationContext.jsx";
+import { useNotification } from "./hooks/useNotification";
 import NotificationContainer from "./components/NotificationContainer";
 
 // Initial sample data

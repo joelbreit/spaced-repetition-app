@@ -8,7 +8,7 @@ import {
 	Search,
 	BookOpen,
 } from "lucide-react";
-import { useNotification } from "../contexts/NotificationContext";
+import { useNotification } from "../hooks/useNotification";
 
 export default function DeckView({
 	appData,
@@ -18,7 +18,6 @@ export default function DeckView({
 	onUpdateDeck,
 	onDeleteDeck,
 	onAddCard,
-	onUpdateCard,
 	onDeleteCard,
 	onEditCard,
 	onStartReview,

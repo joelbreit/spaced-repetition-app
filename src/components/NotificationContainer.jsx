@@ -1,6 +1,6 @@
 import Notification from "./Notification";
 import ConfirmationDialog from "./ConfirmationDialog";
-import { useNotification } from "../contexts/NotificationContext";
+import { useNotification } from "../hooks/useNotification";
 
 const NotificationContainer = () => {
 	const {
