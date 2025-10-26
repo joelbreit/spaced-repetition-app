@@ -271,15 +271,15 @@ function App() {
 	return (
 		<div className="min-h-screen bg-gray-50 dark:bg-slate-900">
 			{/* Header */}
-			<header className="bg-white shadow-sm dark:bg-slate-800">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
+				<div className="mx-auto max-w-7xl px-6">
 					<div className="flex h-16 items-center justify-between">
 						<div className="flex items-center space-x-4">
-							<h1 className="text-xl font-bold text-slate-900 dark:text-white">
+							<h1 className="text-2xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
 								Spaced Repetition Flashcards
 							</h1>
 						</div>
-						<div className="flex items-center space-x-2">
+						<div className="flex items-center space-x-3">
 							{currentView !== "deck" && (
 								<button
 									onClick={() => {
@@ -288,7 +288,7 @@ function App() {
 										setSelectedCardId(null);
 										setIsFlipped(false);
 									}}
-									className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+									className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 								>
 									<Home className="h-5 w-5" />
 								</button>
@@ -302,14 +302,14 @@ function App() {
 							/>
 							<label
 								htmlFor="upload-file"
-								className="inline-flex cursor-pointer items-center rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+								className="inline-flex cursor-pointer items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
 							>
 								<Upload className="mr-2 h-5 w-5" />
 								Upload
 							</label>
 							<button
 								onClick={handleDownload}
-								className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+								className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 							>
 								<Download className="mr-2 h-5 w-5" />
 								Download
@@ -320,7 +320,7 @@ function App() {
 			</header>
 
 			{/* Main content */}
-			<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+			<main className="mx-auto max-w-7xl px-6 py-8">
 				{currentView === "deck" && (
 					<DeckView
 						appData={appData}

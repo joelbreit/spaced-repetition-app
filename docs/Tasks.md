@@ -3,7 +3,6 @@
 ## Prototype Stage
 
 - [ ] Allow search to search card data, not just deck names
-- [ ] Update color theme
 - [ ] Dark/Light mode
 - [ ] App Icon
 - [ ] App name/title
@@ -30,4 +29,5 @@ npm i mermaid
 
 2025-10-26
 
+- [x] Update color theme
 - [x] Creat simple prototype using JSON upload/download

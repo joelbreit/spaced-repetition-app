@@ -17,98 +17,109 @@ export default function CardReviewView({
 	}
 
 	return (
-		<div className="mx-auto max-w-3xl">
+		<div className="mx-auto max-w-4xl">
 			{/* Progress bar */}
-			<div className="mb-6">
-				<div className="mb-2 flex items-center justify-between text-sm">
-					<span className="text-gray-600 dark:text-gray-400">
+			<div className="mb-8">
+				<div className="mb-3 flex items-center justify-between text-sm">
+					<span className="text-gray-600 dark:text-gray-400 font-medium">
 						Card {currentCardIndex + 1} of {deck.cards.length}
 					</span>
-					<span className="text-gray-600 dark:text-gray-400">
+					<span className="text-gray-600 dark:text-gray-400 font-medium">
 						{Math.round(progress)}%
 					</span>
 				</div>
-				<div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+				<div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
 					<div
-						className="h-full bg-blue-600 transition-all duration-300 dark:bg-blue-500"
+						className="h-full bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
 						style={{ width: `${progress}%` }}
-					/>
+					>
+						{/* Shimmer effect */}
+						<div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+					</div>
 				</div>
 			</div>
 
 			{/* Card */}
-			<div className="mb-6">
+			<div className="mb-8">
 				<div
-					className="relative min-h-[400px] cursor-pointer rounded-lg border-4 border-blue-600 bg-white p-8 shadow-lg transition-all hover:shadow-xl dark:border-blue-500 dark:bg-slate-800"
+					className="relative min-h-[500px] cursor-pointer backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group animate-scale-in"
 					onClick={onFlip}
 				>
-					<div className="flex h-full flex-col justify-center">
+					<div className="flex h-full flex-col justify-center p-8">
 						{!isFlipped ? (
 							<div className="text-center">
-								<div className="mb-4 text-sm font-medium uppercase tracking-wide text-blue-600 dark:text-blue-400">
+								<div className="mb-6 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
 									Front
 								</div>
-								<div className="text-2xl font-medium text-gray-900 dark:text-white">
+								<div className="text-3xl font-medium text-gray-900 dark:text-white leading-relaxed">
 									{currentCard.front}
 								</div>
 							</div>
 						) : (
 							<div className="text-center">
-								<div className="mb-4 text-sm font-medium uppercase tracking-wide text-blue-600 dark:text-blue-400">
+								<div className="mb-6 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
 									Back
 								</div>
-								<div className="text-2xl font-medium text-gray-900 dark:text-white">
+								<div className="text-3xl font-medium text-gray-900 dark:text-white leading-relaxed">
 									{currentCard.back}
 								</div>
 							</div>
 						)}
 					</div>
 
-					<div className="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400">
+					<div className="absolute bottom-6 left-6 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
 						Click to flip
 					</div>
 				</div>
 			</div>
 
 			{/* Review buttons */}
-			<div className="space-y-4">
+			<div className="space-y-6">
 				{isFlipped ? (
 					<div>
-						<h3 className="mb-3 text-center text-lg font-semibold text-gray-700 dark:text-gray-300">
+						<h3 className="mb-6 text-center text-xl font-semibold text-gray-700 dark:text-gray-300">
 							How did you do?
 						</h3>
-						<div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+						<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
 							<button
 								onClick={() => onReview("again")}
-								className="rounded-md bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+								className="px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
 							>
-								<div>Again</div>
-								<div className="text-xs opacity-90">Poor</div>
+								<div className="text-lg font-semibold">
+									Again
+								</div>
+								<div className="text-sm opacity-90">Poor</div>
 							</button>
 							<button
 								onClick={() => onReview("hard")}
-								className="rounded-md bg-orange-600 px-4 py-3 font-medium text-white hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
+								className="px-6 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
 							>
-								<div>Hard</div>
-								<div className="text-xs opacity-90">
+								<div className="text-lg font-semibold">
+									Hard
+								</div>
+								<div className="text-sm opacity-90">
 									Difficult
 								</div>
 							</button>
 							<button
 								onClick={() => onReview("good")}
-								className="rounded-md bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+								className="px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
 							>
-								<div>Good</div>
-								<div className="text-xs opacity-90">
+								<div className="text-lg font-semibold">
+									Good
+								</div>
+								<div className="text-sm opacity-90">
 									Correct
 								</div>
 							</button>
 							<button
 								onClick={() => onReview("easy")}
-								className="rounded-md bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+								className="px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 							>
-								<div>Easy</div>
-								<div className="text-xs opacity-90">Simple</div>
+								<div className="text-lg font-semibold">
+									Easy
+								</div>
+								<div className="text-sm opacity-90">Simple</div>
 							</button>
 						</div>
 					</div>
@@ -116,28 +127,28 @@ export default function CardReviewView({
 					<div className="text-center">
 						<button
 							onClick={onFlip}
-							className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+							className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 						>
-							<RotateCcw className="h-5 w-5" />
+							<RotateCcw className="h-6 w-6" />
 							Show Answer
 						</button>
 					</div>
 				)}
 
 				{/* Action buttons */}
-				<div className="flex justify-center gap-3">
+				<div className="flex justify-center gap-4">
 					<button
 						onClick={() => onEditCard(currentCard.cardId)}
-						className="flex items-center gap-2 rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600"
+						className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 					>
-						<Edit className="h-4 w-4" />
+						<Edit className="h-5 w-5" />
 						Edit Card
 					</button>
 					<button
 						onClick={onEndReview}
-						className="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+						className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
 					>
-						<X className="h-4 w-4" />
+						<X className="h-5 w-5" />
 						End Review
 					</button>
 				</div>

@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, Play, ArrowLeft, Search } from "lucide-react";
+import {
+	Plus,
+	Edit,
+	Trash2,
+	Play,
+	ArrowLeft,
+	Search,
+	BookOpen,
+} from "lucide-react";
 
 export default function DeckView({
 	appData,
@@ -77,63 +85,67 @@ export default function DeckView({
 			{selectedDeckId && selectedDeck ? (
 				// Show cards in selected deck
 				<div>
-					<div className="mb-4 flex items-center justify-between">
+					<div className="mb-6 flex items-center justify-between">
 						<button
 							onClick={() => onSelectDeck(null)}
-							className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+							className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
 						>
 							<ArrowLeft className="h-5 w-5" />
 							Back to Decks
 						</button>
 					</div>
 
-					<div className="rounded-lg bg-white p-6 shadow dark:bg-slate-800">
-						<div className="mb-4 flex items-center justify-between">
-							<h2 className="text-2xl font-bold">
-								{selectedDeck.deckName}
-							</h2>
+					<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-6 hover:shadow-xl transition-shadow duration-300">
+						<div className="mb-6 flex items-center justify-between">
+							<div className="flex items-center gap-3">
+								<span className="text-4xl">📚</span>
+								<div>
+									<h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
+										{selectedDeck.deckName}
+									</h2>
+									<p className="text-sm text-gray-600 dark:text-slate-400">
+										{selectedDeck.cards.length} card(s)
+									</p>
+								</div>
+							</div>
 							<button
 								onClick={() => onStartReview(selectedDeckId)}
-								className="flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+								className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 							>
 								<Play className="h-5 w-5" />
-								Start Review
+								Study Now
 							</button>
-						</div>
-
-						<div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-							{selectedDeck.cards.length} card(s)
 						</div>
 
 						{/* Add Card Form */}
 						{showNewCardForm ? (
-							<div className="mb-4 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-600">
-								<h3 className="mb-3 font-semibold">
+							<div className="mb-6 rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700 p-6 bg-gray-50 dark:bg-slate-700/50">
+								<h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-slate-100">
 									Add New Card
 								</h3>
-								<div className="space-y-3">
+								<div className="space-y-4">
 									<input
 										type="text"
-										placeholder="Front"
+										placeholder="Front of card..."
 										value={newCardFront}
 										onChange={(e) =>
 											setNewCardFront(e.target.value)
 										}
-										className="w-full rounded-md border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-slate-700"
+										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 									/>
 									<textarea
-										placeholder="Back"
+										placeholder="Back of card..."
 										value={newCardBack}
 										onChange={(e) =>
 											setNewCardBack(e.target.value)
 										}
-										rows={3}
-										className="w-full rounded-md border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-slate-700"
+										rows={4}
+										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none transition-all duration-200"
 									/>
-									<div className="flex gap-2">
+									<div className="flex gap-3">
 										<button
 											onClick={handleAddCard}
-											className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+											className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 										>
 											Add Card
 										</button>
@@ -143,7 +155,7 @@ export default function DeckView({
 												setNewCardFront("");
 												setNewCardBack("");
 											}}
-											className="rounded-md bg-gray-300 px-4 py-2 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500"
+											className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 										>
 											Cancel
 										</button>
@@ -153,7 +165,7 @@ export default function DeckView({
 						) : (
 							<button
 								onClick={() => setShowNewCardForm(true)}
-								className="mb-4 flex items-center gap-2 rounded-md border-2 border-dashed border-gray-400 px-4 py-2 text-gray-600 hover:border-blue-600 hover:text-blue-600 dark:border-gray-600 dark:text-gray-400 dark:hover:border-blue-500 dark:hover:text-blue-400"
+								className="mb-6 flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
 							>
 								<Plus className="h-5 w-5" />
 								Add New Card
@@ -161,56 +173,72 @@ export default function DeckView({
 						)}
 
 						{/* Cards List */}
-						<div className="space-y-3">
+						<div className="space-y-4">
 							{selectedDeck.cards.length === 0 ? (
-								<div className="py-8 text-center text-gray-500 dark:text-gray-400">
-									No cards yet. Add your first card!
+								<div className="py-12 text-center">
+									<div className="text-6xl mb-4">📝</div>
+									<p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
+										No cards yet
+									</p>
+									<p className="text-sm text-gray-400 dark:text-gray-500">
+										Add your first card to get started!
+									</p>
 								</div>
 							) : (
 								selectedDeck.cards.map((card) => (
 									<div
 										key={card.cardId}
-										className="flex items-center justify-between rounded-lg border border-gray-200 p-4 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-slate-700"
+										className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
 									>
-										<div className="flex-1">
-											<div className="font-medium">
-												<span className="text-gray-600 dark:text-gray-400">
-													Front:{" "}
-												</span>
-												{card.front}
+										<div className="flex items-start justify-between">
+											<div className="flex-1">
+												<div className="mb-2">
+													<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
+														Front
+													</h4>
+													<p className="text-base text-gray-900 dark:text-slate-100 font-medium">
+														{card.front}
+													</p>
+												</div>
+												<div className="mb-3">
+													<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
+														Back
+													</h4>
+													<p className="text-base text-gray-700 dark:text-slate-300">
+														{card.back}
+													</p>
+												</div>
+												<div className="flex items-center gap-2">
+													<span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium rounded-md">
+														<BookOpen className="h-3 w-3" />
+														{card.reviews.length}{" "}
+														reviews
+													</span>
+												</div>
 											</div>
-											<div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-												<span className="text-gray-600 dark:text-gray-400">
-													Back:{" "}
-												</span>
-												{card.back}
+											<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+												<button
+													onClick={() =>
+														onEditCard(
+															selectedDeckId,
+															card.cardId
+														)
+													}
+													className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
+												>
+													<Edit className="h-4 w-4" />
+												</button>
+												<button
+													onClick={() =>
+														handleDeleteCard(
+															card.cardId
+														)
+													}
+													className="p-2 text-gray-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
+												>
+													<Trash2 className="h-4 w-4" />
+												</button>
 											</div>
-											<div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-												{card.reviews.length} review(s)
-											</div>
-										</div>
-										<div className="flex gap-2">
-											<button
-												onClick={() =>
-													onEditCard(
-														selectedDeckId,
-														card.cardId
-													)
-												}
-												className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-											>
-												<Edit className="h-4 w-4" />
-											</button>
-											<button
-												onClick={() =>
-													handleDeleteCard(
-														card.cardId
-													)
-												}
-												className="rounded-md bg-red-600 p-2 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
-											>
-												<Trash2 className="h-4 w-4" />
-											</button>
 										</div>
 									</div>
 								))
@@ -221,39 +249,54 @@ export default function DeckView({
 			) : (
 				// Show list of decks
 				<div>
-					<h2 className="mb-4 text-2xl font-bold">Your Decks</h2>
+					{/* Hero Section */}
+					<div className="mb-8 bg-gradient-to-br from-teal-500 via-teal-600 to-cyan-600 rounded-2xl p-8 text-white shadow-2xl animate-fade-in">
+						<h2 className="text-3xl font-bold mb-2">
+							Welcome back! 👋
+						</h2>
+						<p className="text-teal-100 text-lg">
+							You have{" "}
+							{appData.decks.reduce(
+								(total, deck) => total + deck.cards.length,
+								0
+							)}{" "}
+							cards across {appData.decks.length} decks
+						</p>
+					</div>
 
 					{/* Search */}
-					<div className="mb-4 flex items-center gap-2">
-						<Search className="h-5 w-5 text-gray-400" />
-						<input
-							type="text"
-							placeholder="Search decks..."
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-							className="flex-1 rounded-md border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-slate-700"
-						/>
+					<div className="mb-6 flex items-center gap-3">
+						<div className="relative flex-1">
+							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+							<input
+								type="text"
+								placeholder="Search decks..."
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+							/>
+						</div>
 					</div>
 
 					{/* Add Deck Form */}
 					{showNewDeckForm ? (
-						<div className="mb-4 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-600">
-							<h3 className="mb-3 font-semibold">
+						<div className="mb-6 rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700 p-6 bg-gray-50 dark:bg-slate-700/50">
+							<h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-slate-100">
 								Create New Deck
 							</h3>
-							<div className="flex gap-2">
+							<div className="flex gap-3">
 								<input
 									type="text"
-									placeholder="Deck name"
+									placeholder="Deck name..."
 									value={newDeckName}
 									onChange={(e) =>
 										setNewDeckName(e.target.value)
 									}
-									className="flex-1 rounded-md border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-slate-700"
+									className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 								/>
 								<button
 									onClick={handleAddDeck}
-									className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+									className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 								>
 									Create
 								</button>
@@ -262,7 +305,7 @@ export default function DeckView({
 										setShowNewDeckForm(false);
 										setNewDeckName("");
 									}}
-									className="rounded-md bg-gray-300 px-4 py-2 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500"
+									className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 								>
 									Cancel
 								</button>
@@ -271,7 +314,7 @@ export default function DeckView({
 					) : (
 						<button
 							onClick={() => setShowNewDeckForm(true)}
-							className="mb-4 flex items-center gap-2 rounded-md border-2 border-dashed border-gray-400 px-4 py-2 text-gray-600 hover:border-blue-600 hover:text-blue-600 dark:border-gray-600 dark:text-gray-400 dark:hover:border-blue-500 dark:hover:text-blue-400"
+							className="mb-6 flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
 						>
 							<Plus className="h-5 w-5" />
 							Create New Deck
@@ -279,18 +322,29 @@ export default function DeckView({
 					)}
 
 					{/* Decks Grid */}
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 						{filteredDecks.length === 0 ? (
-							<div className="col-span-full py-8 text-center text-gray-500 dark:text-gray-400">
-								{searchTerm
-									? "No decks found matching your search."
-									: "No decks yet. Create your first deck!"}
+							<div className="col-span-full py-12 text-center animate-fade-in">
+								<div className="text-6xl mb-4">📚</div>
+								<p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
+									{searchTerm
+										? "No decks found matching your search."
+										: "No decks yet. Create your first deck!"}
+								</p>
+								{!searchTerm && (
+									<p className="text-sm text-gray-400 dark:text-gray-500">
+										Start building your knowledge base!
+									</p>
+								)}
 							</div>
 						) : (
-							filteredDecks.map((deck) => (
+							filteredDecks.map((deck, index) => (
 								<div
 									key={deck.deckId}
-									className="rounded-lg bg-white p-6 shadow transition hover:shadow-md dark:bg-slate-800"
+									className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 dark:border-slate-700 p-6 transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group animate-slide-up"
+									style={{
+										animationDelay: `${index * 100}ms`,
+									}}
 								>
 									{editingDeckId === deck.deckId ? (
 										<div>
@@ -302,12 +356,12 @@ export default function DeckView({
 														e.target.value
 													)
 												}
-												className="mb-2 w-full rounded-md border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-slate-700"
+												className="mb-4 w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 											/>
-											<div className="flex gap-2">
+											<div className="flex gap-3">
 												<button
 													onClick={handleUpdateDeck}
-													className="flex-1 rounded-md bg-green-600 px-3 py-1 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+													className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
 												>
 													Save
 												</button>
@@ -316,7 +370,7 @@ export default function DeckView({
 														setEditingDeckId(null);
 														setEditingDeckName("");
 													}}
-													className="flex-1 rounded-md bg-gray-300 px-3 py-1 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500"
+													className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 												>
 													Cancel
 												</button>
@@ -324,17 +378,107 @@ export default function DeckView({
 										</div>
 									) : (
 										<>
-											<h3
-												className="mb-2 cursor-pointer text-xl font-semibold hover:text-blue-600 dark:hover:text-blue-400"
-												onClick={() =>
-													onSelectDeck(deck.deckId)
-												}
-											>
-												{deck.deckName}
-											</h3>
-											<p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-												{deck.cards.length} card(s)
-											</p>
+											{/* Header */}
+											<div className="flex items-start justify-between mb-4">
+												<div className="flex items-center gap-3">
+													<span className="text-4xl">
+														📚
+													</span>
+													<div>
+														<h3
+															className="text-xl font-bold text-gray-900 dark:text-slate-100 cursor-pointer hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
+															onClick={() =>
+																onSelectDeck(
+																	deck.deckId
+																)
+															}
+														>
+															{deck.deckName}
+														</h3>
+														<p className="text-sm text-gray-600 dark:text-slate-400">
+															{deck.cards.length}{" "}
+															card(s)
+														</p>
+													</div>
+												</div>
+											</div>
+
+											{/* Stats */}
+											<div className="grid grid-cols-3 gap-3 mb-4">
+												<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+													<div className="text-2xl font-bold text-red-600">
+														{
+															deck.cards.filter(
+																(card) =>
+																	card.whenDue <=
+																	Date.now()
+															).length
+														}
+													</div>
+													<div className="text-xs text-gray-600 dark:text-slate-400">
+														Due
+													</div>
+												</div>
+												<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+													<div className="text-2xl font-bold text-teal-600">
+														{
+															deck.cards.filter(
+																(card) =>
+																	card.reviews
+																		.length ===
+																	0
+															).length
+														}
+													</div>
+													<div className="text-xs text-gray-600 dark:text-slate-400">
+														New
+													</div>
+												</div>
+												<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+													<div className="text-2xl font-bold text-green-600">
+														{
+															deck.cards.filter(
+																(card) =>
+																	card.reviews
+																		.length >
+																	0
+															).length
+														}
+													</div>
+													<div className="text-xs text-gray-600 dark:text-slate-400">
+														Studied
+													</div>
+												</div>
+											</div>
+
+											{/* Progress */}
+											<div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
+												<div
+													className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
+													style={{
+														width: `${
+															deck.cards.length >
+															0
+																? (deck.cards.filter(
+																		(
+																			card
+																		) =>
+																			card
+																				.reviews
+																				.length >
+																			0
+																  ).length /
+																		deck
+																			.cards
+																			.length) *
+																  100
+																: 0
+														}%`,
+													}}
+												/>
+											</div>
+
+											{/* Actions */}
 											<div className="flex gap-2">
 												<button
 													onClick={() =>
@@ -342,7 +486,7 @@ export default function DeckView({
 															deck.deckId
 														)
 													}
-													className="flex-1 rounded-md bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+													className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-lg transition-colors duration-200"
 												>
 													View
 												</button>
@@ -352,9 +496,9 @@ export default function DeckView({
 															deck.deckId
 														)
 													}
-													className="flex-1 rounded-md bg-green-600 px-3 py-2 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+													className="flex-1 px-3 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
 												>
-													Review
+													Study
 												</button>
 												<button
 													onClick={() => {
@@ -365,7 +509,7 @@ export default function DeckView({
 															deck.deckName
 														);
 													}}
-													className="rounded-md bg-gray-600 p-2 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600"
+													className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
 												>
 													<Edit className="h-4 w-4" />
 												</button>
@@ -375,7 +519,7 @@ export default function DeckView({
 															deck.deckId
 														)
 													}
-													className="rounded-md bg-red-600 p-2 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+													className="p-2 text-gray-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
 												>
 													<Trash2 className="h-4 w-4" />
 												</button>
