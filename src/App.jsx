@@ -84,9 +84,23 @@ function App() {
 			reader.onload = (e) => {
 				try {
 					const uploadedData = JSON.parse(e.target.result);
-					setAppData((prev) => ({
-						decks: [...prev.decks, ...uploadedData.decks],
-					}));
+					setAppData((prev) => {
+						// Create a map of uploaded decks by deckId for quick lookup
+						const uploadedDecksMap = new Map();
+						uploadedData.decks.forEach((deck) => {
+							uploadedDecksMap.set(deck.deckId, deck);
+						});
+
+						// Filter out existing decks that have the same deckId as uploaded decks
+						const existingDecks = prev.decks.filter(
+							(deck) => !uploadedDecksMap.has(deck.deckId)
+						);
+
+						// Combine existing decks (without duplicates) and uploaded decks
+						return {
+							decks: [...existingDecks, ...uploadedData.decks],
+						};
+					});
 					alert("Data uploaded successfully!");
 				} catch {
 					alert("Error parsing JSON file");

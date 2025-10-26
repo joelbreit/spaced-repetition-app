@@ -29,5 +29,6 @@ npm i mermaid
 
 2025-10-26
 
+- [ ] When loading decks from JSON via "Upload", replace existing decks that have the same deckId as decks in the uploaded JSON with the new deck
 - [x] Update color theme
 - [x] Creat simple prototype using JSON upload/download
