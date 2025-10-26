@@ -6,7 +6,6 @@
 - [ ] Dark/Light mode
 - [ ] App Icon
 - [ ] App name/title
-- [ ] Create a component to replace `alert()` usage
 
 ## Publish Stage
 
@@ -29,6 +28,7 @@ npm i mermaid
 
 2025-10-26
 
-- [ ] When loading decks from JSON via "Upload", replace existing decks that have the same deckId as decks in the uploaded JSON with the new deck
+- [x] Create a component to replace `alert()` usage
+- [x] When loading decks from JSON via "Upload", replace existing decks that have the same deckId as decks in the uploaded JSON with the new deck
 - [x] Update color theme
 - [x] Creat simple prototype using JSON upload/download

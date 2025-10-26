@@ -8,6 +8,7 @@ import {
 	Search,
 	BookOpen,
 } from "lucide-react";
+import { useNotification } from "../contexts/NotificationContext";
 
 export default function DeckView({
 	appData,
@@ -30,6 +31,7 @@ export default function DeckView({
 	const [newCardBack, setNewCardBack] = useState("");
 	const [showNewCardForm, setShowNewCardForm] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
+	const { showConfirmation } = useNotification();
 
 	const selectedDeck = selectedDeckId
 		? appData.decks.find((d) => d.deckId === selectedDeckId)
@@ -55,12 +57,17 @@ export default function DeckView({
 		}
 	};
 
-	const handleDeleteDeck = (deckId) => {
-		if (
-			window.confirm(
-				"Are you sure you want to delete this deck and all its cards?"
-			)
-		) {
+	const handleDeleteDeck = async (deckId) => {
+		const confirmed = await showConfirmation({
+			title: "Delete Deck",
+			message:
+				"Are you sure you want to delete this deck and all its cards?",
+			confirmText: "Delete",
+			cancelText: "Cancel",
+			type: "danger",
+		});
+
+		if (confirmed) {
 			onDeleteDeck(deckId);
 		}
 	};
@@ -74,8 +81,16 @@ export default function DeckView({
 		}
 	};
 
-	const handleDeleteCard = (cardId) => {
-		if (window.confirm("Are you sure you want to delete this card?")) {
+	const handleDeleteCard = async (cardId) => {
+		const confirmed = await showConfirmation({
+			title: "Delete Card",
+			message: "Are you sure you want to delete this card?",
+			confirmText: "Delete",
+			cancelText: "Cancel",
+			type: "danger",
+		});
+
+		if (confirmed) {
 			onDeleteCard(selectedDeckId, cardId);
 		}
 	};

@@ -11,6 +11,11 @@ import {
 import DeckView from "./components/DeckView";
 import CardEditView from "./components/CardEditView";
 import CardReviewView from "./components/CardReviewView";
+import {
+	NotificationProvider,
+	useNotification,
+} from "./contexts/NotificationContext";
+import NotificationContainer from "./components/NotificationContainer";
 
 // Initial sample data
 const initialData = {
@@ -51,7 +56,7 @@ const initialData = {
 	],
 };
 
-function App() {
+function AppContent() {
 	const [appData, setAppData] = useState(initialData);
 	const [currentView, setCurrentView] = useState("deck"); // deck, edit, review
 	const [selectedDeckId, setSelectedDeckId] = useState(null);
@@ -59,6 +64,7 @@ function App() {
 	const [currentDeckForReview, setCurrentDeckForReview] = useState(null);
 	const [currentCardIndex, setCurrentCardIndex] = useState(0);
 	const [isFlipped, setIsFlipped] = useState(false);
+	const { showSuccess, showError } = useNotification();
 
 	// Load from localStorage on mount
 	useEffect(() => {
@@ -101,14 +107,14 @@ function App() {
 							decks: [...existingDecks, ...uploadedData.decks],
 						};
 					});
-					alert("Data uploaded successfully!");
+					showSuccess("Data uploaded successfully!");
 				} catch {
-					alert("Error parsing JSON file");
+					showError("Error parsing JSON file");
 				}
 			};
 			reader.readAsText(file);
 		} else {
-			alert("Please upload a valid JSON file");
+			showError("Please upload a valid JSON file");
 		}
 		event.target.value = ""; // Reset input
 	};
@@ -275,7 +281,7 @@ function App() {
 			setCurrentCardIndex(currentCardIndex + 1);
 		} else {
 			// End of review
-			alert("Review complete!");
+			showSuccess("Review complete!");
 			setCurrentView("deck");
 			setCurrentDeckForReview(null);
 			setCurrentCardIndex(0);
@@ -284,6 +290,7 @@ function App() {
 
 	return (
 		<div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+			<NotificationContainer />
 			{/* Header */}
 			<header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
 				<div className="mx-auto max-w-7xl px-6">
@@ -396,6 +403,14 @@ function App() {
 				)}
 			</main>
 		</div>
+	);
+}
+
+function App() {
+	return (
+		<NotificationProvider>
+			<AppContent />
+		</NotificationProvider>
 	);
 }
 
