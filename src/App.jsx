@@ -1,233 +1,388 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-} from "recharts";
-import { Settings, Github, Menu, X } from "lucide-react";
+	Upload,
+	Download,
+	Home,
+	Edit,
+	RotateCcw,
+	Check,
+	X,
+} from "lucide-react";
+import DeckView from "./components/DeckView";
+import CardEditView from "./components/CardEditView";
+import CardReviewView from "./components/CardReviewView";
 
-// Sample data for the chart
-const data = [
-    { name: "Jan", value: 400 },
-    { name: "Feb", value: 300 },
-    { name: "Mar", value: 600 },
-    { name: "Apr", value: 800 },
-    { name: "May", value: 500 },
-    { name: "Jun", value: 900 },
-    { name: "Jul", value: 750 },
-    { name: "Aug", value: 850 },
-];
+// Initial sample data
+const initialData = {
+	decks: [
+		{
+			deckId: "1",
+			deckName: "Spanish Vocabulary",
+			cards: [
+				{
+					cardId: "1",
+					front: "Hello",
+					back: "Hola",
+					reviews: [],
+					whenDue: Date.now(),
+				},
+				{
+					cardId: "2",
+					front: "Goodbye",
+					back: "Adiós",
+					reviews: [],
+					whenDue: Date.now(),
+				},
+			],
+		},
+		{
+			deckId: "2",
+			deckName: "Math Facts",
+			cards: [
+				{
+					cardId: "3",
+					front: "2 + 2",
+					back: "4",
+					reviews: [],
+					whenDue: Date.now(),
+				},
+			],
+		},
+	],
+};
 
 function App() {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const [appData, setAppData] = useState(initialData);
+	const [currentView, setCurrentView] = useState("deck"); // deck, edit, review
+	const [selectedDeckId, setSelectedDeckId] = useState(null);
+	const [selectedCardId, setSelectedCardId] = useState(null);
+	const [currentDeckForReview, setCurrentDeckForReview] = useState(null);
+	const [currentCardIndex, setCurrentCardIndex] = useState(0);
+	const [isFlipped, setIsFlipped] = useState(false);
 
-    return (
-        <div className="min-h-screen bg-white text-slate-900 dark:bg-slate-900 dark:text-white">
-            {/* Navigation */}
-            <nav className="bg-white shadow-sm dark:bg-slate-800">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0 text-xl font-bold">
-                                React + Tailwind
-                            </div>
+	// Load from localStorage on mount
+	useEffect(() => {
+		const saved = localStorage.getItem("spacedRepData");
+		if (saved) {
+			try {
+				setAppData(JSON.parse(saved));
+			} catch (e) {
+				console.error("Error loading data:", e);
+			}
+		}
+	}, []);
 
-                            {/* Desktop navigation */}
-                            <div className="hidden md:ml-6 md:flex md:space-x-8">
-                                <a
-                                    href="#"
-                                    className="inline-flex items-center border-b-2 border-indigo-500 px-1 pt-1 text-sm font-medium text-slate-900 dark:text-white"
-                                >
-                                    Dashboard
-                                </a>
-                                <a
-                                    href="#"
-                                    className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:text-slate-300 dark:hover:text-white"
-                                >
-                                    Features
-                                </a>
-                                <a
-                                    href="#"
-                                    className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:text-slate-300 dark:hover:text-white"
-                                >
-                                    About
-                                </a>
-                            </div>
-                        </div>
+	// Save to localStorage whenever data changes
+	useEffect(() => {
+		localStorage.setItem("spacedRepData", JSON.stringify(appData));
+	}, [appData]);
 
-                        <div className="flex items-center">
-                            <button className="rounded-full bg-slate-100 p-1 text-slate-500 hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:hover:text-white">
-                                <span className="sr-only">Settings</span>
-                                <Settings className="h-6 w-6" />
-                            </button>
+	const handleUpload = (event) => {
+		const file = event.target.files[0];
+		if (file && file.type === "application/json") {
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				try {
+					const uploadedData = JSON.parse(e.target.result);
+					setAppData((prev) => ({
+						decks: [...prev.decks, ...uploadedData.decks],
+					}));
+					alert("Data uploaded successfully!");
+				} catch {
+					alert("Error parsing JSON file");
+				}
+			};
+			reader.readAsText(file);
+		} else {
+			alert("Please upload a valid JSON file");
+		}
+		event.target.value = ""; // Reset input
+	};
 
-                            <a
-                                href="https://github.com"
-                                className="ml-3 rounded-full bg-slate-100 p-1 text-slate-500 hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:hover:text-white"
-                            >
-                                <span className="sr-only">GitHub</span>
-                                <Github className="h-6 w-6" />
-                            </a>
+	const handleDownload = () => {
+		const dataStr = JSON.stringify(appData, null, 2);
+		const dataBlob = new Blob([dataStr], { type: "application/json" });
+		const url = URL.createObjectURL(dataBlob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = "spaced-repetition-data.json";
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+	};
 
-                            {/* Mobile menu button */}
-                            <div className="flex items-center md:hidden">
-                                <button
-                                    type="button"
-                                    className="ml-3 inline-flex items-center justify-center rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
-                                    onClick={() =>
-                                        setIsMobileMenuOpen(!isMobileMenuOpen)
-                                    }
-                                >
-                                    <span className="sr-only">
-                                        Open main menu
-                                    </span>
-                                    {isMobileMenuOpen ? (
-                                        <X
-                                            className="block h-6 w-6"
-                                            aria-hidden="true"
-                                        />
-                                    ) : (
-                                        <Menu
-                                            className="block h-6 w-6"
-                                            aria-hidden="true"
-                                        />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+	const addDeck = (deckName) => {
+		const newDeck = {
+			deckId: Date.now().toString(),
+			deckName,
+			cards: [],
+		};
+		setAppData((prev) => ({
+			decks: [...prev.decks, newDeck],
+		}));
+	};
 
-                {/* Mobile menu, show/hide based on menu state */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden">
-                        <div className="space-y-1 pb-3 pt-2">
-                            <a
-                                href="#"
-                                className="block border-l-4 border-indigo-500 bg-indigo-50 py-2 pl-3 pr-4 text-base font-medium text-indigo-700 dark:bg-slate-700 dark:text-white"
-                            >
-                                Dashboard
-                            </a>
-                            <a
-                                href="#"
-                                className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
-                            >
-                                Features
-                            </a>
-                            <a
-                                href="#"
-                                className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
-                            >
-                                About
-                            </a>
-                        </div>
-                    </div>
-                )}
-            </nav>
+	const updateDeck = (deckId, deckName) => {
+		setAppData((prev) => ({
+			decks: prev.decks.map((deck) =>
+				deck.deckId === deckId ? { ...deck, deckName } : deck
+			),
+		}));
+	};
 
-            {/* Main content */}
-            <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold">Dashboard</h1>
-                    <p className="mt-2 text-slate-500 dark:text-slate-400">
-                        Welcome to your React + Tailwind v4 template with
-                        Recharts and Lucide icons.
-                    </p>
-                </div>
+	const deleteDeck = (deckId) => {
+		setAppData((prev) => ({
+			decks: prev.decks.filter((deck) => deck.deckId !== deckId),
+		}));
+		if (selectedDeckId === deckId) {
+			setCurrentView("deck");
+			setSelectedDeckId(null);
+		}
+	};
 
-                {/* Chart section */}
-                <div className="rounded-lg bg-white p-6 shadow dark:bg-slate-800">
-                    <h2 className="mb-4 text-xl font-semibold">
-                        Monthly Performance
-                    </h2>
-                    <div className="h-80">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart
-                                data={data}
-                                margin={{
-                                    top: 5,
-                                    right: 30,
-                                    left: 20,
-                                    bottom: 5,
-                                }}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                <Line
-                                    type="monotone"
-                                    dataKey="value"
-                                    stroke="#6366f1"
-                                    strokeWidth={2}
-                                    activeDot={{ r: 8 }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+	const addCard = (deckId, front, back) => {
+		const newCard = {
+			cardId: Date.now().toString(),
+			front,
+			back,
+			reviews: [],
+			whenDue: Date.now(),
+		};
+		setAppData((prev) => ({
+			decks: prev.decks.map((deck) =>
+				deck.deckId === deckId
+					? { ...deck, cards: [...deck.cards, newCard] }
+					: deck
+			),
+		}));
+	};
 
-                {/* Features grid */}
-                <div className="mt-8">
-                    <h2 className="mb-4 text-xl font-semibold">
-                        Template Features
-                    </h2>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {[
-                            {
-                                title: "React",
-                                description:
-                                    "Build interactive UIs with component-based architecture",
-                            },
-                            {
-                                title: "Tailwind v4",
-                                description:
-                                    "Utility-first CSS framework for rapid UI development",
-                            },
-                            {
-                                title: "Vite",
-                                description:
-                                    "Next generation frontend tooling for fast development",
-                            },
-                            {
-                                title: "Recharts",
-                                description:
-                                    "Redefined chart library built with React and D3",
-                            },
-                            {
-                                title: "Lucide Icons",
-                                description:
-                                    "Beautiful & consistent icon set with over 1000 icons",
-                            },
-                            {
-                                title: "Responsive Design",
-                                description:
-                                    "Mobile-first approach for all device sizes",
-                            },
-                        ].map((feature, index) => (
-                            <div
-                                key={index}
-                                className="rounded-lg bg-white p-6 shadow transition hover:shadow-md dark:bg-slate-800"
-                            >
-                                <h3 className="text-lg font-medium">
-                                    {feature.title}
-                                </h3>
-                                <p className="mt-2 text-slate-500 dark:text-slate-400">
-                                    {feature.description}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </main>
-        </div>
-    );
+	const updateCard = (deckId, cardId, front, back) => {
+		setAppData((prev) => ({
+			decks: prev.decks.map((deck) =>
+				deck.deckId === deckId
+					? {
+							...deck,
+							cards: deck.cards.map((card) =>
+								card.cardId === cardId
+									? { ...card, front, back }
+									: card
+							),
+					  }
+					: deck
+			),
+		}));
+	};
+
+	const deleteCard = (deckId, cardId) => {
+		setAppData((prev) => ({
+			decks: prev.decks.map((deck) =>
+				deck.deckId === deckId
+					? {
+							...deck,
+							cards: deck.cards.filter(
+								(card) => card.cardId !== cardId
+							),
+					  }
+					: deck
+			),
+		}));
+	};
+
+	const startReview = (deckId) => {
+		const deck = appData.decks.find((d) => d.deckId === deckId);
+		if (deck) {
+			setCurrentDeckForReview(deck);
+			setCurrentCardIndex(0);
+			setIsFlipped(false);
+			setCurrentView("review");
+		}
+	};
+
+	const recordReview = (result) => {
+		if (!currentDeckForReview) return;
+
+		const card = currentDeckForReview.cards[currentCardIndex];
+		if (!card) return;
+
+		const review = {
+			reviewId: Date.now().toString(),
+			timestamp: Date.now(),
+			result, // "again", "hard", "good", "easy"
+		};
+
+		// Calculate next due date based on SM-2 algorithm
+		const now = Date.now();
+		let nextDue = now;
+
+		if (result === "again") {
+			nextDue = now; // Due immediately
+		} else if (result === "hard") {
+			nextDue = now + 1.2 * 24 * 60 * 60 * 1000; // 1.2 days
+		} else if (result === "good") {
+			nextDue = now + 2 * 24 * 60 * 60 * 1000; // 2 days
+		} else if (result === "easy") {
+			nextDue = now + 4 * 24 * 60 * 60 * 1000; // 4 days
+		}
+
+		// Update the card in the data
+		const updatedCard = {
+			...card,
+			reviews: [...card.reviews, review],
+			whenDue: nextDue,
+		};
+
+		setAppData((prev) => ({
+			decks: prev.decks.map((deck) =>
+				deck.deckId === currentDeckForReview.deckId
+					? {
+							...deck,
+							cards: deck.cards.map((c) =>
+								c.cardId === card.cardId ? updatedCard : c
+							),
+					  }
+					: deck
+			),
+		}));
+
+		// Update current deck for review
+		const updatedCards = currentDeckForReview.cards.map((c) =>
+			c.cardId === card.cardId ? updatedCard : c
+		);
+		setCurrentDeckForReview({
+			...currentDeckForReview,
+			cards: updatedCards,
+		});
+
+		// Move to next card
+		setIsFlipped(false);
+		if (currentCardIndex < currentDeckForReview.cards.length - 1) {
+			setCurrentCardIndex(currentCardIndex + 1);
+		} else {
+			// End of review
+			alert("Review complete!");
+			setCurrentView("deck");
+			setCurrentDeckForReview(null);
+			setCurrentCardIndex(0);
+		}
+	};
+
+	return (
+		<div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+			{/* Header */}
+			<header className="bg-white shadow-sm dark:bg-slate-800">
+				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+					<div className="flex h-16 items-center justify-between">
+						<div className="flex items-center space-x-4">
+							<h1 className="text-xl font-bold text-slate-900 dark:text-white">
+								Spaced Repetition Flashcards
+							</h1>
+						</div>
+						<div className="flex items-center space-x-2">
+							{currentView !== "deck" && (
+								<button
+									onClick={() => {
+										setCurrentView("deck");
+										setSelectedDeckId(null);
+										setSelectedCardId(null);
+										setIsFlipped(false);
+									}}
+									className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+								>
+									<Home className="h-5 w-5" />
+								</button>
+							)}
+							<input
+								type="file"
+								accept=".json"
+								onChange={handleUpload}
+								className="hidden"
+								id="upload-file"
+							/>
+							<label
+								htmlFor="upload-file"
+								className="inline-flex cursor-pointer items-center rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+							>
+								<Upload className="mr-2 h-5 w-5" />
+								Upload
+							</label>
+							<button
+								onClick={handleDownload}
+								className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+							>
+								<Download className="mr-2 h-5 w-5" />
+								Download
+							</button>
+						</div>
+					</div>
+				</div>
+			</header>
+
+			{/* Main content */}
+			<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+				{currentView === "deck" && (
+					<DeckView
+						appData={appData}
+						selectedDeckId={selectedDeckId}
+						onSelectDeck={setSelectedDeckId}
+						onAddDeck={addDeck}
+						onUpdateDeck={updateDeck}
+						onDeleteDeck={deleteDeck}
+						onAddCard={addCard}
+						onUpdateCard={updateCard}
+						onDeleteCard={deleteCard}
+						onEditCard={(deckId, cardId) => {
+							setSelectedDeckId(deckId);
+							setSelectedCardId(cardId);
+							setCurrentView("edit");
+						}}
+						onStartReview={startReview}
+					/>
+				)}
+				{currentView === "edit" && (
+					<CardEditView
+						appData={appData}
+						deckId={selectedDeckId}
+						cardId={selectedCardId}
+						onSave={(deckId, cardId, front, back) => {
+							if (cardId) {
+								updateCard(deckId, cardId, front, back);
+							} else {
+								addCard(deckId, front, back);
+							}
+							setCurrentView("deck");
+							setSelectedCardId(null);
+						}}
+						onCancel={() => {
+							setCurrentView("deck");
+							setSelectedCardId(null);
+						}}
+					/>
+				)}
+				{currentView === "review" && currentDeckForReview && (
+					<CardReviewView
+						deck={currentDeckForReview}
+						currentCardIndex={currentCardIndex}
+						isFlipped={isFlipped}
+						onFlip={() => setIsFlipped(!isFlipped)}
+						onReview={recordReview}
+						onEditCard={(cardId) => {
+							setSelectedDeckId(currentDeckForReview.deckId);
+							setSelectedCardId(cardId);
+							setCurrentView("edit");
+						}}
+						onEndReview={() => {
+							setCurrentView("deck");
+							setCurrentDeckForReview(null);
+							setCurrentCardIndex(0);
+							setIsFlipped(false);
+						}}
+					/>
+				)}
+			</main>
+		</div>
+	);
 }
 
 export default App;

@@ -1,3 +1,33 @@
 # Tasks
 
-- [ ] Creat simple prototype using JSON upload/download
+## Prototype Stage
+
+- [ ] Allow search to search card data, not just deck names
+- [ ] Update color theme
+- [ ] Dark/Light mode
+- [ ] App Icon
+- [ ] App name/title
+- [ ] Create a component to replace `alert()` usage
+
+## Publish Stage
+
+- [ ] Database
+- [ ] User login
+
+## Optional additional libraries
+
+```bash
+
+# Data visualization libraries
+npm i plotly.js
+npm i chart.js
+
+# Mermaid diagramming
+npm i mermaid
+```
+
+## Complete
+
+2025-10-26
+
+- [x] Creat simple prototype using JSON upload/download

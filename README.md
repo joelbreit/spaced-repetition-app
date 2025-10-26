@@ -1,8 +1,15 @@
-# Spaced Repetition App
+# Spaced Repetition Flashcards App
 
-This is a **React web app** using **Tailwind v4** for styling. It includes a few libraries that I often use, such as **Recharts** for charts and **Lucide** for icons. The template is set up with **Vite** for fast development and **JavaScript** for simplicity/compatibility. This app was bootstrapped based on [my template for React + Tailwind web applications](https://github.com/joelbreit/react-tailwind-template)
+A modern flashcards application built with React, Tailwind CSS, and spaced repetition algorithms. Create and manage your flashcard decks, review them with an intelligent scheduling system, and track your learning progress.
 
-## Dev Setup
+## Tech Stack
+
+- **React** - UI framework
+- **Tailwind CSS v4** - Styling
+- **Lucide React** - Icons
+- **Vite** - Build tool
+
+## Getting Started
 
 1. Install dependencies
 
@@ -10,45 +17,58 @@ This is a **React web app** using **Tailwind v4** for styling. It includes a few
 npm install
 ```
 
-2. Verify that the project is working
+2. Run the development server
 
 ```bash
-npm run dev # http://localhost:5173
+npm run dev
 ```
 
-## Build the project
+Visit `http://localhost:5173` in your browser.
 
-To build the project for production, run:
+## Building for Production
 
 ```bash
 npm run build
-npm run preview # http://localhost:5173
+npm run preview
 ```
 
-## Optional additional libraries
+## Data Structure
 
-```bash
-# Utility and data manipulation
-npm i lodash
-npm i mathjs
+The app uses a JSON structure for storing deck and card data:
 
-# Data visualization libraries
-npm i d3
-npm i plotly.js
-npm i chart.js
-
-# Audio and 3D libraries
-npm i tone
-npm i three
-
-# Document processing
-npm i mammoth
-npm i papaparse
-npm i xlsx
-
-# Machine learning
-npm i @tensorflow/tfjs
-
-# Mermaid diagramming
-npm i mermaid
+```json
+{
+  "decks": [
+    {
+      "deckId": "unique-id",
+      "deckName": "Deck Name",
+      "cards": [
+        {
+          "cardId": "unique-id",
+          "front": "Question or front of card",
+          "back": "Answer or back of card",
+          "reviews": [
+            {
+              "reviewId": "unique-id",
+              "timestamp": 1234567890,
+              "result": "again" | "hard" | "good" | "easy"
+            }
+          ],
+          "whenDue": 1234567890
+        }
+      ]
+    }
+  ]
+}
 ```
+
+## How Spaced Repetition Works
+
+The app uses a simplified spaced repetition algorithm:
+
+- **Again**: Card is due immediately (next review now)
+- **Hard**: Card is scheduled for 1.2 days
+- **Good**: Card is scheduled for 2 days
+- **Easy**: Card is scheduled for 4 days
+
+The system tracks all your reviews and schedules cards based on your performance to optimize long-term retention.
