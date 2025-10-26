@@ -3,6 +3,7 @@
 ## Prototype Stage
 
 - [ ] Dark/Light mode
+- [ ] Card flip animation
 
 ## Publish Stage
 

@@ -7,11 +7,14 @@ import {
 	RotateCcw,
 	Check,
 	X,
+	Moon,
+	Sun,
 } from "lucide-react";
 import DeckView from "./components/DeckView";
 import CardEditView from "./components/CardEditView";
 import CardReviewView from "./components/CardReviewView";
 import { NotificationProvider } from "./contexts/NotificationContext.jsx";
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { useNotification } from "./hooks/useNotification";
 import NotificationContainer from "./components/NotificationContainer";
 
@@ -63,6 +66,7 @@ function AppContent() {
 	const [currentCardIndex, setCurrentCardIndex] = useState(0);
 	const [isFlipped, setIsFlipped] = useState(false);
 	const { showSuccess, showError } = useNotification();
+	const { isDark, toggleTheme } = useTheme();
 
 	// Load from localStorage on mount
 	useEffect(() => {
@@ -299,6 +303,17 @@ function AppContent() {
 							</h1>
 						</div>
 						<div className="flex items-center space-x-3">
+							<button
+								onClick={toggleTheme}
+								className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+								aria-label="Toggle theme"
+							>
+								{isDark ? (
+									<Sun className="h-5 w-5" />
+								) : (
+									<Moon className="h-5 w-5" />
+								)}
+							</button>
 							{currentView !== "deck" && (
 								<button
 									onClick={() => {
@@ -406,9 +421,11 @@ function AppContent() {
 
 function App() {
 	return (
-		<NotificationProvider>
-			<AppContent />
-		</NotificationProvider>
+		<ThemeProvider>
+			<NotificationProvider>
+				<AppContent />
+			</NotificationProvider>
+		</ThemeProvider>
 	);
 }
 
