@@ -1,3 +1,6 @@
+# Exclude
+exclude/
+
 # Logs
 logs
 *.log
