@@ -1,5 +1,4 @@
-import { loadFromS3, saveToS3 } from "./services/s3Storage";
-import { useEffect, useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
 	Upload,
 	Download,
@@ -10,6 +9,10 @@ import {
 	X,
 	Moon,
 	Sun,
+	Wifi,
+	WifiOff,
+	Cloud,
+	CloudOff,
 } from "lucide-react";
 import DeckView from "./components/DeckView";
 import CardEditView from "./components/CardEditView";
@@ -18,8 +21,9 @@ import { NotificationProvider } from "./contexts/NotificationContext.jsx";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { useNotification } from "./hooks/useNotification";
 import NotificationContainer from "./components/NotificationContainer";
+import { loadFromAPI, saveToAPI, checkAPIHealth } from "./services/apiStorage";
 
-// Initial sample data
+// Initial sample data (used only if API has no data)
 const initialData = {
 	decks: [
 		{
@@ -60,38 +64,80 @@ const initialData = {
 
 function AppContent() {
 	const [appData, setAppData] = useState(initialData);
-	const [isLoading, setIsLoading] = useState(true);
-	const [isSaving, setIsSaving] = useState(false);
-	const saveTimeoutRef = useRef(null);
-	const [currentView, setCurrentView] = useState("deck"); // deck, edit, review
+	const [currentView, setCurrentView] = useState("deck");
 	const [selectedDeckId, setSelectedDeckId] = useState(null);
 	const [selectedCardId, setSelectedCardId] = useState(null);
 	const [currentDeckForReview, setCurrentDeckForReview] = useState(null);
 	const [currentCardIndex, setCurrentCardIndex] = useState(0);
 	const [isFlipped, setIsFlipped] = useState(false);
-	const { showSuccess, showError } = useNotification();
-	// const { isDark, toggleTheme } = useTheme();
+	const [isLoading, setIsLoading] = useState(true);
+	const [isSaving, setIsSaving] = useState(false);
+	const [isOnline, setIsOnline] = useState(true);
+	const [lastSyncTime, setLastSyncTime] = useState(null);
+	const { showSuccess, showError, showWarning } = useNotification();
+	const { isDark, toggleTheme } = useTheme();
+	const saveTimeoutRef = useRef(null);
+	const hasMadeChanges = useRef(false);
 
-	// Load from S3 on mount
+	// Check API health on mount
+	useEffect(() => {
+		async function checkHealth() {
+			const healthy = await checkAPIHealth();
+			setIsOnline(healthy);
+			if (!healthy) {
+				showWarning("API is not accessible. Using local data only.");
+			}
+		}
+		checkHealth();
+	}, []);
+
+	// Load from API on mount
 	useEffect(() => {
 		async function loadData() {
+			setIsLoading(true);
 			try {
-				const cloudData = await loadFromS3();
-				if (cloudData) {
-					setAppData(cloudData);
-				} else {
-					// Try localStorage as fallback
+				const cloudData = await loadFromAPI();
+
+				// If API returns empty data, check localStorage
+				if (
+					!cloudData ||
+					!cloudData.decks ||
+					cloudData.decks.length === 0
+				) {
 					const localData = localStorage.getItem("spacedRepData");
 					if (localData) {
-						setAppData(JSON.parse(localData));
+						const parsed = JSON.parse(localData);
+						setAppData(parsed);
+						// Upload local data to API
+						await saveToAPI(parsed);
+						showSuccess("Local data synced to cloud");
+					} else {
+						setAppData(initialData);
 					}
+				} else {
+					setAppData(cloudData);
+					// Also save to localStorage as backup
+					localStorage.setItem(
+						"spacedRepData",
+						JSON.stringify(cloudData)
+					);
 				}
+
+				setLastSyncTime(new Date());
+				setIsOnline(true);
 			} catch (error) {
-				showError(`Failed to load data from cloud: ${error.message}`);
+				console.error("Failed to load from API:", error);
+				showError(
+					"Failed to load data from cloud. Using local backup."
+				);
+				setIsOnline(false);
+
 				// Fallback to localStorage
 				const localData = localStorage.getItem("spacedRepData");
 				if (localData) {
 					setAppData(JSON.parse(localData));
+				} else {
+					setAppData(initialData);
 				}
 			} finally {
 				setIsLoading(false);
@@ -100,24 +146,36 @@ function AppContent() {
 		loadData();
 	}, []);
 
-	// Auto-save to S3 (debounced)
+	// Auto-save to API (debounced)
 	useEffect(() => {
 		if (isLoading) return;
+		if (!hasMadeChanges.current) {
+			hasMadeChanges.current = true;
+			return; // Skip first render
+		}
 
 		// Clear existing timeout
 		if (saveTimeoutRef.current) {
 			clearTimeout(saveTimeoutRef.current);
 		}
 
+		// Set saving indicator
+		setIsSaving(true);
+
 		// Save after 2 seconds of no changes
 		saveTimeoutRef.current = setTimeout(async () => {
 			try {
-				setIsSaving(true);
-				await saveToS3(appData);
+				await saveToAPI(appData);
 				// Also save to localStorage as backup
 				localStorage.setItem("spacedRepData", JSON.stringify(appData));
+				setLastSyncTime(new Date());
+				setIsOnline(true);
 			} catch (error) {
-				showError(`Failed to save to cloud: ${error.message}`);
+				console.error("Failed to save to API:", error);
+				showError("Failed to save to cloud. Data saved locally.");
+				setIsOnline(false);
+				// Still save to localStorage
+				localStorage.setItem("spacedRepData", JSON.stringify(appData));
 			} finally {
 				setIsSaving(false);
 			}
@@ -130,18 +188,21 @@ function AppContent() {
 		};
 	}, [appData, isLoading]);
 
-	if (isLoading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin h-12 w-12 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4" />
-					<p className="text-gray-600 dark:text-slate-400">
-						Loading your flashcards...
-					</p>
-				</div>
-			</div>
-		);
-	}
+	// Manual sync function
+	const handleManualSync = async () => {
+		try {
+			setIsSaving(true);
+			await saveToAPI(appData);
+			setLastSyncTime(new Date());
+			setIsOnline(true);
+			showSuccess("Data synced successfully!");
+		} catch (error) {
+			showError("Failed to sync data");
+			setIsOnline(false);
+		} finally {
+			setIsSaving(false);
+		}
+	};
 
 	const handleUpload = (event) => {
 		const file = event.target.files[0];
@@ -151,18 +212,15 @@ function AppContent() {
 				try {
 					const uploadedData = JSON.parse(e.target.result);
 					setAppData((prev) => {
-						// Create a map of uploaded decks by deckId for quick lookup
 						const uploadedDecksMap = new Map();
 						uploadedData.decks.forEach((deck) => {
 							uploadedDecksMap.set(deck.deckId, deck);
 						});
 
-						// Filter out existing decks that have the same deckId as uploaded decks
 						const existingDecks = prev.decks.filter(
 							(deck) => !uploadedDecksMap.has(deck.deckId)
 						);
 
-						// Combine existing decks (without duplicates) and uploaded decks
 						return {
 							decks: [...existingDecks, ...uploadedData.decks],
 						};
@@ -176,7 +234,7 @@ function AppContent() {
 		} else {
 			showError("Please upload a valid JSON file");
 		}
-		event.target.value = ""; // Reset input
+		event.target.value = "";
 	};
 
 	const handleDownload = () => {
@@ -348,6 +406,22 @@ function AppContent() {
 		}
 	};
 
+	if (isLoading) {
+		return (
+			<div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
+				<div className="text-center">
+					<div className="animate-spin h-12 w-12 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4" />
+					<p className="text-gray-600 dark:text-slate-400 text-lg">
+						Loading your flashcards...
+					</p>
+					<p className="text-gray-500 dark:text-slate-500 text-sm mt-2">
+						Syncing with cloud
+					</p>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="min-h-screen bg-gray-50 dark:bg-slate-900">
 			<NotificationContainer />
@@ -359,19 +433,48 @@ function AppContent() {
 							<h1 className="text-2xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
 								Spaced Repetition Flashcards
 							</h1>
+
+							{/* Sync Status Indicator */}
+							<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
+								{isSaving ? (
+									<>
+										<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
+										<span className="text-xs text-gray-600 dark:text-slate-400">
+											Saving...
+										</span>
+									</>
+								) : isOnline ? (
+									<>
+										<Cloud className="h-3 w-3 text-green-500" />
+										<span className="text-xs text-gray-600 dark:text-slate-400">
+											Synced
+										</span>
+									</>
+								) : (
+									<>
+										<CloudOff className="h-3 w-3 text-orange-500" />
+										<span className="text-xs text-gray-600 dark:text-slate-400">
+											Offline
+										</span>
+									</>
+								)}
+							</div>
 						</div>
 						<div className="flex items-center space-x-3">
-							{/* <button
-								onClick={toggleTheme}
-								className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-								aria-label="Toggle theme"
+							{/* Manual Sync Button */}
+							<button
+								onClick={handleManualSync}
+								disabled={isSaving}
+								className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50"
+								title="Sync now"
 							>
-								{isDark ? (
-									<Sun className="h-5 w-5" />
-								) : (
-									<Moon className="h-5 w-5" />
-								)}
-							</button> */}
+								<RotateCcw
+									className={`h-5 w-5 ${
+										isSaving ? "animate-spin" : ""
+									}`}
+								/>
+							</button>
+
 							{currentView !== "deck" && (
 								<button
 									onClick={() => {
