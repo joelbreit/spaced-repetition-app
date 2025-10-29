@@ -4,6 +4,7 @@
 
 - [ ] Dark/Light mode
 - [ ] Card flip animation
+- [ ] TypeScript?
 
 ## Publish Stage
 
