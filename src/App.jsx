@@ -86,21 +86,34 @@ function AppContent() {
 	const [isOnline, setIsOnline] = useState(true);
 	const [lastSyncTime, setLastSyncTime] = useState(null);
 	const { showSuccess, showError, showWarning } = useNotification();
-	const { isDark, toggleTheme } = useTheme();
+	// const { isDark, toggleTheme } = useTheme();
 	const saveTimeoutRef = useRef(null);
 	const hasMadeChanges = useRef(false);
+	const healthCheckInProgress = useRef(false);
 
 	// Check API health on mount
 	useEffect(() => {
 		async function checkHealth() {
-			const healthy = await checkAPIHealth();
-			setIsOnline(healthy);
-			if (!healthy) {
-				showWarning("API is not accessible. Using local data only.");
+			// Prevent concurrent health checks
+			if (healthCheckInProgress.current) {
+				return;
+			}
+
+			healthCheckInProgress.current = true;
+			try {
+				const healthy = await checkAPIHealth();
+				setIsOnline(healthy);
+				if (!healthy) {
+					showWarning(
+						"API is not accessible. Using local data only."
+					);
+				}
+			} finally {
+				healthCheckInProgress.current = false;
 			}
 		}
 		checkHealth();
-	}, []);
+	}, [showWarning]);
 
 	// Load from API on mount
 	// Update loadFromAPI calls to include authToken

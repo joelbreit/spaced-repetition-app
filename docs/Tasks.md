@@ -5,11 +5,16 @@
 - [ ] Dark/Light mode
 - [ ] Card flip animation
 - [ ] TypeScript?
+- [ ] Replace `alert("Account confirmed! Please log in.");`
+- [ ] Allow confirmation of prompts / form submissions with 'Enter'
+  - [ ] Delete deck dialog
+- [ ] Deck folders
+- [ ] Show count of search results
 
 ## Publish Stage
 
-- [ ] Database
-- [ ] User login
+- [x] Database
+- [x] User login
 
 ## Optional additional libraries
 
