@@ -5,19 +5,24 @@ if (!API_ENDPOINT) {
 }
 
 /**
- * Load flashcard data from the API
+ * Load flashcard data from the API (with authentication)
+ * @param {string} authToken - JWT token from Cognito
  * @returns {Promise<Object>} The flashcard data
  */
-export async function loadFromAPI() {
+export async function loadFromAPI(authToken) {
 	try {
 		const response = await fetch(`${API_ENDPOINT}/data`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${authToken}`,
 			},
 		});
 
 		if (!response.ok) {
+			if (response.status === 401) {
+				throw new Error('Unauthorized - please log in again');
+			}
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
@@ -30,21 +35,26 @@ export async function loadFromAPI() {
 }
 
 /**
- * Save flashcard data to the API
+ * Save flashcard data to the API (with authentication)
  * @param {Object} data - The flashcard data to save
+ * @param {string} authToken - JWT token from Cognito
  * @returns {Promise<Object>} Response from the API
  */
-export async function saveToAPI(data) {
+export async function saveToAPI(data, authToken) {
 	try {
 		const response = await fetch(`${API_ENDPOINT}/data`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${authToken}`,
 			},
 			body: JSON.stringify(data),
 		});
 
 		if (!response.ok) {
+			if (response.status === 401) {
+				throw new Error('Unauthorized - please log in again');
+			}
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
@@ -63,11 +73,10 @@ export async function saveToAPI(data) {
 export async function checkAPIHealth() {
 	try {
 		const response = await fetch(`${API_ENDPOINT}/data`, {
-			method: 'GET',
+			method: 'OPTIONS',
 		});
 		return response.ok;
 	} catch (error) {
-		console.error(`Error: ${error}`);
 		return false;
 	}
 }

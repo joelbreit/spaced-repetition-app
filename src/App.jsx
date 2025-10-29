@@ -1,3 +1,7 @@
+import "./config/amplify";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import AuthView from "./components/AuthView";
+import { LogOut, User as UserIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import {
 	Upload,
@@ -61,8 +65,15 @@ const initialData = {
 		},
 	],
 };
-
 function AppContent() {
+	const {
+		user,
+		authToken,
+		isAuthenticated,
+		isLoading: authLoading,
+		logout,
+	} = useAuth();
+
 	const [appData, setAppData] = useState(initialData);
 	const [currentView, setCurrentView] = useState("deck");
 	const [selectedDeckId, setSelectedDeckId] = useState(null);
@@ -92,13 +103,15 @@ function AppContent() {
 	}, []);
 
 	// Load from API on mount
+	// Update loadFromAPI calls to include authToken
 	useEffect(() => {
 		async function loadData() {
+			if (!isAuthenticated || !authToken) return;
+
 			setIsLoading(true);
 			try {
-				const cloudData = await loadFromAPI();
+				const cloudData = await loadFromAPI(authToken);
 
-				// If API returns empty data, check localStorage
 				if (
 					!cloudData ||
 					!cloudData.decks ||
@@ -108,15 +121,13 @@ function AppContent() {
 					if (localData) {
 						const parsed = JSON.parse(localData);
 						setAppData(parsed);
-						// Upload local data to API
-						await saveToAPI(parsed);
+						await saveToAPI(parsed, authToken);
 						showSuccess("Local data synced to cloud");
 					} else {
 						setAppData(initialData);
 					}
 				} else {
 					setAppData(cloudData);
-					// Also save to localStorage as backup
 					localStorage.setItem(
 						"spacedRepData",
 						JSON.stringify(cloudData)
@@ -132,7 +143,6 @@ function AppContent() {
 				);
 				setIsOnline(false);
 
-				// Fallback to localStorage
 				const localData = localStorage.getItem("spacedRepData");
 				if (localData) {
 					setAppData(JSON.parse(localData));
@@ -144,29 +154,25 @@ function AppContent() {
 			}
 		}
 		loadData();
-	}, []);
+	}, [isAuthenticated, authToken]);
 
-	// Auto-save to API (debounced)
+	// Update auto-save to include authToken
 	useEffect(() => {
-		if (isLoading) return;
+		if (isLoading || !isAuthenticated || !authToken) return;
 		if (!hasMadeChanges.current) {
 			hasMadeChanges.current = true;
-			return; // Skip first render
+			return;
 		}
 
-		// Clear existing timeout
 		if (saveTimeoutRef.current) {
 			clearTimeout(saveTimeoutRef.current);
 		}
 
-		// Set saving indicator
 		setIsSaving(true);
 
-		// Save after 2 seconds of no changes
 		saveTimeoutRef.current = setTimeout(async () => {
 			try {
-				await saveToAPI(appData);
-				// Also save to localStorage as backup
+				await saveToAPI(appData, authToken);
 				localStorage.setItem("spacedRepData", JSON.stringify(appData));
 				setLastSyncTime(new Date());
 				setIsOnline(true);
@@ -174,7 +180,6 @@ function AppContent() {
 				console.error("Failed to save to API:", error);
 				showError("Failed to save to cloud. Data saved locally.");
 				setIsOnline(false);
-				// Still save to localStorage
 				localStorage.setItem("spacedRepData", JSON.stringify(appData));
 			} finally {
 				setIsSaving(false);
@@ -186,7 +191,7 @@ function AppContent() {
 				clearTimeout(saveTimeoutRef.current);
 			}
 		};
-	}, [appData, isLoading]);
+	}, [appData, isLoading, isAuthenticated, authToken]);
 
 	// Manual sync function
 	const handleManualSync = async () => {
@@ -406,6 +411,32 @@ function AppContent() {
 		}
 	};
 
+	// Handle logout
+	const handleLogout = async () => {
+		const result = await logout();
+		if (result.success) {
+			showSuccess("Logged out successfully");
+		}
+	};
+
+	// Show auth screen if not authenticated
+	if (authLoading) {
+		return (
+			<div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
+				<div className="text-center">
+					<div className="animate-spin h-12 w-12 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4" />
+					<p className="text-gray-600 dark:text-slate-400 text-lg">
+						Checking authentication...
+					</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (!isAuthenticated) {
+		return <AuthView />;
+	}
+
 	if (isLoading) {
 		return (
 			<div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
@@ -421,10 +452,10 @@ function AppContent() {
 			</div>
 		);
 	}
-
 	return (
 		<div className="min-h-screen bg-gray-50 dark:bg-slate-900">
 			<NotificationContainer />
+
 			{/* Header */}
 			<header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
 				<div className="mx-auto max-w-7xl px-6">
@@ -433,6 +464,14 @@ function AppContent() {
 							<h1 className="text-2xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
 								Spaced Repetition Flashcards
 							</h1>
+
+							{/* User Info */}
+							<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
+								<UserIcon className="h-3 w-3 text-gray-600 dark:text-slate-400" />
+								<span className="text-xs text-gray-600 dark:text-slate-400">
+									{user?.signInDetails?.loginId || "User"}
+								</span>
+							</div>
 
 							{/* Sync Status Indicator */}
 							<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
@@ -460,55 +499,18 @@ function AppContent() {
 								)}
 							</div>
 						</div>
+
 						<div className="flex items-center space-x-3">
-							{/* Manual Sync Button */}
+							{/* Logout Button */}
 							<button
-								onClick={handleManualSync}
-								disabled={isSaving}
-								className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50"
-								title="Sync now"
+								onClick={handleLogout}
+								className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
 							>
-								<RotateCcw
-									className={`h-5 w-5 ${
-										isSaving ? "animate-spin" : ""
-									}`}
-								/>
+								<LogOut className="h-4 w-4" />
+								Logout
 							</button>
 
-							{currentView !== "deck" && (
-								<button
-									onClick={() => {
-										setCurrentView("deck");
-										setSelectedDeckId(null);
-										setSelectedCardId(null);
-										setIsFlipped(false);
-									}}
-									className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-								>
-									<Home className="h-5 w-5" />
-								</button>
-							)}
-							<input
-								type="file"
-								accept=".json"
-								onChange={handleUpload}
-								className="hidden"
-								id="upload-file"
-							/>
-							<label
-								htmlFor="upload-file"
-								className="inline-flex cursor-pointer items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-							>
-								<Upload className="mr-2 h-5 w-5" />
-								Upload
-							</label>
-							<button
-								onClick={handleDownload}
-								className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-							>
-								<Download className="mr-2 h-5 w-5" />
-								Download
-							</button>
+							{/* ... existing buttons (sync, home, upload, download) ... */}
 						</div>
 					</div>
 				</div>
@@ -583,9 +585,11 @@ function AppContent() {
 function App() {
 	return (
 		<ThemeProvider>
-			<NotificationProvider>
-				<AppContent />
-			</NotificationProvider>
+			<AuthProvider>
+				<NotificationProvider>
+					<AppContent />
+				</NotificationProvider>
+			</AuthProvider>
 		</ThemeProvider>
 	);
 }

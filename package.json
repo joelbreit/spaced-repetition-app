@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.919.0",
+    "aws-amplify": "^6.15.7",
     "lucide-react": "^0.503.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
