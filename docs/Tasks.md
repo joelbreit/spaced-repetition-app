@@ -10,11 +10,8 @@
   - [ ] Delete deck dialog
 - [ ] Deck folders
 - [ ] Show count of search results
-
-## Publish Stage
-
-- [x] Database
-- [x] User login
+- [ ] Fix header size on small devices
+- [ ] Reduce card size so 
 
 ## Optional additional libraries
 
@@ -29,6 +26,15 @@ npm i mermaid
 ```
 
 ## Complete
+
+2025-10-30
+
+- [x] Review cards in randomized order
+
+2025-10-28
+
+- [x] Database
+- [x] User login
 
 2025-10-26
 
