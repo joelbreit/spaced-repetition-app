@@ -10,7 +10,6 @@
   - [ ] Delete deck dialog
 - [ ] Deck folders
 - [ ] Show count of search results
-- [ ] Fix header size on small devices
 - [ ] Reduce card size so everything shows up on small devices
 - [ ] Allow for deck folders
 - [ ] Allow for prioritizing cards
@@ -27,6 +26,8 @@
 - [ ] Delete button doesn't show up in dark mode
 - [ ] Add demo mode / tutorial
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
+- [ ] Add button to allow for duplicating cards in a deck with reverse direction
+- [ ] Add profile dropdown with export cards button
 
 ## Optional additional libraries
 
@@ -45,6 +46,7 @@ npm i mermaid
 2025-11-12
 
 - [x] Ability to reorder decks
+- [x] Fix header size on small devices
 
 2025-10-30
 
