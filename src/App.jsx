@@ -196,7 +196,7 @@ function AppContent() {
 			} finally {
 				setIsSaving(false);
 			}
-		}, 2000);
+		}, 10000); // 10 second delay between saves
 
 		return () => {
 			if (saveTimeoutRef.current) {
@@ -344,18 +344,26 @@ function AppContent() {
 			result, // "again", "hard", "good", "easy"
 		};
 
-		// Calculate next due date based on SM-2 algorithm
+		// Calculate next due date based on time since last review
 		const now = Date.now();
+		const reviews = card.reviews || [];
+
+		// Calculate time since last review, or use 1 day default for first review
+		const timeSinceLastReview =
+			reviews.length > 0
+				? now - reviews[reviews.length - 1].timestamp
+				: 1 * 24 * 60 * 60 * 1000; // Default 1 day for first review
+
 		let nextDue = now;
 
 		if (result === "again") {
-			nextDue = now; // Due immediately
+			nextDue = now + 1 * 24 * 60 * 60 * 1000; // 1 day
 		} else if (result === "hard") {
-			nextDue = now + 1.2 * 24 * 60 * 60 * 1000; // 1.2 days
+			nextDue = now + 0.5 * timeSinceLastReview;
 		} else if (result === "good") {
-			nextDue = now + 2 * 24 * 60 * 60 * 1000; // 2 days
+			nextDue = now + timeSinceLastReview;
 		} else if (result === "easy") {
-			nextDue = now + 4 * 24 * 60 * 60 * 1000; // 4 days
+			nextDue = now + 2 * timeSinceLastReview;
 		}
 
 		// Update the card in the data

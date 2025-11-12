@@ -14,11 +14,6 @@
 - [ ] Allow for prioritizing cards
   1) Due cards
   2) New cards
-- [ ] Update scheduling to 
-  - If easy, set next review to 2x time since last review
-  - If good, set next review to time since last review
-  - If hard, set next review to time since last review / 2
-  - If again, set next review to now
 - [ ] Allow for reviewing cards flagged to be fixed
 - [ ] Move lambda code to external files
 - [ ] Delete button doesn't show up in dark mode
@@ -49,6 +44,8 @@ npm i mermaid
 - [x] Add an export cards button
 - [x] Reduce card size so everything shows up on small devices
 - [x] Display card statistics on review view
+- [x] Update sync timeout from 2 to 10 seconds
+- [x] Update scheduling algorithm
 
 2025-10-30
 
