@@ -48,6 +48,7 @@ npm i mermaid
   1) Due cards in order of most recently due first to most overdue last
   2) New cards (random order)
   3) Not yet due cards in order of due soon first to due in a long time last
+- [x] Your Study Statistics section
 
 2025-10-30
 
