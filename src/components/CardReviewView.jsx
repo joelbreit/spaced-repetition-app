@@ -1,4 +1,13 @@
-import { RotateCcw, Edit, X } from "lucide-react";
+import {
+	RotateCcw,
+	Edit,
+	X,
+	BarChart3,
+	Clock,
+	TrendingUp,
+	Target,
+	Calendar,
+} from "lucide-react";
 
 export default function CardReviewView({
 	deck,
@@ -15,6 +24,87 @@ export default function CardReviewView({
 	if (!currentCard) {
 		return null;
 	}
+
+	// Calculate statistics
+	const reviews = currentCard.reviews || [];
+	const reviewCount = reviews.length;
+
+	// Time since last review
+	const lastReview = reviews.length > 0 ? reviews[reviews.length - 1] : null;
+	const timeSinceLastReview = lastReview
+		? Date.now() - lastReview.timestamp
+		: null;
+
+	const formatTimeAgo = (ms) => {
+		if (!ms) return "Never reviewed";
+		const seconds = Math.floor(ms / 1000);
+		const minutes = Math.floor(seconds / 60);
+		const hours = Math.floor(minutes / 60);
+		const days = Math.floor(hours / 24);
+
+		if (days > 0) return `${days} day${days !== 1 ? "s" : ""} ago`;
+		if (hours > 0) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+		if (minutes > 0)
+			return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+		return "Just now";
+	};
+
+	// Learning strength (based on last 5 reviews, weighted towards recent)
+	const calculateLearningStrength = () => {
+		if (reviews.length === 0)
+			return { score: 0, label: "New", color: "gray" };
+
+		const recentReviews = reviews.slice(-5);
+		const weights = [0.1, 0.15, 0.2, 0.25, 0.3]; // More weight to recent reviews
+		const resultScores = { again: 0, hard: 1, good: 2, easy: 3 };
+
+		let weightedSum = 0;
+		let totalWeight = 0;
+
+		recentReviews.forEach((review, index) => {
+			const weight = weights[recentReviews.length - 1 - index] || 0.2;
+			weightedSum += resultScores[review.result] * weight;
+			totalWeight += weight;
+		});
+
+		const score = weightedSum / totalWeight;
+
+		if (score >= 2.5) return { score, label: "Mastered", color: "teal" };
+		if (score >= 1.5) return { score, label: "Learning", color: "green" };
+		if (score >= 0.5)
+			return { score, label: "Struggling", color: "orange" };
+		return { score, label: "New", color: "red" };
+	};
+
+	const learningStrength = calculateLearningStrength();
+
+	// Success rate (percentage of "good" or "easy" reviews)
+	const successRate =
+		reviews.length > 0
+			? Math.round(
+					(reviews.filter(
+						(r) => r.result === "good" || r.result === "easy"
+					).length /
+						reviews.length) *
+						100
+			  )
+			: 0;
+
+	// Days until next due
+	const daysUntilDue = currentCard.whenDue
+		? Math.ceil((currentCard.whenDue - Date.now()) / (1000 * 60 * 60 * 24))
+		: 0;
+
+	const formatDaysUntilDue = () => {
+		if (daysUntilDue < 0) {
+			const daysAgo = Math.abs(daysUntilDue);
+			if (daysAgo === 1) return "Due yesterday";
+			return `Due ${daysAgo} days ago`;
+		}
+		if (daysUntilDue === 0) return "Due today";
+		if (daysUntilDue === 1) return "Due tomorrow";
+		return `Due in ${daysUntilDue} days`;
+	};
 
 	return (
 		<div className="mx-auto max-w-4xl">
@@ -42,7 +132,7 @@ export default function CardReviewView({
 			{/* Card */}
 			<div className="mb-8">
 				<div
-					className="relative min-h-[350px] cursor-pointer backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group animate-scale-in"
+					className="relative min-h-[100px] cursor-pointer backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group animate-scale-in"
 					onClick={onFlip}
 				>
 					<div className="flex h-full flex-col justify-center p-6">
@@ -69,6 +159,79 @@ export default function CardReviewView({
 
 					<div className="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
 						Click to flip
+					</div>
+				</div>
+			</div>
+
+			{/* Card Statistics - Compact */}
+			<div className="mb-6">
+				<div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 rounded-lg px-4 py-2">
+					<div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
+						{/* Review Count */}
+						<div className="flex items-center gap-1.5">
+							<BarChart3 className="h-3 w-3 text-teal-500" />
+							<span className="text-gray-600 dark:text-gray-400 font-medium">
+								{reviewCount}
+							</span>
+							<span className="text-gray-500 dark:text-gray-500">
+								reviews
+							</span>
+						</div>
+
+						{/* Time Since Last Review */}
+						<div className="flex items-center gap-1.5">
+							<Clock className="h-3 w-3 text-blue-500" />
+							<span className="text-gray-600 dark:text-gray-400">
+								{formatTimeAgo(timeSinceLastReview)}
+							</span>
+						</div>
+
+						{/* Learning Strength */}
+						<div className="flex items-center gap-1.5">
+							<TrendingUp className="h-3 w-3 text-purple-500" />
+							<span
+								className={`font-medium ${
+									learningStrength.color === "teal"
+										? "text-teal-600 dark:text-teal-400"
+										: learningStrength.color === "green"
+										? "text-green-600 dark:text-green-400"
+										: learningStrength.color === "orange"
+										? "text-orange-600 dark:text-orange-400"
+										: learningStrength.color === "red"
+										? "text-red-600 dark:text-red-400"
+										: "text-gray-600 dark:text-gray-400"
+								}`}
+							>
+								{learningStrength.label}
+							</span>
+						</div>
+
+						{/* Success Rate */}
+						<div className="flex items-center gap-1.5">
+							<Target className="h-3 w-3 text-green-500" />
+							<span className="text-gray-600 dark:text-gray-400 font-medium">
+								{successRate}%
+							</span>
+							<span className="text-gray-500 dark:text-gray-500">
+								success
+							</span>
+						</div>
+
+						{/* Next Due Date */}
+						<div className="flex items-center gap-1.5">
+							<Calendar className="h-3 w-3 text-cyan-500" />
+							<span
+								className={`font-medium ${
+									daysUntilDue < 0
+										? "text-red-600 dark:text-red-400"
+										: daysUntilDue === 0
+										? "text-orange-600 dark:text-orange-400"
+										: "text-gray-600 dark:text-gray-400"
+								}`}
+							>
+								{formatDaysUntilDue()}
+							</span>
+						</div>
 					</div>
 				</div>
 			</div>

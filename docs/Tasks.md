@@ -19,13 +19,14 @@
   - If good, set next review to time since last review
   - If hard, set next review to time since last review / 2
   - If again, set next review to now
-- [ ] Display, num review, percent, time since last review on cards
 - [ ] Allow for reviewing cards flagged to be fixed
 - [ ] Move lambda code to external files
 - [ ] Delete button doesn't show up in dark mode
 - [ ] Add demo mode / tutorial
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
 - [ ] Add button to allow for duplicating cards in a deck with reverse direction
+- [ ] GitHub style progress / day grid
+- [ ] Add a icon that will show up for web app
 
 ## Optional additional libraries
 
@@ -47,6 +48,7 @@ npm i mermaid
 - [x] Fix header size on small devices
 - [x] Add an export cards button
 - [x] Reduce card size so everything shows up on small devices
+- [x] Display card statistics on review view
 
 2025-10-30
 
