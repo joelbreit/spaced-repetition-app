@@ -88,7 +88,8 @@ function AppContent() {
 	// Removed lastSyncTime as it was unused
 	const { showSuccess, showError, showWarning } = useNotification();
 	const saveTimeoutRef = useRef(null);
-	const hasMadeChanges = useRef(false);
+	const lastSaveTime = useRef(null);
+	const appDataRef = useRef(appData);
 	const healthCheckInProgress = useRef(false);
 
 	// Check API health on mount
@@ -135,6 +136,7 @@ function AppContent() {
 						const parsed = JSON.parse(localData);
 						setAppData(parsed);
 						await saveToAPI(parsed, authToken);
+						lastSaveTime.current = Date.now();
 						showSuccess("Local data synced to cloud");
 					} else {
 						setAppData(initialData);
@@ -169,38 +171,71 @@ function AppContent() {
 		loadData();
 	}, [isAuthenticated, authToken, showError, showSuccess]);
 
-	// Update auto-save to include authToken
+	// Keep appDataRef in sync with appData
+	useEffect(() => {
+		appDataRef.current = appData;
+	}, [appData]);
+
+	// Auto-save data to cloud with minimum 10-second interval
 	useEffect(() => {
 		if (isLoading || !isAuthenticated || !authToken) return;
-		if (!hasMadeChanges.current) {
-			hasMadeChanges.current = true;
+
+		// Store current authToken in a ref for the save function
+		const currentAuthToken = authToken;
+
+		// If there's already a pending save, don't reschedule
+		// The pending save will use the latest data from appDataRef
+		// Exception: if authToken changed, we need to reschedule to use the new token
+		if (saveTimeoutRef.current) {
 			return;
 		}
 
-		if (saveTimeoutRef.current) {
-			clearTimeout(saveTimeoutRef.current);
-		}
-
-		setIsSaving(true);
-
-		saveTimeoutRef.current = setTimeout(async () => {
+		const performSave = async () => {
+			// Always use the latest data from the ref
+			setIsSaving(true);
+			const dataToSave = appDataRef.current;
+			// Use the authToken from when the save was scheduled
+			const tokenToUse = currentAuthToken;
 			try {
-				await saveToAPI(appData, authToken);
-				localStorage.setItem("spacedRepData", JSON.stringify(appData));
+				await saveToAPI(dataToSave, tokenToUse);
+				localStorage.setItem(
+					"spacedRepData",
+					JSON.stringify(dataToSave)
+				);
 				setIsOnline(true);
+				lastSaveTime.current = Date.now();
 			} catch (error) {
 				console.error("Failed to save to API:", error);
 				showError("Failed to save to cloud. Data saved locally.");
 				setIsOnline(false);
-				localStorage.setItem("spacedRepData", JSON.stringify(appData));
+				localStorage.setItem(
+					"spacedRepData",
+					JSON.stringify(dataToSave)
+				);
+				// Still update lastSaveTime even if API save failed, since we saved locally
+				lastSaveTime.current = Date.now();
 			} finally {
 				setIsSaving(false);
+				saveTimeoutRef.current = null;
 			}
-		}, 10000); // 10 second delay between saves
+		};
+
+		// Calculate time since last save
+		const now = Date.now();
+		const timeSinceLastSave = lastSaveTime.current
+			? now - lastSaveTime.current
+			: Infinity;
+		const MIN_SAVE_INTERVAL = 10000; // 10 seconds
+
+		// Calculate delay: if less than 10 seconds since last save, wait for remaining time
+		// Otherwise, schedule immediately (0 delay)
+		const delay = Math.max(0, MIN_SAVE_INTERVAL - timeSinceLastSave);
+		saveTimeoutRef.current = setTimeout(performSave, delay);
 
 		return () => {
 			if (saveTimeoutRef.current) {
 				clearTimeout(saveTimeoutRef.current);
+				saveTimeoutRef.current = null;
 			}
 		};
 	}, [appData, isLoading, isAuthenticated, authToken, showError]);
@@ -317,15 +352,37 @@ function AppContent() {
 	const startReview = (deckId) => {
 		const deck = appData.decks.find((d) => d.deckId === deckId);
 		if (deck) {
-			// Shuffle cards for this review session without mutating stored deck
-			const shuffledCards = deck.cards.slice();
-			for (let i = shuffledCards.length - 1; i > 0; i -= 1) {
+			// Create a copy of cards without mutating stored deck
+			const cards = deck.cards.slice();
+			const now = Date.now();
+
+			// Separate cards into three groups
+			const dueCards = cards.filter((card) => card.whenDue <= now);
+			const newCards = cards.filter(
+				(card) => card.reviews.length === 0 && card.whenDue > now
+			);
+			const notYetDueCards = cards.filter(
+				(card) => card.whenDue > now && card.reviews.length > 0
+			);
+
+			// Sort due cards by whenDue DESCENDING (most recently due first, most overdue last)
+			dueCards.sort((a, b) => b.whenDue - a.whenDue);
+
+			// Shuffle new cards randomly
+			for (let i = newCards.length - 1; i > 0; i -= 1) {
 				const j = Math.floor(Math.random() * (i + 1));
-				const temp = shuffledCards[i];
-				shuffledCards[i] = shuffledCards[j];
-				shuffledCards[j] = temp;
+				const temp = newCards[i];
+				newCards[i] = newCards[j];
+				newCards[j] = temp;
 			}
-			setCurrentDeckForReview({ ...deck, cards: shuffledCards });
+
+			// Sort not yet due cards by whenDue ASCENDING (due soon first, due in a long time last)
+			notYetDueCards.sort((a, b) => a.whenDue - b.whenDue);
+
+			// Combine groups in priority order: due → new → not yet due
+			const orderedCards = [...dueCards, ...newCards, ...notYetDueCards];
+
+			setCurrentDeckForReview({ ...deck, cards: orderedCards });
 			setCurrentCardIndex(0);
 			setIsFlipped(false);
 			setCurrentView("review");

@@ -10,10 +10,6 @@
   - [ ] Delete deck dialog
 - [ ] Deck folders
 - [ ] Show count of search results
-- [ ] Allow for deck folders
-- [ ] Allow for prioritizing cards
-  1) Due cards
-  2) New cards
 - [ ] Allow for reviewing cards flagged to be fixed
 - [ ] Move lambda code to external files
 - [ ] Delete button doesn't show up in dark mode
@@ -22,6 +18,8 @@
 - [ ] Add button to allow for duplicating cards in a deck with reverse direction
 - [ ] GitHub style progress / day grid
 - [ ] Add a icon that will show up for web app
+- [ ] Email login should not be case sensitive
+- [ ] User should be able to delete account or reset password
 
 ## Optional additional libraries
 
@@ -46,6 +44,10 @@ npm i mermaid
 - [x] Display card statistics on review view
 - [x] Update sync timeout from 2 to 10 seconds
 - [x] Update scheduling algorithm
+- [x] Update card review priority order
+  1) Due cards in order of most recently due first to most overdue last
+  2) New cards (random order)
+  3) Not yet due cards in order of due soon first to due in a long time last
 
 2025-10-30
 
