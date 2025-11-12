@@ -408,6 +408,28 @@ function AppContent() {
 		}
 	};
 
+	// Handle export data
+	const handleExportData = () => {
+		try {
+			const dataStr = JSON.stringify(appData, null, 2);
+			const dataBlob = new Blob([dataStr], { type: "application/json" });
+			const url = URL.createObjectURL(dataBlob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `flashcards-export-${
+				new Date().toISOString().split("T")[0]
+			}.json`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+			showSuccess("Data exported successfully!");
+		} catch (error) {
+			console.error("Failed to export data:", error);
+			showError("Failed to export data");
+		}
+	};
+
 	// Show auth screen if not authenticated
 	if (authLoading) {
 		return (
@@ -495,6 +517,16 @@ function AppContent() {
 								)}
 							</div>
 
+							{/* Export Button */}
+							<button
+								onClick={handleExportData}
+								className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
+								title="Export data"
+							>
+								<Download className="h-4 w-4" />
+								Export
+							</button>
+
 							{/* Logout Button */}
 							<button
 								onClick={handleLogout}
@@ -567,6 +599,18 @@ function AppContent() {
 												)}
 											</div>
 										</div>
+
+										{/* Export */}
+										<button
+											onClick={() => {
+												setShowUserMenu(false);
+												handleExportData();
+											}}
+											className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
+										>
+											<Download className="h-4 w-4" />
+											Export Data
+										</button>
 
 										{/* Logout */}
 										<button

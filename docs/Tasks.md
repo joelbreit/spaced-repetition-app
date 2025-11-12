@@ -27,7 +27,6 @@
 - [ ] Add demo mode / tutorial
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
 - [ ] Add button to allow for duplicating cards in a deck with reverse direction
-- [ ] Add profile dropdown with export cards button
 
 ## Optional additional libraries
 
@@ -47,6 +46,7 @@ npm i mermaid
 
 - [x] Ability to reorder decks
 - [x] Fix header size on small devices
+- [x] Add an export cards button
 
 2025-10-30
 
