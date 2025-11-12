@@ -7,8 +7,211 @@ import {
 	ArrowLeft,
 	Search,
 	BookOpen,
+	GripVertical,
 } from "lucide-react";
 import { useNotification } from "../hooks/useNotification";
+import {
+	DndContext,
+	closestCenter,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+} from "@dnd-kit/core";
+import {
+	SortableContext,
+	sortableKeyboardCoordinates,
+	useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+function SortableDeckItem({
+	deck,
+	index,
+	editingDeckId,
+	editingDeckName,
+	setEditingDeckId,
+	setEditingDeckName,
+	handleUpdateDeck,
+	handleDeleteDeck,
+	onSelectDeck,
+	onStartReview,
+	isDraggable,
+}) {
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({
+		id: deck.deckId,
+		disabled: !isDraggable || editingDeckId === deck.deckId,
+	});
+
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+		opacity: isDragging ? 0.5 : 1,
+	};
+
+	return (
+		<div
+			ref={setNodeRef}
+			style={style}
+			className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 dark:border-slate-700 p-6 transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group animate-slide-up"
+		>
+			{editingDeckId === deck.deckId ? (
+				<div>
+					<input
+						type="text"
+						value={editingDeckName}
+						onChange={(e) => setEditingDeckName(e.target.value)}
+						className="mb-4 w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+					/>
+					<div className="flex gap-3">
+						<button
+							onClick={handleUpdateDeck}
+							className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+						>
+							Save
+						</button>
+						<button
+							onClick={() => {
+								setEditingDeckId(null);
+								setEditingDeckName("");
+							}}
+							className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+						>
+							Cancel
+						</button>
+					</div>
+				</div>
+			) : (
+				<>
+					{/* Header */}
+					<div className="flex items-start justify-between mb-4">
+						<div className="flex items-center gap-3 flex-1">
+							{isDraggable && (
+								<button
+									{...attributes}
+									{...listeners}
+									className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
+									aria-label="Drag to reorder"
+								>
+									<GripVertical className="h-5 w-5" />
+								</button>
+							)}
+							<span className="text-4xl">📚</span>
+							<div className="flex-1">
+								<h3
+									className="text-xl font-bold text-gray-900 dark:text-slate-100 cursor-pointer hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
+									onClick={() => onSelectDeck(deck.deckId)}
+								>
+									{deck.deckName}
+								</h3>
+								<p className="text-sm text-gray-600 dark:text-slate-400">
+									{deck.cards.length} card(s)
+								</p>
+							</div>
+						</div>
+					</div>
+
+					{/* Stats */}
+					<div className="grid grid-cols-3 gap-3 mb-4">
+						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+							<div className="text-2xl font-bold text-red-600">
+								{
+									deck.cards.filter(
+										(card) => card.whenDue <= Date.now()
+									).length
+								}
+							</div>
+							<div className="text-xs text-gray-600 dark:text-slate-400">
+								Due
+							</div>
+						</div>
+						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+							<div className="text-2xl font-bold text-teal-600">
+								{
+									deck.cards.filter(
+										(card) => card.reviews.length === 0
+									).length
+								}
+							</div>
+							<div className="text-xs text-gray-600 dark:text-slate-400">
+								New
+							</div>
+						</div>
+						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+							<div className="text-2xl font-bold text-green-600">
+								{
+									deck.cards.filter(
+										(card) => card.reviews.length > 0
+									).length
+								}
+							</div>
+							<div className="text-xs text-gray-600 dark:text-slate-400">
+								Studied
+							</div>
+						</div>
+					</div>
+
+					{/* Progress */}
+					<div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
+						<div
+							className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
+							style={{
+								width: `${
+									deck.cards.length > 0
+										? (deck.cards.filter(
+												(card) =>
+													card.reviews.length > 0
+										  ).length /
+												deck.cards.length) *
+										  100
+										: 0
+								}%`,
+							}}
+						/>
+					</div>
+
+					{/* Actions */}
+					<div className="flex gap-2">
+						<button
+							onClick={() => onSelectDeck(deck.deckId)}
+							className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-lg transition-colors duration-200"
+						>
+							View
+						</button>
+						<button
+							onClick={() => onStartReview(deck.deckId)}
+							className="flex-1 px-3 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+						>
+							Study
+						</button>
+						<button
+							onClick={() => {
+								setEditingDeckId(deck.deckId);
+								setEditingDeckName(deck.deckName);
+							}}
+							className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
+						>
+							<Edit className="h-4 w-4" />
+						</button>
+						<button
+							onClick={() => handleDeleteDeck(deck.deckId)}
+							className="p-2 text-gray-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
+						>
+							<Trash2 className="h-4 w-4" />
+						</button>
+					</div>
+				</>
+			)}
+		</div>
+	);
+}
 
 export default function DeckView({
 	appData,
@@ -17,6 +220,7 @@ export default function DeckView({
 	onAddDeck,
 	onUpdateDeck,
 	onDeleteDeck,
+	onReorderDecks,
 	onAddCard,
 	onDeleteCard,
 	onEditCard,
@@ -31,6 +235,13 @@ export default function DeckView({
 	const [showNewCardForm, setShowNewCardForm] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const { showConfirmation } = useNotification();
+
+	const sensors = useSensors(
+		useSensor(PointerSensor),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
+		})
+	);
 
 	const selectedDeck = selectedDeckId
 		? appData.decks.find((d) => d.deckId === selectedDeckId)
@@ -105,6 +316,30 @@ export default function DeckView({
 
 		if (confirmed) {
 			onDeleteCard(selectedDeckId, cardId);
+		}
+	};
+
+	const handleDragEnd = (event) => {
+		const { active, over } = event;
+
+		if (!over || active.id === over.id) {
+			return;
+		}
+
+		// Only allow reordering when there's no search filter
+		if (searchTerm) {
+			return;
+		}
+
+		const oldIndex = appData.decks.findIndex(
+			(deck) => deck.deckId === active.id
+		);
+		const newIndex = appData.decks.findIndex(
+			(deck) => deck.deckId === over.id
+		);
+
+		if (oldIndex !== -1 && newIndex !== -1) {
+			onReorderDecks(oldIndex, newIndex);
 		}
 	};
 
@@ -350,214 +585,50 @@ export default function DeckView({
 					)}
 
 					{/* Decks Grid */}
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{filteredDecks.length === 0 ? (
-							<div className="col-span-full py-12 text-center animate-fade-in">
-								<div className="text-6xl mb-4">📚</div>
-								<p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
-									{searchTerm
-										? "No decks found matching your search."
-										: "No decks yet. Create your first deck!"}
+					{filteredDecks.length === 0 ? (
+						<div className="col-span-full py-12 text-center animate-fade-in">
+							<div className="text-6xl mb-4">📚</div>
+							<p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
+								{searchTerm
+									? "No decks found matching your search."
+									: "No decks yet. Create your first deck!"}
+							</p>
+							{!searchTerm && (
+								<p className="text-sm text-gray-400 dark:text-gray-500">
+									Start building your knowledge base!
 								</p>
-								{!searchTerm && (
-									<p className="text-sm text-gray-400 dark:text-gray-500">
-										Start building your knowledge base!
-									</p>
-								)}
-							</div>
-						) : (
-							filteredDecks.map((deck, index) => (
-								<div
-									key={deck.deckId}
-									className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 dark:border-slate-700 p-6 transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group animate-slide-up"
-									style={{
-										animationDelay: `${index * 100}ms`,
-									}}
-								>
-									{editingDeckId === deck.deckId ? (
-										<div>
-											<input
-												type="text"
-												value={editingDeckName}
-												onChange={(e) =>
-													setEditingDeckName(
-														e.target.value
-													)
-												}
-												className="mb-4 w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-											/>
-											<div className="flex gap-3">
-												<button
-													onClick={handleUpdateDeck}
-													className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-												>
-													Save
-												</button>
-												<button
-													onClick={() => {
-														setEditingDeckId(null);
-														setEditingDeckName("");
-													}}
-													className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-												>
-													Cancel
-												</button>
-											</div>
-										</div>
-									) : (
-										<>
-											{/* Header */}
-											<div className="flex items-start justify-between mb-4">
-												<div className="flex items-center gap-3">
-													<span className="text-4xl">
-														📚
-													</span>
-													<div>
-														<h3
-															className="text-xl font-bold text-gray-900 dark:text-slate-100 cursor-pointer hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
-															onClick={() =>
-																onSelectDeck(
-																	deck.deckId
-																)
-															}
-														>
-															{deck.deckName}
-														</h3>
-														<p className="text-sm text-gray-600 dark:text-slate-400">
-															{deck.cards.length}{" "}
-															card(s)
-														</p>
-													</div>
-												</div>
-											</div>
-
-											{/* Stats */}
-											<div className="grid grid-cols-3 gap-3 mb-4">
-												<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
-													<div className="text-2xl font-bold text-red-600">
-														{
-															deck.cards.filter(
-																(card) =>
-																	card.whenDue <=
-																	Date.now()
-															).length
-														}
-													</div>
-													<div className="text-xs text-gray-600 dark:text-slate-400">
-														Due
-													</div>
-												</div>
-												<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
-													<div className="text-2xl font-bold text-teal-600">
-														{
-															deck.cards.filter(
-																(card) =>
-																	card.reviews
-																		.length ===
-																	0
-															).length
-														}
-													</div>
-													<div className="text-xs text-gray-600 dark:text-slate-400">
-														New
-													</div>
-												</div>
-												<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
-													<div className="text-2xl font-bold text-green-600">
-														{
-															deck.cards.filter(
-																(card) =>
-																	card.reviews
-																		.length >
-																	0
-															).length
-														}
-													</div>
-													<div className="text-xs text-gray-600 dark:text-slate-400">
-														Studied
-													</div>
-												</div>
-											</div>
-
-											{/* Progress */}
-											<div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
-												<div
-													className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
-													style={{
-														width: `${
-															deck.cards.length >
-															0
-																? (deck.cards.filter(
-																		(
-																			card
-																		) =>
-																			card
-																				.reviews
-																				.length >
-																			0
-																  ).length /
-																		deck
-																			.cards
-																			.length) *
-																  100
-																: 0
-														}%`,
-													}}
-												/>
-											</div>
-
-											{/* Actions */}
-											<div className="flex gap-2">
-												<button
-													onClick={() =>
-														onSelectDeck(
-															deck.deckId
-														)
-													}
-													className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-lg transition-colors duration-200"
-												>
-													View
-												</button>
-												<button
-													onClick={() =>
-														onStartReview(
-															deck.deckId
-														)
-													}
-													className="flex-1 px-3 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
-												>
-													Study
-												</button>
-												<button
-													onClick={() => {
-														setEditingDeckId(
-															deck.deckId
-														);
-														setEditingDeckName(
-															deck.deckName
-														);
-													}}
-													className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
-												>
-													<Edit className="h-4 w-4" />
-												</button>
-												<button
-													onClick={() =>
-														handleDeleteDeck(
-															deck.deckId
-														)
-													}
-													className="p-2 text-gray-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
-												>
-													<Trash2 className="h-4 w-4" />
-												</button>
-											</div>
-										</>
-									)}
+							)}
+						</div>
+					) : (
+						<DndContext
+							sensors={sensors}
+							collisionDetection={closestCenter}
+							onDragEnd={handleDragEnd}
+						>
+							<SortableContext
+								items={filteredDecks.map((deck) => deck.deckId)}
+							>
+								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+									{filteredDecks.map((deck, index) => (
+										<SortableDeckItem
+											key={deck.deckId}
+											deck={deck}
+											index={index}
+											editingDeckId={editingDeckId}
+											editingDeckName={editingDeckName}
+											setEditingDeckId={setEditingDeckId}
+											setEditingDeckName={setEditingDeckName}
+											handleUpdateDeck={handleUpdateDeck}
+											handleDeleteDeck={handleDeleteDeck}
+											onSelectDeck={onSelectDeck}
+											onStartReview={onStartReview}
+											isDraggable={!searchTerm}
+										/>
+									))}
 								</div>
-							))
-						)}
-					</div>
+							</SortableContext>
+						</DndContext>
+					)}
 				</div>
 			)}
 		</div>

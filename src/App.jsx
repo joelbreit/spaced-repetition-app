@@ -22,7 +22,7 @@ import DeckView from "./components/DeckView";
 import CardEditView from "./components/CardEditView";
 import CardReviewView from "./components/CardReviewView";
 import { NotificationProvider } from "./contexts/NotificationContext.jsx";
-import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { useNotification } from "./hooks/useNotification";
 import NotificationContainer from "./components/NotificationContainer";
 import { loadFromAPI, saveToAPI, checkAPIHealth } from "./services/apiStorage";
@@ -84,9 +84,8 @@ function AppContent() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isOnline, setIsOnline] = useState(true);
-	const [lastSyncTime, setLastSyncTime] = useState(null);
+	// Removed lastSyncTime as it was unused
 	const { showSuccess, showError, showWarning } = useNotification();
-	// const { isDark, toggleTheme } = useTheme();
 	const saveTimeoutRef = useRef(null);
 	const hasMadeChanges = useRef(false);
 	const healthCheckInProgress = useRef(false);
@@ -147,7 +146,7 @@ function AppContent() {
 					);
 				}
 
-				setLastSyncTime(new Date());
+				// Removed lastSyncTime update
 				setIsOnline(true);
 			} catch (error) {
 				console.error("Failed to load from API:", error);
@@ -167,7 +166,7 @@ function AppContent() {
 			}
 		}
 		loadData();
-	}, [isAuthenticated, authToken]);
+	}, [isAuthenticated, authToken, showError, showSuccess]);
 
 	// Update auto-save to include authToken
 	useEffect(() => {
@@ -187,7 +186,6 @@ function AppContent() {
 			try {
 				await saveToAPI(appData, authToken);
 				localStorage.setItem("spacedRepData", JSON.stringify(appData));
-				setLastSyncTime(new Date());
 				setIsOnline(true);
 			} catch (error) {
 				console.error("Failed to save to API:", error);
@@ -204,14 +202,14 @@ function AppContent() {
 				clearTimeout(saveTimeoutRef.current);
 			}
 		};
-	}, [appData, isLoading, isAuthenticated, authToken]);
+	}, [appData, isLoading, isAuthenticated, authToken, showError]);
 
 	// Manual sync function
 	// const handleManualSync = async () => {
 	//     try {
 	//         setIsSaving(true);
 	//         await saveToAPI(appData);
-	//         setLastSyncTime(new Date());
+	//         // Removed lastSyncTime update
 	//         setIsOnline(true);
 	//         showSuccess("Data synced successfully!");
 	//     } catch (error) {
@@ -222,51 +220,7 @@ function AppContent() {
 	//     }
 	// };
 
-	const handleUpload = (event) => {
-		const file = event.target.files[0];
-		if (file && file.type === "application/json") {
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				try {
-					const uploadedData = JSON.parse(e.target.result);
-					setAppData((prev) => {
-						const uploadedDecksMap = new Map();
-						uploadedData.decks.forEach((deck) => {
-							uploadedDecksMap.set(deck.deckId, deck);
-						});
-
-						const existingDecks = prev.decks.filter(
-							(deck) => !uploadedDecksMap.has(deck.deckId)
-						);
-
-						return {
-							decks: [...existingDecks, ...uploadedData.decks],
-						};
-					});
-					showSuccess("Data uploaded successfully!");
-				} catch {
-					showError("Error parsing JSON file");
-				}
-			};
-			reader.readAsText(file);
-		} else {
-			showError("Please upload a valid JSON file");
-		}
-		event.target.value = "";
-	};
-
-	const handleDownload = () => {
-		const dataStr = JSON.stringify(appData, null, 2);
-		const dataBlob = new Blob([dataStr], { type: "application/json" });
-		const url = URL.createObjectURL(dataBlob);
-		const link = document.createElement("a");
-		link.href = url;
-		link.download = "spaced-repetition-data.json";
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-		URL.revokeObjectURL(url);
-	};
+	// Removed unused handleUpload and handleDownload
 
 	const addDeck = (deckName) => {
 		const newDeck = {
@@ -295,6 +249,19 @@ function AppContent() {
 			setCurrentView("deck");
 			setSelectedDeckId(null);
 		}
+	};
+
+	const reorderDecks = (sourceIndex, destinationIndex) => {
+		if (sourceIndex === destinationIndex) return;
+
+		setAppData((prev) => {
+			const newDecks = [...prev.decks];
+			const [removed] = newDecks.splice(sourceIndex, 1);
+			newDecks.splice(destinationIndex, 0, removed);
+			return {
+				decks: newDecks,
+			};
+		});
 	};
 
 	const addCard = (deckId, front, back) => {
@@ -482,7 +449,7 @@ function AppContent() {
 				<div className="mx-auto max-w-7xl px-6">
 					<div className="flex h-16 items-center justify-between">
 						<div className="flex items-center space-x-4">
-							<h1 className="text-2xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
+							<h1 className="text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
 								Spaced Repetition Flashcards
 							</h1>
 
@@ -547,6 +514,7 @@ function AppContent() {
 						onAddDeck={addDeck}
 						onUpdateDeck={updateDeck}
 						onDeleteDeck={deleteDeck}
+						onReorderDecks={reorderDecks}
 						onAddCard={addCard}
 						onUpdateCard={updateCard}
 						onDeleteCard={deleteCard}

@@ -77,6 +77,7 @@ export async function checkAPIHealth() {
 		});
 		return response.ok;
 	} catch (error) {
+		console.error('Error checking API health:', error);
 		return false;
 	}
 }
