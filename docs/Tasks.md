@@ -10,7 +10,6 @@
   - [ ] Delete deck dialog
 - [ ] Deck folders
 - [ ] Show count of search results
-- [ ] Reduce card size so everything shows up on small devices
 - [ ] Allow for deck folders
 - [ ] Allow for prioritizing cards
   1) Due cards
@@ -47,6 +46,7 @@ npm i mermaid
 - [x] Ability to reorder decks
 - [x] Fix header size on small devices
 - [x] Add an export cards button
+- [x] Reduce card size so everything shows up on small devices
 
 2025-10-30
 

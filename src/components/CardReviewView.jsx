@@ -42,32 +42,32 @@ export default function CardReviewView({
 			{/* Card */}
 			<div className="mb-8">
 				<div
-					className="relative min-h-[500px] cursor-pointer backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group animate-scale-in"
+					className="relative min-h-[350px] cursor-pointer backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group animate-scale-in"
 					onClick={onFlip}
 				>
-					<div className="flex h-full flex-col justify-center p-8">
+					<div className="flex h-full flex-col justify-center p-6">
 						{!isFlipped ? (
 							<div className="text-center">
-								<div className="mb-6 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
+								<div className="mb-4 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
 									Front
 								</div>
-								<div className="text-3xl font-medium text-gray-900 dark:text-white leading-relaxed">
+								<div className="text-2xl font-medium text-gray-900 dark:text-white leading-relaxed">
 									{currentCard.front}
 								</div>
 							</div>
 						) : (
 							<div className="text-center">
-								<div className="mb-6 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
+								<div className="mb-4 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
 									Back
 								</div>
-								<div className="text-3xl font-medium text-gray-900 dark:text-white leading-relaxed">
+								<div className="text-2xl font-medium text-gray-900 dark:text-white leading-relaxed">
 									{currentCard.back}
 								</div>
 							</div>
 						)}
 					</div>
 
-					<div className="absolute bottom-6 left-6 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+					<div className="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
 						Click to flip
 					</div>
 				</div>
