@@ -7,6 +7,7 @@ import {
 	TrendingUp,
 	Target,
 	Calendar,
+	Flag,
 } from "lucide-react";
 
 export default function CardReviewView({
@@ -17,9 +18,11 @@ export default function CardReviewView({
 	onReview,
 	onEditCard,
 	onEndReview,
+	onToggleFlag,
 }) {
 	const currentCard = deck.cards[currentCardIndex];
 	const progress = ((currentCardIndex + 1) / deck.cards.length) * 100;
+	const isFlagged = currentCard?.isFlagged || false;
 
 	if (!currentCard) {
 		return null;
@@ -135,6 +138,27 @@ export default function CardReviewView({
 					className="relative min-h-[100px] cursor-pointer backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group animate-scale-in"
 					onClick={onFlip}
 				>
+					{/* Flag Button */}
+					<button
+						onClick={(e) => {
+							e.stopPropagation();
+							if (onToggleFlag) {
+								onToggleFlag(currentCard.cardId);
+							}
+						}}
+						className={`absolute top-4 right-4 p-2 rounded-lg transition-all duration-200 z-10 ${
+							isFlagged
+								? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50"
+								: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-orange-500 dark:hover:text-orange-400 border border-gray-200 dark:border-slate-600"
+						}`}
+						title={isFlagged ? "Unflag card" : "Flag card"}
+					>
+						<Flag
+							className={`h-5 w-5 ${
+								isFlagged ? "fill-current" : ""
+							}`}
+						/>
+					</button>
 					<div className="flex h-full flex-col justify-center p-6">
 						{!isFlipped ? (
 							<div className="text-center">

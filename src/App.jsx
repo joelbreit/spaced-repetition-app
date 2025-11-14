@@ -349,6 +349,28 @@ function AppContent() {
 		}));
 	};
 
+	const toggleCardFlag = (deckId, cardId) => {
+		setAppData((prev) => ({
+			decks: prev.decks.map((deck) =>
+				deck.deckId === deckId
+					? {
+							...deck,
+							cards: deck.cards.map((card) =>
+								card.cardId === cardId
+									? {
+											...card,
+											isFlagged: !(
+												card.isFlagged || false
+											),
+									  }
+									: card
+							),
+					  }
+					: deck
+			),
+		}));
+	};
+
 	const startReview = (deckId) => {
 		const deck = appData.decks.find((d) => d.deckId === deckId);
 		if (deck) {
@@ -716,6 +738,7 @@ function AppContent() {
 							setCurrentView("edit");
 						}}
 						onStartReview={startReview}
+						onToggleCardFlag={toggleCardFlag}
 					/>
 				)}
 				{currentView === "edit" && (
@@ -755,6 +778,25 @@ function AppContent() {
 							setCurrentDeckForReview(null);
 							setCurrentCardIndex(0);
 							setIsFlipped(false);
+						}}
+						onToggleFlag={(cardId) => {
+							toggleCardFlag(currentDeckForReview.deckId, cardId);
+							// Also update the current deck for review
+							const updatedCards = currentDeckForReview.cards.map(
+								(c) =>
+									c.cardId === cardId
+										? {
+												...c,
+												isFlagged: !(
+													c.isFlagged || false
+												),
+										  }
+										: c
+							);
+							setCurrentDeckForReview({
+								...currentDeckForReview,
+								cards: updatedCards,
+							});
 						}}
 					/>
 				)}

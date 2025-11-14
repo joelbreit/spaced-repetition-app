@@ -8,6 +8,7 @@ import {
 	Search,
 	BookOpen,
 	GripVertical,
+	Flag,
 } from "lucide-react";
 import { useNotification } from "../hooks/useNotification";
 import {
@@ -27,7 +28,6 @@ import { CSS } from "@dnd-kit/utilities";
 
 function SortableDeckItem({
 	deck,
-	index,
 	editingDeckId,
 	editingDeckName,
 	setEditingDeckId,
@@ -121,7 +121,7 @@ function SortableDeckItem({
 					{/* Stats */}
 					<div className="grid grid-cols-3 gap-3 mb-4">
 						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
-							<div className="text-2xl font-bold text-red-600">
+							<div className="text-2xl font-bold text-orange-600">
 								{
 									deck.cards.filter(
 										(card) => card.whenDue <= Date.now()
@@ -202,7 +202,7 @@ function SortableDeckItem({
 						</button>
 						<button
 							onClick={() => handleDeleteDeck(deck.deckId)}
-							className="p-2 text-gray-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
+							className="p-2 text-gray-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
 						>
 							<Trash2 className="h-4 w-4" />
 						</button>
@@ -225,6 +225,7 @@ export default function DeckView({
 	onDeleteCard,
 	onEditCard,
 	onStartReview,
+	onToggleCardFlag,
 }) {
 	const [newDeckName, setNewDeckName] = useState("");
 	const [editingDeckId, setEditingDeckId] = useState(null);
@@ -448,63 +449,115 @@ export default function DeckView({
 									</p>
 								</div>
 							) : (
-								selectedDeck.cards.map((card) => (
-									<div
-										key={card.cardId}
-										className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
-									>
-										<div className="flex items-start justify-between">
-											<div className="flex-1">
-												<div className="mb-2">
-													<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
-														Front
-													</h4>
-													<p className="text-base text-gray-900 dark:text-slate-100 font-medium">
-														{card.front}
-													</p>
+								selectedDeck.cards.map((card) => {
+									const isFlagged = card.isFlagged || false;
+									return (
+										<div
+											key={card.cardId}
+											className={`bg-white dark:bg-slate-800 rounded-xl border p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group ${
+												isFlagged
+													? "border-orange-300 dark:border-orange-700/50 bg-orange-50/30 dark:bg-orange-900/10"
+													: "border-gray-100 dark:border-slate-700"
+											}`}
+										>
+											<div className="flex items-start justify-between">
+												<div className="flex-1">
+													<div className="mb-2 flex items-start gap-2">
+														<div className="flex-1">
+															<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
+																Front
+															</h4>
+															<p className="text-base text-gray-900 dark:text-slate-100 font-medium">
+																{card.front}
+															</p>
+														</div>
+														{isFlagged && (
+															<div className="flex-shrink-0 pt-1">
+																<Flag className="h-4 w-4 text-orange-500 dark:text-orange-400 fill-current" />
+															</div>
+														)}
+													</div>
+													<div className="mb-3">
+														<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
+															Back
+														</h4>
+														<p className="text-base text-gray-700 dark:text-slate-300">
+															{card.back}
+														</p>
+													</div>
+													<div className="flex items-center gap-2">
+														<span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium rounded-md">
+															<BookOpen className="h-3 w-3" />
+															{
+																card.reviews
+																	.length
+															}{" "}
+															reviews
+														</span>
+														{isFlagged && (
+															<span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md">
+																<Flag className="h-3 w-3 fill-current" />
+																Flagged
+															</span>
+														)}
+													</div>
 												</div>
-												<div className="mb-3">
-													<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
-														Back
-													</h4>
-													<p className="text-base text-gray-700 dark:text-slate-300">
-														{card.back}
-													</p>
+												<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+													{onToggleCardFlag && (
+														<button
+															onClick={(e) => {
+																e.stopPropagation();
+																onToggleCardFlag(
+																	selectedDeckId,
+																	card.cardId
+																);
+															}}
+															className={`p-2 rounded-lg transition-colors duration-200 ${
+																isFlagged
+																	? "text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+																	: "text-gray-600 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-slate-700"
+															}`}
+															title={
+																isFlagged
+																	? "Unflag card"
+																	: "Flag card"
+															}
+														>
+															<Flag
+																className={`h-4 w-4 ${
+																	isFlagged
+																		? "fill-current"
+																		: ""
+																}`}
+															/>
+														</button>
+													)}
+													<button
+														onClick={() =>
+															onEditCard(
+																selectedDeckId,
+																card.cardId
+															)
+														}
+														className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
+													>
+														<Edit className="h-4 w-4" />
+													</button>
+													<button
+														onClick={() =>
+															handleDeleteCard(
+																card.cardId
+															)
+														}
+														className="p-2 text-gray-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors duration-200"
+													>
+														<Trash2 className="h-4 w-4" />
+													</button>
 												</div>
-												<div className="flex items-center gap-2">
-													<span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium rounded-md">
-														<BookOpen className="h-3 w-3" />
-														{card.reviews.length}{" "}
-														reviews
-													</span>
-												</div>
-											</div>
-											<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-												<button
-													onClick={() =>
-														onEditCard(
-															selectedDeckId,
-															card.cardId
-														)
-													}
-													className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
-												>
-													<Edit className="h-4 w-4" />
-												</button>
-												<button
-													onClick={() =>
-														handleDeleteCard(
-															card.cardId
-														)
-													}
-													className="p-2 text-gray-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
-												>
-													<Trash2 className="h-4 w-4" />
-												</button>
 											</div>
 										</div>
-									</div>
-								))
+									);
+								})
 							)}
 						</div>
 					</div>
@@ -564,7 +617,7 @@ export default function DeckView({
 										</div>
 									</div>
 									<div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-										<div className="text-3xl font-bold mb-1 text-red-200">
+										<div className="text-3xl font-bold mb-1 text-orange-200">
 											{cardsDue}
 										</div>
 										<div className="text-teal-100 text-sm">
@@ -698,11 +751,10 @@ export default function DeckView({
 								items={filteredDecks.map((deck) => deck.deckId)}
 							>
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-									{filteredDecks.map((deck, index) => (
+									{filteredDecks.map((deck) => (
 										<SortableDeckItem
 											key={deck.deckId}
 											deck={deck}
-											index={index}
 											editingDeckId={editingDeckId}
 											editingDeckName={editingDeckName}
 											setEditingDeckId={setEditingDeckId}

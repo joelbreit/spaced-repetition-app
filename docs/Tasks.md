@@ -10,7 +10,7 @@
   - [ ] Delete deck dialog
 - [ ] Deck folders
 - [ ] Show count of search results
-- [ ] Allow for reviewing cards flagged to be fixed
+- [ ] Allow for reviewing card subsets: flagged cards, new cards, etc
 - [ ] Move lambda code to external files
 - [ ] Delete button doesn't show up in dark mode
 - [ ] Add demo mode / tutorial
@@ -20,24 +20,21 @@
 - [ ] Add a icon that will show up for web app
 - [ ] Email login should not be case sensitive
 - [ ] User should be able to delete account or reset password
-
-## Optional additional libraries
-
-```bash
-
-# Data visualization libraries
-npm i plotly.js
-npm i chart.js
-
-# Mermaid diagramming
-npm i mermaid
-```
-
+- [ ] Documentation of pages, components, algorithms, data structure
+- [ ] Feature request form
+- [ ] Archive decks 
+- [ ] Log how much things are probably costing
+- [ ] Markdown support
+- [ ] Display stats e.g. num correct while reviewing cards
+- [ ] More stats on deck view
+- [ ] Results screen when you finish reviewing cards
+- [ ] 
 ## Complete
 
 2025-11-14
 
 - [x] Add footer
+- [x] Card flagging
 
 2025-11-12
 
