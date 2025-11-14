@@ -35,6 +35,10 @@ npm i mermaid
 
 ## Complete
 
+2025-11-14
+
+- [x] Add footer
+
 2025-11-12
 
 - [x] Ability to reorder decks
