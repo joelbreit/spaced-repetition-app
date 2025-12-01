@@ -5,7 +5,14 @@ import { useAppData } from "../contexts/AppDataContext";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NotificationContainer from "../components/NotificationContainer";
-import { ArrowLeft, Download, LogOut, User as UserIcon, Cloud, CloudOff } from "lucide-react";
+import {
+	ArrowLeft,
+	Download,
+	LogOut,
+	User as UserIcon,
+	Cloud,
+	CloudOff,
+} from "lucide-react";
 
 function ProfilePage() {
 	const navigate = useNavigate();
@@ -87,50 +94,9 @@ function ProfilePage() {
 									Email
 								</label>
 								<p className="text-gray-900 dark:text-slate-100 font-medium">
-									{user?.signInDetails?.loginId || "Not available"}
+									{user?.signInDetails?.loginId ||
+										"Not available"}
 								</p>
-							</div>
-						</div>
-					</div>
-
-					{/* Sync Status Card */}
-					<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
-						<div className="flex items-center gap-3 mb-4">
-							<div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-								{isOnline ? (
-									<Cloud className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-								) : (
-									<CloudOff className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-								)}
-							</div>
-							<h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
-								Sync Status
-							</h2>
-						</div>
-						<div className="space-y-3">
-							<div className="flex items-center gap-3">
-								{isSaving ? (
-									<>
-										<div className="animate-spin h-5 w-5 border-2 border-teal-500 border-t-transparent rounded-full" />
-										<span className="text-gray-700 dark:text-slate-300">
-											Saving changes...
-										</span>
-									</>
-								) : isOnline ? (
-									<>
-										<Cloud className="h-5 w-5 text-green-500" />
-										<span className="text-gray-700 dark:text-slate-300">
-											All changes synced
-										</span>
-									</>
-								) : (
-									<>
-										<CloudOff className="h-5 w-5 text-orange-500" />
-										<span className="text-gray-700 dark:text-slate-300">
-											Offline - changes saved locally
-										</span>
-									</>
-								)}
 							</div>
 						</div>
 					</div>
@@ -148,7 +114,9 @@ function ProfilePage() {
 							>
 								<Download className="h-5 w-5" />
 								<div className="flex-1 text-left">
-									<div className="font-medium">Export Data</div>
+									<div className="font-medium">
+										Export Data
+									</div>
 									<div className="text-sm text-gray-600 dark:text-slate-400">
 										Download your flashcards as JSON
 									</div>
@@ -179,4 +147,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-
