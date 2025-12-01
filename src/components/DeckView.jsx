@@ -473,7 +473,7 @@ export default function DeckView({
 															</p>
 														</div>
 														{isFlagged && (
-															<div className="flex-shrink-0 pt-1">
+															<div className="shrink-0 pt-1">
 																<Flag className="h-4 w-4 text-orange-500 dark:text-orange-400 fill-current" />
 															</div>
 														)}

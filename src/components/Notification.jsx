@@ -54,7 +54,7 @@ const Notification = ({ notification, onClose }) => {
 			className={`min-w-80 max-w-md w-full shadow-lg rounded-xl border p-4 ${getBackgroundColor()} animate-slide-up`}
 		>
 			<div className="flex items-start">
-				<div className="flex-shrink-0">{getIcon()}</div>
+				<div className="shrink-0">{getIcon()}</div>
 				<div className="ml-3 w-0 flex-1">
 					{title && (
 						<p className="text-sm font-medium text-gray-900 dark:text-slate-100">
@@ -67,7 +67,7 @@ const Notification = ({ notification, onClose }) => {
 						</p>
 					)}
 				</div>
-				<div className="ml-4 flex-shrink-0 flex">
+				<div className="ml-4 shrink-0 flex">
 					<button
 						className="bg-white dark:bg-slate-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 						onClick={() => onClose(id)}

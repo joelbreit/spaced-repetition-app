@@ -45,7 +45,7 @@ const ConfirmationDialog = ({
 		>
 			<div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full mx-4 animate-scale-in border border-gray-200 dark:border-slate-700">
 				<div className="flex items-start p-6">
-					<div className="flex-shrink-0">{getIcon()}</div>
+					<div className="shrink-0">{getIcon()}</div>
 					<div className="ml-3 w-0 flex-1">
 						<h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">
 							{title}
@@ -56,7 +56,7 @@ const ConfirmationDialog = ({
 							</p>
 						</div>
 					</div>
-					<div className="ml-4 flex-shrink-0 flex">
+					<div className="ml-4 shrink-0 flex">
 						<button
 							className="bg-white dark:bg-slate-800 rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 							onClick={onClose}
