@@ -1,31 +1,17 @@
 import "../config/amplify";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import AuthView from "../components/AuthView";
-import { LogOut, User as UserIcon, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import {
-	Upload,
-	Download,
-	Home,
-	Edit,
-	RotateCcw,
-	Check,
-	X,
-	Moon,
-	Sun,
-	Wifi,
-	WifiOff,
-	Cloud,
-	CloudOff,
-} from "lucide-react";
 import DeckView from "../components/DeckView";
 import CardEditView from "../components/CardEditView";
 import CardReviewView from "../components/CardReviewView";
+import Header from "../components/Header";
 import { NotificationProvider } from "../contexts/NotificationContext.jsx";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { useNotification } from "../hooks/useNotification";
 import NotificationContainer from "../components/NotificationContainer";
 import { loadFromAPI, saveToAPI, checkAPIHealth } from "../services/apiStorage";
+import Footer from "../components/Footer.jsx";
 
 // Initial sample data (used only if API has no data)
 const initialData = {
@@ -84,8 +70,6 @@ function AppContent() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isOnline, setIsOnline] = useState(true);
-	const [showUserMenu, setShowUserMenu] = useState(false);
-	// Removed lastSyncTime as it was unused
 	const { showSuccess, showError, showWarning } = useNotification();
 	const saveTimeoutRef = useRef(null);
 	const lastSaveTime = useRef(null);
@@ -554,169 +538,13 @@ function AppContent() {
 		<div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col">
 			<NotificationContainer />
 
-			{/* Header */}
-			<header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6">
-					<div className="flex h-14 sm:h-16 items-center justify-between">
-						{/* Title - shorter on mobile */}
-						<div className="flex items-center min-w-0 flex-1">
-							<h1 className="text-lg sm:text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate">
-								<span className="hidden sm:inline">
-									Spaced Repetition Flashcards
-								</span>
-								<span className="sm:hidden">Flashcards</span>
-							</h1>
-						</div>
-
-						{/* Desktop: Show all items */}
-						<div className="hidden md:flex items-center space-x-3 shrink-0">
-							{/* User Info */}
-							<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
-								<UserIcon className="h-3 w-3 text-gray-600 dark:text-slate-400" />
-								<span className="text-xs text-gray-600 dark:text-slate-400 truncate max-w-[120px]">
-									{user?.signInDetails?.loginId || "User"}
-								</span>
-							</div>
-
-							{/* Sync Status Indicator */}
-							<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
-								{isSaving ? (
-									<>
-										<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
-										<span className="text-xs text-gray-600 dark:text-slate-400">
-											Saving...
-										</span>
-									</>
-								) : isOnline ? (
-									<>
-										<Cloud className="h-3 w-3 text-green-500" />
-										<span className="text-xs text-gray-600 dark:text-slate-400">
-											Synced
-										</span>
-									</>
-								) : (
-									<>
-										<CloudOff className="h-3 w-3 text-orange-500" />
-										<span className="text-xs text-gray-600 dark:text-slate-400">
-											Offline
-										</span>
-									</>
-								)}
-							</div>
-
-							{/* Export Button */}
-							<button
-								onClick={handleExportData}
-								className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
-								title="Export data"
-							>
-								<Download className="h-4 w-4" />
-								Export
-							</button>
-
-							{/* Logout Button */}
-							<button
-								onClick={handleLogout}
-								className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
-							>
-								<LogOut className="h-4 w-4" />
-								Logout
-							</button>
-						</div>
-
-						{/* Mobile: Dropdown menu */}
-						<div className="md:hidden relative shrink-0">
-							<button
-								onClick={() => setShowUserMenu(!showUserMenu)}
-								className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors duration-200"
-							>
-								<UserIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
-								<ChevronDown
-									className={`h-4 w-4 text-gray-600 dark:text-slate-400 transition-transform ${
-										showUserMenu ? "rotate-180" : ""
-									}`}
-								/>
-							</button>
-
-							{/* Dropdown Menu */}
-							{showUserMenu && (
-								<>
-									{/* Backdrop */}
-									<div
-										className="fixed inset-0 z-10"
-										onClick={() => setShowUserMenu(false)}
-									/>
-									{/* Menu */}
-									<div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 z-20 py-2">
-										{/* User Email */}
-										<div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
-											<div className="flex items-center gap-2">
-												<UserIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
-												<span className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
-													{user?.signInDetails
-														?.loginId || "User"}
-												</span>
-											</div>
-										</div>
-
-										{/* Sync Status */}
-										<div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
-											<div className="flex items-center gap-2">
-												{isSaving ? (
-													<>
-														<div className="animate-spin h-4 w-4 border-2 border-teal-500 border-t-transparent rounded-full" />
-														<span className="text-sm text-gray-600 dark:text-slate-400">
-															Saving...
-														</span>
-													</>
-												) : isOnline ? (
-													<>
-														<Cloud className="h-4 w-4 text-green-500" />
-														<span className="text-sm text-gray-600 dark:text-slate-400">
-															Synced
-														</span>
-													</>
-												) : (
-													<>
-														<CloudOff className="h-4 w-4 text-orange-500" />
-														<span className="text-sm text-gray-600 dark:text-slate-400">
-															Offline
-														</span>
-													</>
-												)}
-											</div>
-										</div>
-
-										{/* Export */}
-										<button
-											onClick={() => {
-												setShowUserMenu(false);
-												handleExportData();
-											}}
-											className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
-										>
-											<Download className="h-4 w-4" />
-											Export Data
-										</button>
-
-										{/* Logout */}
-										<button
-											onClick={() => {
-												setShowUserMenu(false);
-												handleLogout();
-											}}
-											className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
-										>
-											<LogOut className="h-4 w-4" />
-											Logout
-										</button>
-									</div>
-								</>
-							)}
-						</div>
-					</div>
-				</div>
-			</header>
+			<Header
+				user={user}
+				isSaving={isSaving}
+				isOnline={isOnline}
+				onExport={handleExportData}
+				onLogout={handleLogout}
+			/>
 
 			{/* Main content */}
 			<main className="flex-1 mx-auto max-w-7xl px-6 py-8">
@@ -802,51 +630,7 @@ function AppContent() {
 				)}
 			</main>
 
-			{/* Footer */}
-			<footer className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-t border-gray-100 dark:border-slate-700 mt-auto">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
-					<div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-						<p className="text-sm text-gray-600 dark:text-slate-400 text-center sm:text-left">
-							Created by{" "}
-							<span className="font-semibold text-gray-900 dark:text-slate-100">
-								Joel Breit
-							</span>
-						</p>
-						<div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-							<a
-								href="https://joelbreit.com"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-sm text-gray-600 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors duration-200"
-							>
-								Website
-							</a>
-							<a
-								href="https://github.com/joelbreit"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-sm text-gray-600 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors duration-200"
-							>
-								GitHub
-							</a>
-							<a
-								href="https://www.linkedin.com/in/joel-breit"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-sm text-gray-600 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors duration-200"
-							>
-								LinkedIn
-							</a>
-							<a
-								href="mailto:joel@joelbreit.com"
-								className="text-sm text-gray-600 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors duration-200"
-							>
-								Email
-							</a>
-						</div>
-					</div>
-				</div>
-			</footer>
+			<Footer />
 		</div>
 	);
 }
