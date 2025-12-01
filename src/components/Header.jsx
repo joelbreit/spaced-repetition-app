@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { LogOut, User as UserIcon, ChevronDown, Download, Cloud, CloudOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { User as UserIcon, ChevronDown, Cloud, CloudOff } from "lucide-react";
 
-function Header({ user, isSaving, isOnline, onExport, onLogout }) {
+function Header({ user, isSaving, isOnline }) {
 	const [showUserMenu, setShowUserMenu] = useState(false);
+	const navigate = useNavigate();
 
 	return (
 		<header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
@@ -10,7 +12,10 @@ function Header({ user, isSaving, isOnline, onExport, onLogout }) {
 				<div className="flex h-14 sm:h-16 items-center justify-between">
 					{/* Title - shorter on mobile */}
 					<div className="flex items-center min-w-0 flex-1">
-						<h1 className="text-lg sm:text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate">
+						<h1
+							onClick={() => navigate("/")}
+							className="text-lg sm:text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate cursor-pointer hover:opacity-80 transition-opacity"
+						>
 							<span className="hidden sm:inline">
 								Spaced Repetition Flashcards
 							</span>
@@ -20,14 +25,6 @@ function Header({ user, isSaving, isOnline, onExport, onLogout }) {
 
 					{/* Desktop: Show all items */}
 					<div className="hidden md:flex items-center space-x-3 shrink-0">
-						{/* User Info */}
-						<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
-							<UserIcon className="h-3 w-3 text-gray-600 dark:text-slate-400" />
-							<span className="text-xs text-gray-600 dark:text-slate-400 truncate max-w-[120px]">
-								{user?.signInDetails?.loginId || "User"}
-							</span>
-						</div>
-
 						{/* Sync Status Indicator */}
 						<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
 							{isSaving ? (
@@ -54,23 +51,14 @@ function Header({ user, isSaving, isOnline, onExport, onLogout }) {
 							)}
 						</div>
 
-						{/* Export Button */}
+						{/* Profile Button */}
 						<button
-							onClick={onExport}
+							onClick={() => navigate("/profile")}
 							className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
-							title="Export data"
+							title="View Profile"
 						>
-							<Download className="h-4 w-4" />
-							Export
-						</button>
-
-						{/* Logout Button */}
-						<button
-							onClick={onLogout}
-							className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
-						>
-							<LogOut className="h-4 w-4" />
-							Logout
+							<UserIcon className="h-4 w-4" />
+							Profile
 						</button>
 					</div>
 
@@ -103,7 +91,8 @@ function Header({ user, isSaving, isOnline, onExport, onLogout }) {
 										<div className="flex items-center gap-2">
 											<UserIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
 											<span className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
-												{user?.signInDetails?.loginId || "User"}
+												{user?.signInDetails?.loginId ||
+													"User"}
 											</span>
 										</div>
 									</div>
@@ -136,28 +125,16 @@ function Header({ user, isSaving, isOnline, onExport, onLogout }) {
 										</div>
 									</div>
 
-									{/* Export */}
+									{/* Profile */}
 									<button
 										onClick={() => {
 											setShowUserMenu(false);
-											onExport();
+											navigate("/profile");
 										}}
 										className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
 									>
-										<Download className="h-4 w-4" />
-										Export Data
-									</button>
-
-									{/* Logout */}
-									<button
-										onClick={() => {
-											setShowUserMenu(false);
-											onLogout();
-										}}
-										className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
-									>
-										<LogOut className="h-4 w-4" />
-										Logout
+										<UserIcon className="h-4 w-4" />
+										View Profile
 									</button>
 								</div>
 							</>
@@ -170,4 +147,3 @@ function Header({ user, isSaving, isOnline, onExport, onLogout }) {
 }
 
 export default Header;
-
