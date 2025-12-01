@@ -5,6 +5,7 @@ import { useAppData } from "../contexts/AppDataContext";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NotificationContainer from "../components/NotificationContainer";
+import HeatmapCalendar from "../components/HeatmapCalendar";
 import {
 	ArrowLeft,
 	Download,
@@ -77,65 +78,72 @@ function ProfilePage() {
 				</div>
 
 				{/* Profile Cards */}
-				<div className="space-y-6 max-w-2xl">
-					{/* User Information Card */}
-					<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
-						<div className="flex items-center gap-3 mb-4">
-							<div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-full">
-								<UserIcon className="h-6 w-6 text-teal-600 dark:text-teal-400" />
-							</div>
-							<h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
-								Account Information
-							</h2>
-						</div>
-						<div className="space-y-3">
-							<div>
-								<label className="text-sm text-gray-500 dark:text-slate-500">
-									Email
-								</label>
-								<p className="text-gray-900 dark:text-slate-100 font-medium">
-									{user?.signInDetails?.loginId ||
-										"Not available"}
-								</p>
-							</div>
-						</div>
+				<div className="space-y-6">
+					{/* Heatmap Calendar */}
+					<div className="max-w-4xl">
+						<HeatmapCalendar appData={appData} />
 					</div>
 
-					{/* Actions Card */}
-					<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
-						<h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
-							Actions
-						</h2>
-						<div className="space-y-3">
-							{/* Export Button */}
-							<button
-								onClick={handleExportData}
-								className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 font-medium rounded-xl transition-colors duration-200"
-							>
-								<Download className="h-5 w-5" />
-								<div className="flex-1 text-left">
-									<div className="font-medium">
-										Export Data
-									</div>
-									<div className="text-sm text-gray-600 dark:text-slate-400">
-										Download your flashcards as JSON
-									</div>
+					<div className="max-w-2xl space-y-6">
+						{/* User Information Card */}
+						<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+							<div className="flex items-center gap-3 mb-4">
+								<div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-full">
+									<UserIcon className="h-6 w-6 text-teal-600 dark:text-teal-400" />
 								</div>
-							</button>
+								<h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
+									Account Information
+								</h2>
+							</div>
+							<div className="space-y-3">
+								<div>
+									<label className="text-sm text-gray-500 dark:text-slate-500">
+										Email
+									</label>
+									<p className="text-gray-900 dark:text-slate-100 font-medium">
+										{user?.signInDetails?.loginId ||
+											"Not available"}
+									</p>
+								</div>
+							</div>
+						</div>
 
-							{/* Logout Button */}
-							<button
-								onClick={handleLogout}
-								className="w-full flex items-center gap-3 px-4 py-3 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-medium rounded-xl transition-colors duration-200"
-							>
-								<LogOut className="h-5 w-5" />
-								<div className="flex-1 text-left">
-									<div className="font-medium">Logout</div>
-									<div className="text-sm text-red-500 dark:text-red-400/70">
-										Sign out of your account
+						{/* Actions Card */}
+						<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+							<h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
+								Actions
+							</h2>
+							<div className="space-y-3">
+								{/* Export Button */}
+								<button
+									onClick={handleExportData}
+									className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 font-medium rounded-xl transition-colors duration-200"
+								>
+									<Download className="h-5 w-5" />
+									<div className="flex-1 text-left">
+										<div className="font-medium">
+											Export Data
+										</div>
+										<div className="text-sm text-gray-600 dark:text-slate-400">
+											Download your flashcards as JSON
+										</div>
 									</div>
-								</div>
-							</button>
+								</button>
+
+								{/* Logout Button */}
+								<button
+									onClick={handleLogout}
+									className="w-full flex items-center gap-3 px-4 py-3 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-medium rounded-xl transition-colors duration-200"
+								>
+									<LogOut className="h-5 w-5" />
+									<div className="flex-1 text-left">
+										<div className="font-medium">Logout</div>
+										<div className="text-sm text-red-500 dark:text-red-400/70">
+											Sign out of your account
+										</div>
+									</div>
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>
