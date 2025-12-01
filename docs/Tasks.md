@@ -1,22 +1,19 @@
 # Tasks
 
-## Prototype
+## Features
 
 - [ ] Dark/Light mode
 - [ ] Card flip animation
-- [ ] TypeScript?
 - [ ] Replace `alert("Account confirmed! Please log in.");`
 - [ ] Allow confirmation of prompts / form submissions with 'Enter'
   - [ ] Delete deck dialog
-- [ ] Deck folders
+- [ ] **Deck folders**
 - [ ] Show count of search results
 - [ ] Allow for reviewing card subsets: flagged cards, new cards, etc
-- [ ] Move lambda code to external files
 - [ ] Delete button doesn't show up in dark mode
 - [ ] Add demo mode / tutorial
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
 - [ ] Add button to allow for duplicating cards in a deck with reverse direction
-- [ ] GitHub style progress / day grid
 - [ ] Add a icon that will show up for web app
 - [ ] Email login should not be case sensitive
 - [ ] User should be able to delete account or reset password
@@ -28,8 +25,28 @@
 - [ ] Display stats e.g. num correct while reviewing cards
 - [ ] More stats on deck view
 - [ ] Results screen when you finish reviewing cards
-- [ ] 
+
+### Header
+
+- [ ] Show current streak
+
+### Heatmap
+
+- [ ] Label best day ever/per year
+
+## Infrastructure
+
+- [ ] TypeScript?
+- [ ] **AWS documentation**
+- [ ] **Move lambda code to external files**
+
 ## Complete
+
+2025-12-01
+
+- [x] GitHub style progress / day grid
+- [x] Add Profile page
+- [x] Pagination and component separation
 
 2025-11-14
 
