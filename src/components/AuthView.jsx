@@ -59,7 +59,7 @@ export default function AuthView() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-teal-500 via-teal-600 to-cyan-600 flex items-center justify-center p-6">
+		<div className="min-h-screen bg-linear-to-br from-teal-500 via-teal-600 to-cyan-600 flex items-center justify-center p-6">
 			<div className="w-full max-w-md">
 				{/* Logo/Title */}
 				<div className="text-center mb-8">
@@ -110,7 +110,7 @@ export default function AuthView() {
 								<button
 									type="submit"
 									disabled={isLoading}
-									className="w-full px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+									className="w-full px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									{isLoading
 										? "Verifying..."
@@ -187,7 +187,7 @@ export default function AuthView() {
 								<button
 									type="submit"
 									disabled={isLoading}
-									className="w-full px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+									className="w-full px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									{isLoading
 										? "Please wait..."

@@ -130,7 +130,7 @@ dark: {
 ```jsx
 <button className="
   px-6 py-3 
-  bg-gradient-to-r from-teal-500 to-cyan-500 
+  bg-linear-to-r from-teal-500 to-cyan-500 
   hover:from-teal-600 hover:to-cyan-600 
   text-white font-medium 
   rounded-xl 
@@ -295,7 +295,7 @@ dark: {
 
 // Gradient text (for highlights)
 <span className="
-  bg-gradient-to-r from-teal-500 to-cyan-500 
+  bg-linear-to-r from-teal-500 to-cyan-500 
   bg-clip-text text-transparent 
   font-bold
 ">
@@ -427,7 +427,7 @@ dark: {
   <div 
     className="
       h-full 
-      bg-gradient-to-r from-green-500 to-emerald-500 
+      bg-linear-to-r from-green-500 to-emerald-500 
       rounded-full 
       transition-all duration-500 ease-out
       relative overflow-hidden
@@ -435,7 +435,7 @@ dark: {
     style={{ width: '67%' }}
   >
     {/* Shimmer effect */}
-    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+    <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
   </div>
 </div>
 ```
@@ -525,7 +525,7 @@ import { Flame, TrendingUp, CheckCircle } from 'lucide-react';
 
 ```jsx
 <div className="
-  bg-gradient-to-br from-brand-500 via-brand-600 to-purple-700 
+  bg-linear-to-br from-brand-500 via-brand-600 to-purple-700 
   rounded-2xl p-8 
   text-white 
   shadow-2xl
@@ -581,12 +581,12 @@ import { Flame, TrendingUp, CheckCircle } from 'lucide-react';
 ```jsx
 <div className="
   relative
-  bg-gradient-to-r from-orange-500 to-red-500
+  bg-linear-to-r from-orange-500 to-red-500
   rounded-xl p-4
   shadow-lg
   before:absolute before:inset-0 
   before:rounded-xl 
-  before:bg-gradient-to-r before:from-orange-500 before:to-red-500 
+  before:bg-linear-to-r before:from-orange-500 before:to-red-500 
   before:blur-xl before:opacity-50 before:-z-10
 ">
   <div className="relative z-10 text-white">
@@ -1047,7 +1047,7 @@ const DeckCard = ({ deck, onStudy }) => {
       {/* Progress */}
       <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
         <div 
-          className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
+          className="h-full bg-linear-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
           style={{ width: `${(deck.mastered / deck.totalCards) * 100}%` }}
         />
       </div>
@@ -1059,7 +1059,7 @@ const DeckCard = ({ deck, onStudy }) => {
           w-full
           flex items-center justify-center gap-2
           px-4 py-3
-          bg-gradient-to-r from-teal-500 to-cyan-500
+          bg-linear-to-r from-teal-500 to-cyan-500
           hover:from-teal-600 hover:to-cyan-600
           text-white font-medium
           rounded-xl

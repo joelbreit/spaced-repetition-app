@@ -123,11 +123,11 @@ export default function CardReviewView({
 				</div>
 				<div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
 					<div
-						className="h-full bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
+						className="h-full bg-linear-to-r from-teal-500 to-cyan-500 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
 						style={{ width: `${progress}%` }}
 					>
 						{/* Shimmer effect */}
-						<div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+						<div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
 					</div>
 				</div>
 			</div>
@@ -301,7 +301,7 @@ export default function CardReviewView({
 							</button>
 							<button
 								onClick={() => onReview("easy")}
-								className="px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+								className="px-6 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 							>
 								<div className="text-lg font-semibold">
 									Easy
@@ -314,7 +314,7 @@ export default function CardReviewView({
 					<div className="text-center">
 						<button
 							onClick={onFlip}
-							className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+							className="inline-flex items-center gap-3 px-8 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 						>
 							<RotateCcw className="h-6 w-6" />
 							Show Answer

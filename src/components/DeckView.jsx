@@ -73,7 +73,7 @@ function SortableDeckItem({
 					<div className="flex gap-3">
 						<button
 							onClick={handleUpdateDeck}
-							className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+							className="flex-1 px-4 py-2 bg-linear-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
 						>
 							Save
 						</button>
@@ -161,7 +161,7 @@ function SortableDeckItem({
 					{/* Progress */}
 					<div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
 						<div
-							className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
+							className="h-full bg-linear-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
 							style={{
 								width: `${
 									deck.cards.length > 0
@@ -187,7 +187,7 @@ function SortableDeckItem({
 						</button>
 						<button
 							onClick={() => onStartReview(deck.deckId)}
-							className="flex-1 px-3 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+							className="flex-1 px-3 py-2 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
 						>
 							Study
 						</button>
@@ -374,7 +374,7 @@ export default function DeckView({
 							</div>
 							<button
 								onClick={() => onStartReview(selectedDeckId)}
-								className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+								className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 							>
 								<Play className="h-5 w-5" />
 								Study Now
@@ -409,7 +409,7 @@ export default function DeckView({
 									<div className="flex gap-3">
 										<button
 											onClick={handleAddCard}
-											className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+											className="px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 										>
 											Add Card
 										</button>
@@ -595,7 +595,7 @@ export default function DeckView({
 								: 0;
 
 						return (
-							<div className="mb-8 bg-gradient-to-br from-teal-500 via-teal-600 to-cyan-600 rounded-2xl p-8 text-white shadow-2xl animate-fade-in">
+							<div className="mb-8 bg-linear-to-br from-teal-500 via-teal-600 to-cyan-600 rounded-2xl p-8 text-white shadow-2xl animate-fade-in">
 								<h2 className="text-3xl font-bold mb-6">
 									Your Study Statistics 📊
 								</h2>
@@ -701,7 +701,7 @@ export default function DeckView({
 								/>
 								<button
 									onClick={handleAddDeck}
-									className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+									className="px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 								>
 									Create
 								</button>

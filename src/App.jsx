@@ -560,7 +560,7 @@ function AppContent() {
 					<div className="flex h-14 sm:h-16 items-center justify-between">
 						{/* Title - shorter on mobile */}
 						<div className="flex items-center min-w-0 flex-1">
-							<h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate">
+							<h1 className="text-lg sm:text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate">
 								<span className="hidden sm:inline">
 									Spaced Repetition Flashcards
 								</span>
