@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NotificationContainer from "../components/NotificationContainer";
 import ActivityHeatmap from "../components/ActivityHeatmap";
+import ProgressChart from "../components/ProgressChart";
 import { ArrowLeft, Download, LogOut, User as UserIcon } from "lucide-react";
 
 function ProfilePage() {
@@ -62,7 +63,7 @@ function ProfilePage() {
 				</div>
 
 				{/* Profile Content */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<div className="grid grid-cols-1 gap-6">
 					{/* Left Column - User Info and Actions */}
 					<div className="lg:col-span-1 space-y-6">
 						{/* User Information Card */}
@@ -91,7 +92,9 @@ function ProfilePage() {
 					</div>
 
 					{/* Right Column */}
-					<div className="lg:col-span-1">
+					<div className="lg:col-span-1 space-y-6">
+						{/* Progress Chart */}
+						<ProgressChart appData={appData} />
 						{/* Actions Card */}
 						<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
 							<h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">

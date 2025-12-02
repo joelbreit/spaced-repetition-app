@@ -2,10 +2,10 @@
 
 ## Issues
 
+- [ ] Wide card content on small devices
 
 ## Features
 
-- [ ] Dark/Light mode
 - [ ] Card flip animation
 - [ ] Replace `alert("Account confirmed! Please log in.");`
 - [ ] Allow confirmation of prompts / form submissions with 'Enter'
@@ -76,7 +76,8 @@
 
 ### Profile Page
 
-- [ ] Progress charts
+- [ ] Columns / rows on larger screens
+- [ ] Progress chart doesn't seem to track all cards
 
 ## Infrastructure
 
@@ -93,6 +94,7 @@
 - [x] Condense Deck view buttons on small devices
 - [x] Profile header dropdown depth
 - [x] Star cards
+- [x] Progress charts
 
 2025-12-01
 
