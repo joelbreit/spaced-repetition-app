@@ -8,6 +8,7 @@ import {
 	Target,
 	Calendar,
 	Flag,
+	Star,
 } from "lucide-react";
 
 export default function CardReviewView({
@@ -19,10 +20,12 @@ export default function CardReviewView({
 	onEditCard,
 	onEndReview,
 	onToggleFlag,
+	onToggleStar,
 }) {
 	const currentCard = deck.cards[currentCardIndex];
 	const progress = ((currentCardIndex + 1) / deck.cards.length) * 100;
 	const isFlagged = currentCard?.isFlagged || false;
+	const isStarred = currentCard?.isStarred || false;
 
 	if (!currentCard) {
 		return null;
@@ -138,6 +141,27 @@ export default function CardReviewView({
 					className="relative min-h-[100px] cursor-pointer backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group animate-scale-in"
 					onClick={onFlip}
 				>
+					{/* Star Button */}
+					<button
+						onClick={(e) => {
+							e.stopPropagation();
+							if (onToggleStar) {
+								onToggleStar(currentCard.cardId);
+							}
+						}}
+						className={`absolute top-4 right-16 p-2 rounded-lg transition-all duration-200 z-10 ${
+							isStarred
+								? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
+								: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-yellow-500 dark:hover:text-yellow-400 border border-gray-200 dark:border-slate-600"
+						}`}
+						title={isStarred ? "Unstar card" : "Star card"}
+					>
+						<Star
+							className={`h-5 w-5 ${
+								isStarred ? "fill-current" : ""
+							}`}
+						/>
+					</button>
 					{/* Flag Button */}
 					<button
 						onClick={(e) => {

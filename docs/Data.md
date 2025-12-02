@@ -22,7 +22,8 @@
 		  ],
 		  "whenDue": 1234567890,
 		  "partnerCardId": "unique-id",
-		  "isFlagged": false
+		  "isFlagged": false,
+		  "isStarred": false
 		}
 	  ]
 	}
@@ -43,4 +44,3 @@
     - [ ] Add "folderUpdatedAt" to folders
 - [ ] Related cards (TBD)
   - Embed in card front/back text? Like in a markdown sort of format
-- [ ] Add isStarred to cards

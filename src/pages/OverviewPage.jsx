@@ -135,6 +135,28 @@ function OverviewPage() {
 		}));
 	};
 
+	const toggleCardStar = (deckId, cardId) => {
+		setAppData((prev) => ({
+			decks: prev.decks.map((deck) =>
+				deck.deckId === deckId
+					? {
+							...deck,
+							cards: deck.cards.map((card) =>
+								card.cardId === cardId
+									? {
+											...card,
+											isStarred: !(
+												card.isStarred || false
+											),
+									  }
+									: card
+							),
+					  }
+					: deck
+			),
+		}));
+	};
+
 	const duplicateCardsReversed = (deckId) => {
 		setAppData((prev) => {
 			const deck = prev.decks.find((d) => d.deckId === deckId);
@@ -367,6 +389,7 @@ function OverviewPage() {
 						}}
 						onStartReview={startReview}
 						onToggleCardFlag={toggleCardFlag}
+						onToggleCardStar={toggleCardStar}
 						onDuplicateCardsReversed={duplicateCardsReversed}
 					/>
 				)}
@@ -418,6 +441,25 @@ function OverviewPage() {
 												...c,
 												isFlagged: !(
 													c.isFlagged || false
+												),
+										  }
+										: c
+							);
+							setCurrentDeckForReview({
+								...currentDeckForReview,
+								cards: updatedCards,
+							});
+						}}
+						onToggleStar={(cardId) => {
+							toggleCardStar(currentDeckForReview.deckId, cardId);
+							// Also update the current deck for review
+							const updatedCards = currentDeckForReview.cards.map(
+								(c) =>
+									c.cardId === cardId
+										? {
+												...c,
+												isStarred: !(
+													c.isStarred || false
 												),
 										  }
 										: c

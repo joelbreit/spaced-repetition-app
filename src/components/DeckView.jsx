@@ -9,6 +9,7 @@ import {
 	BookOpen,
 	GripVertical,
 	Flag,
+	Star,
 	Copy,
 	Upload,
 	Eye,
@@ -232,6 +233,7 @@ export default function DeckView({
 	onEditCard,
 	onStartReview,
 	onToggleCardFlag,
+	onToggleCardStar,
 	onDuplicateCardsReversed,
 }) {
 	const [newDeckName, setNewDeckName] = useState("");
@@ -591,12 +593,15 @@ export default function DeckView({
 							) : (
 								selectedDeck.cards.map((card) => {
 									const isFlagged = card.isFlagged || false;
+									const isStarred = card.isStarred || false;
 									return (
 										<div
 											key={card.cardId}
 											className={`bg-white dark:bg-slate-800 rounded-xl border p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group ${
 												isFlagged
 													? "border-orange-300 dark:border-orange-700/50 bg-orange-50/30 dark:bg-orange-900/10"
+													: isStarred
+													? "border-yellow-300 dark:border-yellow-700/50 bg-yellow-50/30 dark:bg-yellow-900/10"
 													: "border-gray-100 dark:border-slate-700"
 											}`}
 										>
@@ -611,11 +616,14 @@ export default function DeckView({
 																{card.front}
 															</p>
 														</div>
-														{isFlagged && (
-															<div className="shrink-0 pt-1">
+														<div className="shrink-0 pt-1 flex items-center gap-1">
+															{isStarred && (
+																<Star className="h-4 w-4 text-yellow-500 dark:text-yellow-400 fill-current" />
+															)}
+															{isFlagged && (
 																<Flag className="h-4 w-4 text-orange-500 dark:text-orange-400 fill-current" />
-															</div>
-														)}
+															)}
+														</div>
 													</div>
 													<div className="mb-3">
 														<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
@@ -634,6 +642,12 @@ export default function DeckView({
 															}{" "}
 															reviews
 														</span>
+														{isStarred && (
+															<span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-md">
+																<Star className="h-3 w-3 fill-current" />
+																Starred
+															</span>
+														)}
 														{isFlagged && (
 															<span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md">
 																<Flag className="h-3 w-3 fill-current" />
@@ -643,6 +657,35 @@ export default function DeckView({
 													</div>
 												</div>
 												<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+													{onToggleCardStar && (
+														<button
+															onClick={(e) => {
+																e.stopPropagation();
+																onToggleCardStar(
+																	selectedDeckId,
+																	card.cardId
+																);
+															}}
+															className={`p-2 rounded-lg transition-colors duration-200 ${
+																isStarred
+																	? "text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+																	: "text-gray-600 dark:text-slate-400 hover:text-yellow-500 dark:hover:text-yellow-400 hover:bg-gray-100 dark:hover:bg-slate-700"
+															}`}
+															title={
+																isStarred
+																	? "Unstar card"
+																	: "Star card"
+															}
+														>
+															<Star
+																className={`h-4 w-4 ${
+																	isStarred
+																		? "fill-current"
+																		: ""
+																}`}
+															/>
+														</button>
+													)}
 													{onToggleCardFlag && (
 														<button
 															onClick={(e) => {
