@@ -10,6 +10,7 @@ import {
 	GripVertical,
 	Flag,
 	Copy,
+	Upload,
 } from "lucide-react";
 import { useNotification } from "../hooks/useNotification";
 import StudyStatistics from "./StudyStatistics";
@@ -238,7 +239,7 @@ export default function DeckView({
 	const [newCardBack, setNewCardBack] = useState("");
 	const [showNewCardForm, setShowNewCardForm] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
-	const { showConfirmation } = useNotification();
+	const { showConfirmation, showSuccess, showError } = useNotification();
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -354,6 +355,70 @@ export default function DeckView({
 		}
 	};
 
+	const handleImportCards = async (event) => {
+		const file = event.target.files?.[0];
+		if (!file) {
+			return;
+		}
+
+		// Reset the input so the same file can be selected again
+		event.target.value = "";
+
+		try {
+			const text = await file.text();
+			const lines = text.split("\n").filter((line) => line.trim());
+
+			if (lines.length === 0) {
+				showError("The file is empty.", "Import Failed");
+				return;
+			}
+
+			let importedCount = 0;
+			let skippedCount = 0;
+
+			for (const line of lines) {
+				// Split by tab character
+				const columns = line.split("\t");
+
+				if (columns.length < 2) {
+					skippedCount++;
+					continue;
+				}
+
+				const front = columns[0].trim();
+				const back = columns[1].trim();
+
+				if (front && back) {
+					onAddCard(selectedDeckId, front, back);
+					importedCount++;
+				} else {
+					skippedCount++;
+				}
+			}
+
+			if (importedCount > 0) {
+				showSuccess(
+					`Successfully imported ${importedCount} card(s)${
+						skippedCount > 0
+							? `. ${skippedCount} row(s) were skipped.`
+							: ""
+					}`,
+					"Import Complete"
+				);
+			} else {
+				showError(
+					"No cards were imported. Please check that your TSV file has 2 columns (front and back) separated by tabs.",
+					"Import Failed"
+				);
+			}
+		} catch (error) {
+			showError(
+				`Failed to import cards: ${error.message}`,
+				"Import Failed"
+			);
+		}
+	};
+
 	const handleDragEnd = (event) => {
 		const { active, over } = event;
 
@@ -407,6 +472,21 @@ export default function DeckView({
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
+								<input
+									type="file"
+									accept=".tsv,.txt"
+									onChange={handleImportCards}
+									className="hidden"
+									id="import-cards-input"
+								/>
+								<label
+									htmlFor="import-cards-input"
+									className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
+									title="Import cards from a TSV file (2 columns: front and back)"
+								>
+									<Upload className="h-5 w-5" />
+									Import Cards
+								</label>
 								{selectedDeck.cards.length > 0 &&
 									onDuplicateCardsReversed && (
 										<button

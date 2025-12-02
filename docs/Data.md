@@ -20,7 +20,9 @@
 				"result": "again" | "hard" | "good" | "easy"
 			}
 		  ],
-		  "whenDue": 1234567890
+		  "whenDue": 1234567890,
+		  "partnerCardId": "unique-id",
+		  "isFlagged": false
 		}
 	  ]
 	}
@@ -39,7 +41,6 @@
     - [ ] Add "folderIcon" to folders
     - [ ] Add "folderCreatedAt" to folders
     - [ ] Add "folderUpdatedAt" to folders
-- [ ] Partner cards
-  - [ ] Add "partnerCardId" to cards
 - [ ] Related cards (TBD)
   - Embed in card front/back text? Like in a markdown sort of format
+- [ ] Add isStarred to cards

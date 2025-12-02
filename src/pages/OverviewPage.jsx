@@ -24,7 +24,7 @@ function OverviewPage() {
 
 	const addDeck = (deckName) => {
 		const newDeck = {
-			deckId: Date.now().toString(),
+			deckId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
 			deckName,
 			cards: [],
 		};
@@ -66,7 +66,7 @@ function OverviewPage() {
 
 	const addCard = (deckId, front, back) => {
 		const newCard = {
-			cardId: Date.now().toString(),
+			cardId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
 			front,
 			back,
 			reviews: [],
@@ -236,7 +236,9 @@ function OverviewPage() {
 		if (!card) return;
 
 		const review = {
-			reviewId: Date.now().toString(),
+			reviewId: `${Date.now()}-${Math.random()
+				.toString(36)
+				.slice(2, 11)}`,
 			timestamp: Date.now(),
 			result, // "again", "hard", "good", "easy"
 		};

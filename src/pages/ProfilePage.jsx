@@ -5,7 +5,7 @@ import { useAppData } from "../contexts/AppDataContext";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NotificationContainer from "../components/NotificationContainer";
-import ActivityHeatmap from "../components/ActivityHeatmap";
+import ActivityHeatmap from "../components/ActivityHeatMap";
 import { ArrowLeft, Download, LogOut, User as UserIcon } from "lucide-react";
 
 function ProfilePage() {

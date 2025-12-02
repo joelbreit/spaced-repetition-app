@@ -1,5 +1,9 @@
 # Tasks
 
+## Issues
+
+- [ ] Profile header dropdown depth
+
 ## Features
 
 - [ ] Dark/Light mode
@@ -37,8 +41,7 @@
       - [ ] Ask which cards to delete (all, some, none)
     - [ ] When editing a card, ask if you want to edit the partner card
     - [ ] Show partner cards in card view
-- [ ] Track related cards 
-- [ ] **Readd import button**
+- [ ] Track related cards
 - [ ] **Cloze deletions**
 - [ ] Add a icon that will show up for web app
 - [ ] Email login should not be case sensitive
@@ -70,6 +73,7 @@
 ### Heatmap
 
 - [ ] Label best day ever/per year
+- [ ] Show today on activity heatmap
 
 ### Profile Page
 
@@ -83,6 +87,10 @@
 - [ ] Some sort of database that's not a giant JSON file
 
 ## Complete
+
+2025-12-02
+
+- [x] Import data
 
 2025-12-01
 

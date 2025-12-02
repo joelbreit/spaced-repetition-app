@@ -14,7 +14,7 @@ export const NotificationProvider = ({ children }) => {
 	});
 
 	const addNotification = useCallback((notification) => {
-		const id = Date.now().toString();
+		const id = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 		const newNotification = {
 			id,
 			type: "info",
