@@ -7,7 +7,7 @@ function Header({ user, isSaving, isOnline }) {
 	const navigate = useNavigate();
 
 	return (
-		<header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
+		<header className="relative z-30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6">
 				<div className="flex h-14 sm:h-16 items-center justify-between">
 					{/* Title - shorter on mobile */}
@@ -81,11 +81,11 @@ function Header({ user, isSaving, isOnline }) {
 							<>
 								{/* Backdrop */}
 								<div
-									className="fixed inset-0 z-10"
+									className="fixed inset-0 z-40"
 									onClick={() => setShowUserMenu(false)}
 								/>
 								{/* Menu */}
-								<div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 z-20 py-2">
+								<div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 z-50 py-2">
 									{/* User Email */}
 									<div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
 										<div className="flex items-center gap-2">

@@ -11,6 +11,7 @@ import {
 	Flag,
 	Copy,
 	Upload,
+	Eye,
 } from "lucide-react";
 import { useNotification } from "../hooks/useNotification";
 import StudyStatistics from "./StudyStatistics";
@@ -184,28 +185,30 @@ function SortableDeckItem({
 					<div className="flex gap-2">
 						<button
 							onClick={() => onSelectDeck(deck.deckId)}
-							className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-lg transition-colors duration-200"
+							className="flex-1 px-2 sm:px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-lg transition-colors duration-200 text-sm sm:text-base flex items-center justify-center gap-1.5"
 						>
-							View
+							<Eye className="h-4 w-4 sm:hidden" />
+							<span className="hidden sm:inline">View</span>
 						</button>
 						<button
 							onClick={() => onStartReview(deck.deckId)}
-							className="flex-1 px-3 py-2 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+							className="flex-1 px-2 sm:px-3 py-2 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base flex items-center justify-center gap-1.5"
 						>
-							Study
+							<Play className="h-4 w-4 sm:hidden" />
+							<span className="hidden sm:inline">Study</span>
 						</button>
 						<button
 							onClick={() => {
 								setEditingDeckId(deck.deckId);
 								setEditingDeckName(deck.deckName);
 							}}
-							className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
+							className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200 opacity-0 sm:opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100"
 						>
 							<Edit className="h-4 w-4" />
 						</button>
 						<button
 							onClick={() => handleDeleteDeck(deck.deckId)}
-							className="p-2 text-gray-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors duration-200 opacity-0 group-hover:opacity-100"
+							className="p-2 text-gray-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors duration-200 opacity-0 sm:opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100"
 						>
 							<Trash2 className="h-4 w-4" />
 						</button>
@@ -459,7 +462,7 @@ export default function DeckView({
 					</div>
 
 					<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-6 hover:shadow-xl transition-shadow duration-300">
-						<div className="mb-6 flex items-center justify-between">
+						<div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div className="flex items-center gap-3">
 								<span className="text-4xl">📚</span>
 								<div>
@@ -471,7 +474,7 @@ export default function DeckView({
 									</p>
 								</div>
 							</div>
-							<div className="flex items-center gap-3">
+							<div className="flex items-center gap-2 flex-wrap">
 								<input
 									type="file"
 									accept=".tsv,.txt"
@@ -481,11 +484,13 @@ export default function DeckView({
 								/>
 								<label
 									htmlFor="import-cards-input"
-									className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
+									className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
 									title="Import cards from a TSV file (2 columns: front and back)"
 								>
 									<Upload className="h-5 w-5" />
-									Import Cards
+									<span className="hidden sm:inline">
+										Import Cards
+									</span>
 								</label>
 								{selectedDeck.cards.length > 0 &&
 									onDuplicateCardsReversed && (
@@ -493,21 +498,25 @@ export default function DeckView({
 											onClick={
 												handleDuplicateCardsReversed
 											}
-											className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+											className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 											title="Duplicate all cards with reversed front/back"
 										>
 											<Copy className="h-5 w-5" />
-											Duplicate Reversed
+											<span className="hidden sm:inline">
+												Duplicate Reversed
+											</span>
 										</button>
 									)}
 								<button
 									onClick={() =>
 										onStartReview(selectedDeckId)
 									}
-									className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+									className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 								>
 									<Play className="h-5 w-5" />
-									Study Now
+									<span className="hidden sm:inline">
+										Study Now
+									</span>
 								</button>
 							</div>
 						</div>

@@ -2,7 +2,6 @@
 
 ## Issues
 
-- [ ] Profile header dropdown depth
 
 ## Features
 
@@ -58,6 +57,7 @@
 - [ ] Icon selection for folders and decks
 - [ ] Track Lambda code in functions/ folder
 - [ ] Reduce front page stats hero section size
+- [ ] Star cards
 
 ### Account Management
 
@@ -91,6 +91,8 @@
 2025-12-02
 
 - [x] Import data
+- [x] Condense Deck view buttons on small devices
+- [x] Profile header dropdown depth
 
 2025-12-01
 
