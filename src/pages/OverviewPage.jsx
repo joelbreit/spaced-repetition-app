@@ -141,8 +141,17 @@ function OverviewPage() {
 			if (!deck || deck.cards.length === 0) return prev;
 
 			const now = Date.now();
-			const newCards = deck.cards.map((card, index) => {
-				const newCardId = `${now}-${index}`;
+
+			// Only select cards that do not already have a partnerCardId
+			const cardsToDuplicate = deck.cards.filter(
+				(card) => !card.partnerCardId
+			);
+
+			if (cardsToDuplicate.length === 0) return prev;
+
+			// Generate new cards just for those without partner
+			const newCards = cardsToDuplicate.map((card, idx) => {
+				const newCardId = `${now}-${idx}`;
 				return {
 					cardId: newCardId,
 					front: card.back,
@@ -153,22 +162,29 @@ function OverviewPage() {
 				};
 			});
 
-			// Update original cards with partnerCardId and add new cards
 			return {
-				decks: prev.decks.map((d) =>
-					d.deckId === deckId
-						? {
-								...d,
-								cards: [
-									...d.cards.map((card, index) => ({
-										...card,
-										partnerCardId: newCards[index].cardId,
-									})),
-									...newCards,
-								],
-						  }
-						: d
-				),
+				decks: prev.decks.map((d) => {
+					if (d.deckId !== deckId) return d;
+
+					// Update only original cards that did not have a partner
+					const updatedCards = d.cards.map((card) => {
+						const idx = cardsToDuplicate.findIndex(
+							(c) => c.cardId === card.cardId
+						);
+						if (idx !== -1) {
+							return {
+								...card,
+								partnerCardId: newCards[idx].cardId,
+							};
+						}
+						return card;
+					});
+
+					return {
+						...d,
+						cards: [...updatedCards, ...newCards],
+					};
+				}),
 			};
 		});
 	};
