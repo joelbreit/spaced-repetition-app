@@ -9,6 +9,7 @@ import {
 	BookOpen,
 	GripVertical,
 	Flag,
+	Copy,
 } from "lucide-react";
 import { useNotification } from "../hooks/useNotification";
 import StudyStatistics from "./StudyStatistics";
@@ -227,6 +228,7 @@ export default function DeckView({
 	onEditCard,
 	onStartReview,
 	onToggleCardFlag,
+	onDuplicateCardsReversed,
 }) {
 	const [newDeckName, setNewDeckName] = useState("");
 	const [editingDeckId, setEditingDeckId] = useState(null);
@@ -321,6 +323,37 @@ export default function DeckView({
 		}
 	};
 
+	const handleDuplicateCardsReversed = async () => {
+		if (!selectedDeck || selectedDeck.cards.length === 0) {
+			return;
+		}
+
+		// Check if any cards have a partnerCardId
+		const numWithoutPartnerCards = selectedDeck.cards.filter(
+			(card) => !card.partnerCardId
+		).length;
+
+		let confirmMessage = `This will create ${numWithoutPartnerCards} new card(s) with reversed front/back values`;
+		if (numWithoutPartnerCards !== selectedDeck.cards.length) {
+			confirmMessage += ` (${
+				selectedDeck.cards.length - numWithoutPartnerCards
+			} card(s) already have a partner card)`;
+		}
+		confirmMessage += `. Continue?`;
+
+		const confirmed = await showConfirmation({
+			title: "Duplicate Cards (Reversed)",
+			message: confirmMessage,
+			confirmText: "Duplicate",
+			cancelText: "Cancel",
+			type: "info",
+		});
+
+		if (confirmed) {
+			onDuplicateCardsReversed(selectedDeckId);
+		}
+	};
+
 	const handleDragEnd = (event) => {
 		const { active, over } = event;
 
@@ -373,13 +406,30 @@ export default function DeckView({
 									</p>
 								</div>
 							</div>
-							<button
-								onClick={() => onStartReview(selectedDeckId)}
-								className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-							>
-								<Play className="h-5 w-5" />
-								Study Now
-							</button>
+							<div className="flex items-center gap-3">
+								{selectedDeck.cards.length > 0 &&
+									onDuplicateCardsReversed && (
+										<button
+											onClick={
+												handleDuplicateCardsReversed
+											}
+											className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+											title="Duplicate all cards with reversed front/back"
+										>
+											<Copy className="h-5 w-5" />
+											Duplicate Reversed
+										</button>
+									)}
+								<button
+									onClick={() =>
+										onStartReview(selectedDeckId)
+									}
+									className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+								>
+									<Play className="h-5 w-5" />
+									Study Now
+								</button>
+							</div>
 						</div>
 
 						{/* Add Card Form */}

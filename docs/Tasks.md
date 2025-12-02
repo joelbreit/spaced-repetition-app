@@ -29,11 +29,14 @@
 - [ ] Add demo mode / tutorial
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
 - [ ] **Add button to allow for duplicating cards in a deck with reverse direction**
+  - [x] Add duplication button
+  - [x] Check for partner cards before duplicating
   - [ ] Track partner cards that are tied to each other
     - [ ] When deleting a card, ask if you want to delete the related card
-    - When deleting a deck with cards that are tied to partner cards
+    - [ ] When deleting a deck with cards that are tied to partner cards
       - [ ] Ask which cards to delete (all, some, none)
     - [ ] When editing a card, ask if you want to edit the partner card
+    - [ ] Show partner cards in card view
 - [ ] Track related cards 
 - [ ] **Readd import button**
 - [ ] **Cloze deletions**
@@ -83,6 +86,7 @@
 
 2025-12-01
 
+- [x] Add button to allow for duplicating cards in a deck with reverse direction
 - [x] AWS documentation
 - [x] GitHub style progress / day grid
 - [x] Add Profile page

@@ -135,6 +135,44 @@ function OverviewPage() {
 		}));
 	};
 
+	const duplicateCardsReversed = (deckId) => {
+		setAppData((prev) => {
+			const deck = prev.decks.find((d) => d.deckId === deckId);
+			if (!deck || deck.cards.length === 0) return prev;
+
+			const now = Date.now();
+			const newCards = deck.cards.map((card, index) => {
+				const newCardId = `${now}-${index}`;
+				return {
+					cardId: newCardId,
+					front: card.back,
+					back: card.front,
+					reviews: [],
+					whenDue: now,
+					partnerCardId: card.cardId,
+				};
+			});
+
+			// Update original cards with partnerCardId and add new cards
+			return {
+				decks: prev.decks.map((d) =>
+					d.deckId === deckId
+						? {
+								...d,
+								cards: [
+									...d.cards.map((card, index) => ({
+										...card,
+										partnerCardId: newCards[index].cardId,
+									})),
+									...newCards,
+								],
+						  }
+						: d
+				),
+			};
+		});
+	};
+
 	const startReview = (deckId) => {
 		const deck = appData.decks.find((d) => d.deckId === deckId);
 		if (deck) {
@@ -311,6 +349,7 @@ function OverviewPage() {
 						}}
 						onStartReview={startReview}
 						onToggleCardFlag={toggleCardFlag}
+						onDuplicateCardsReversed={duplicateCardsReversed}
 					/>
 				)}
 				{currentView === "edit" && (
