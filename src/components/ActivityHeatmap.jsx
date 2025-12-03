@@ -10,6 +10,14 @@ export default function ActivityHeatmap({ appData }) {
 	const [hoveredDay, setHoveredDay] = useState(null);
 	const [hoveredPosition, setHoveredPosition] = useState({ x: 0, y: 0 });
 
+	// Format date as YYYY-MM-DD in local timezone (not UTC)
+	const formatDateKey = (date) => {
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, "0");
+		const day = String(date.getDate()).padStart(2, "0");
+		return `${year}-${month}-${day}`;
+	};
+
 	// Calculate activity data from appData
 	const getActivityData = () => {
 		const activityMap = new Map();
@@ -19,7 +27,9 @@ export default function ActivityHeatmap({ appData }) {
 			deck.cards.forEach((card) => {
 				card.reviews.forEach((review) => {
 					const date = new Date(review.timestamp);
-					const dateStr = date.toISOString().split("T")[0];
+					// Normalize to midnight in local timezone
+					date.setHours(0, 0, 0, 0);
+					const dateStr = formatDateKey(date);
 
 					if (!activityMap.has(dateStr)) {
 						activityMap.set(dateStr, 0);
@@ -36,6 +46,7 @@ export default function ActivityHeatmap({ appData }) {
 	const generateWeeks = (firstReviewDate) => {
 		const weeks = [];
 		const today = new Date();
+		today.setHours(0, 0, 0, 0);
 
 		// If no reviews, return empty array
 		if (!firstReviewDate) {
@@ -44,9 +55,11 @@ export default function ActivityHeatmap({ appData }) {
 
 		// Start from the Sunday before the first review date
 		const startDate = new Date(firstReviewDate);
+		startDate.setHours(0, 0, 0, 0);
 		startDate.setDate(startDate.getDate() - startDate.getDay());
 
 		let currentDate = new Date(startDate);
+		currentDate.setHours(0, 0, 0, 0);
 		let currentWeek = [];
 
 		while (currentDate <= today) {
@@ -101,7 +114,7 @@ export default function ActivityHeatmap({ appData }) {
 
 	// Get activity level for a specific date (0-4)
 	const getActivityLevel = (date, activityMap, percentiles) => {
-		const dateStr = date.toISOString().split("T")[0];
+		const dateStr = formatDateKey(date);
 		const count = activityMap.get(dateStr) || 0;
 
 		if (count === 0) return 0;
@@ -167,7 +180,11 @@ export default function ActivityHeatmap({ appData }) {
 			return null;
 		}
 		const dates = Array.from(activityMap.keys()).sort();
-		return new Date(dates[0]);
+		// Parse date string as local time (YYYY-MM-DD format)
+		const [year, month, day] = dates[0].split("-").map(Number);
+		const date = new Date(year, month - 1, day);
+		date.setHours(0, 0, 0, 0);
+		return date;
 	};
 
 	const firstReviewDate = getFirstReviewDate();
@@ -188,7 +205,7 @@ export default function ActivityHeatmap({ appData }) {
 		for (let i = 0; i < 365; i++) {
 			const date = new Date(today);
 			date.setDate(date.getDate() - i);
-			const dateStr = date.toISOString().split("T")[0];
+			const dateStr = formatDateKey(date);
 
 			if (activityMap.has(dateStr)) {
 				streak++;
@@ -302,9 +319,7 @@ export default function ActivityHeatmap({ appData }) {
 											activityMap,
 											percentiles
 										);
-										const dateStr = day
-											.toISOString()
-											.split("T")[0];
+										const dateStr = formatDateKey(day);
 										const count =
 											activityMap.get(dateStr) || 0;
 

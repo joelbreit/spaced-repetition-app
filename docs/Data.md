@@ -44,3 +44,8 @@
     - [ ] Add "folderUpdatedAt" to folders
 - [ ] Related cards (TBD)
   - Embed in card front/back text? Like in a markdown sort of format
+- [ ] Add creation date
+  - [ ] For old cards 
+    - [ ] ...with no reviews, make creation date 24 hours before the due date
+    - [ ] ...with reviews, make creation date the first review timestamp
+  - [ ] All new cards should have creation dates set

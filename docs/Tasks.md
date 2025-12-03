@@ -72,12 +72,12 @@
 ### Heatmap
 
 - [ ] Label best day ever/per year
-- [ ] Show today on activity heatmap
 
 ### Profile Page
 
 - [ ] Columns / rows on larger screens
-- [ ] Progress chart doesn't seem to track all cards
+- [ ] ~~Progress chart doesn't seem to track all cards~~ Progress chart can't track historical "total cards" until creation dates are added
+- [ ] Study progress should have stacked new, learning, and mastered cards
 
 ## Infrastructure
 
@@ -87,6 +87,10 @@
 - [ ] Some sort of database that's not a giant JSON file
 
 ## Complete
+
+2025-12-03
+
+- [x] Show today on activity heatmap
 
 2025-12-02
 
