@@ -77,7 +77,7 @@
 
 - [ ] Columns / rows on larger screens
 - [ ] ~~Progress chart doesn't seem to track all cards~~ Progress chart can't track historical "total cards" until creation dates are added
-- [ ] Study progress should have stacked new, learning, and mastered cards
+- [ ] Study progress should have stacked new, struggling, learning, and mastered cards
 
 ## Infrastructure
 
@@ -91,6 +91,9 @@
 2025-12-03
 
 - [x] Show today on activity heatmap
+- [x] Created Segmented Progress Bar
+- [x] Randomize order of new cards
+- [x] Fix calculation of due, new, and learned cards
 
 2025-12-02
 

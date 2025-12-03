@@ -2,9 +2,9 @@ export default function StudyStatistics({ appData }) {
 	const allCards = appData.decks.flatMap((deck) => deck.cards);
 	const totalCards = allCards.length;
 	const totalDecks = appData.decks.length;
-	const cardsDue = allCards.filter(
-		(card) => card.whenDue <= Date.now()
-	).length;
+	const cardsDue = allCards
+		.filter((card) => card.whenDue <= Date.now())
+		.filter((card) => card.reviews.length > 0).length;
 	const newCards = allCards.filter(
 		(card) => card.reviews.length === 0
 	).length;

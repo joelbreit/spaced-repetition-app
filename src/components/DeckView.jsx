@@ -129,7 +129,9 @@ function SortableDeckItem({
 							<div className="text-2xl font-bold text-orange-600">
 								{
 									deck.cards.filter(
-										(card) => card.whenDue <= Date.now()
+										(card) =>
+											card.whenDue <= Date.now() &&
+											card.reviews.length > 0
 									).length
 								}
 							</div>
@@ -153,12 +155,14 @@ function SortableDeckItem({
 							<div className="text-2xl font-bold text-green-600">
 								{
 									deck.cards.filter(
-										(card) => card.reviews.length > 0
+										(card) =>
+											card.reviews.length > 0 &&
+											card.whenDue > Date.now()
 									).length
 								}
 							</div>
 							<div className="text-xs text-gray-600 dark:text-slate-400">
-								Studied
+								Learned
 							</div>
 						</div>
 					</div>

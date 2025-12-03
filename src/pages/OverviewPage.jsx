@@ -20,6 +20,7 @@ function OverviewPage() {
 	const [currentDeckForReview, setCurrentDeckForReview] = useState(null);
 	const [currentCardIndex, setCurrentCardIndex] = useState(0);
 	const [isFlipped, setIsFlipped] = useState(false);
+	const [reviewSections, setReviewSections] = useState([]);
 	const { showSuccess } = useNotification();
 
 	const addDeck = (deckName) => {
@@ -219,10 +220,10 @@ function OverviewPage() {
 			const now = Date.now();
 
 			// Separate cards into three groups
-			const dueCards = cards.filter((card) => card.whenDue <= now);
-			const newCards = cards.filter(
-				(card) => card.reviews.length === 0 && card.whenDue > now
+			const dueCards = cards.filter(
+				(card) => card.whenDue <= now && card.reviews.length > 0
 			);
+			const newCards = cards.filter((card) => card.reviews.length === 0);
 			const notYetDueCards = cards.filter(
 				(card) => card.whenDue > now && card.reviews.length > 0
 			);
@@ -244,7 +245,19 @@ function OverviewPage() {
 			// Combine groups in priority order: due → new → not yet due
 			const orderedCards = [...dueCards, ...newCards, ...notYetDueCards];
 
+			// Create section metadata for the progress bar
+			const sections = [
+				{ type: "due", label: "Due", total: dueCards.length },
+				{ type: "new", label: "New", total: newCards.length },
+				{
+					type: "learned",
+					label: "Learned",
+					total: notYetDueCards.length,
+				},
+			];
+
 			setCurrentDeckForReview({ ...deck, cards: orderedCards });
+			setReviewSections(sections);
 			setCurrentCardIndex(0);
 			setIsFlipped(false);
 			setCurrentView("review");
@@ -418,6 +431,7 @@ function OverviewPage() {
 						deck={currentDeckForReview}
 						currentCardIndex={currentCardIndex}
 						isFlipped={isFlipped}
+						sections={reviewSections}
 						onFlip={() => setIsFlipped(!isFlipped)}
 						onReview={recordReview}
 						onEditCard={(cardId) => {
@@ -429,6 +443,7 @@ function OverviewPage() {
 							setCurrentView("deck");
 							setCurrentDeckForReview(null);
 							setCurrentCardIndex(0);
+							setReviewSections([]);
 							setIsFlipped(false);
 						}}
 						onToggleFlag={(cardId) => {

@@ -10,11 +10,13 @@ import {
 	Flag,
 	Star,
 } from "lucide-react";
+import SegmentedProgressBar from "./SegmentedProgressBar";
 
 export default function CardReviewView({
 	deck,
 	currentCardIndex,
 	isFlipped,
+	sections = [],
 	onFlip,
 	onReview,
 	onEditCard,
@@ -23,7 +25,7 @@ export default function CardReviewView({
 	onToggleStar,
 }) {
 	const currentCard = deck.cards[currentCardIndex];
-	const progress = ((currentCardIndex + 1) / deck.cards.length) * 100;
+	const totalCards = deck.cards.length;
 	const isFlagged = currentCard?.isFlagged || false;
 	const isStarred = currentCard?.isStarred || false;
 
@@ -114,26 +116,12 @@ export default function CardReviewView({
 
 	return (
 		<div className="mx-auto max-w-4xl">
-			{/* Progress bar */}
-			<div className="mb-8">
-				<div className="mb-3 flex items-center justify-between text-sm">
-					<span className="text-gray-600 dark:text-gray-400 font-medium">
-						Card {currentCardIndex + 1} of {deck.cards.length}
-					</span>
-					<span className="text-gray-600 dark:text-gray-400 font-medium">
-						{Math.round(progress)}%
-					</span>
-				</div>
-				<div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-					<div
-						className="h-full bg-linear-to-r from-teal-500 to-cyan-500 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
-						style={{ width: `${progress}%` }}
-					>
-						{/* Shimmer effect */}
-						<div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-					</div>
-				</div>
-			</div>
+			{/* Segmented Progress Bar */}
+			<SegmentedProgressBar
+				sections={sections}
+				currentCardIndex={currentCardIndex}
+				totalCards={totalCards}
+			/>
 
 			{/* Card */}
 			<div className="mb-8">
