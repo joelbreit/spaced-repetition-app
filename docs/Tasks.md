@@ -3,6 +3,7 @@
 ## Issues
 
 - [ ] Wide card content on small devices
+- [ ] Scroll to top of new pages/views
 
 ## Features
 
@@ -42,19 +43,13 @@
     - [ ] Show partner cards in card view
 - [ ] Track related cards
 - [ ] **Cloze deletions**
-- [ ] Add a icon that will show up for web app
 - [ ] Email login should not be case sensitive
 - [ ] User should be able to delete account or reset password
 - [ ] Documentation of pages, components, algorithms, data structure
 - [ ] Feature request form
-- [ ] Archive decks 
+- [ ] Ability to archive decks 
 - [ ] Log how much things are probably costing
 - [ ] Markdown support
-- [ ] Display stats e.g. num correct while reviewing cards
-- [ ] More stats on deck view
-- [ ] Results screen when you finish reviewing cards
-- [ ] Color selection for folders and decks
-- [ ] Icon selection for folders and decks
 - [ ] Track Lambda code in functions/ folder
 - [ ] Reduce front page stats hero section size
 
@@ -69,9 +64,41 @@
 
 - [ ] Show current streak
 
-### Heatmap
+### Footer
 
-- [ ] Label best day ever/per year
+- [ ] Feature request form
+- [ ] App version history
+
+### Overview View
+
+- [ ] **Reduce intro stats section size**
+- [ ] Break progress bar into sections: due, new, learned
+
+### Card Review View
+
+- [ ] Display stats e.g. num correct while reviewing cards
+- [ ] Results screen when you finish reviewing cards
+- [ ] Create views for when you finish the due and new sections
+
+### Card View
+
+- [ ] Add card view
+- [ ] View review history
+- [ ] View all stats/info
+- [ ] Show card edit history?
+
+### Edit Card View
+
+- [ ] Add flag/star to edit card view
+
+### Deck View
+
+- [ ] Add stats/info
+- [ ] Card search functionality
+- [ ] Filter cards by flag, star, etc
+- [ ] Sort cards by due date, creation date, **review order**, num reviews, etc
+- [ ] Color selection for folders and decks
+- [ ] Icon selection for folders and decks
 
 ### Profile Page
 
@@ -79,12 +106,17 @@
 - [ ] ~~Progress chart doesn't seem to track all cards~~ Progress chart can't track historical "total cards" until creation dates are added
 - [ ] Study progress should have stacked new, struggling, learning, and mastered cards
 
+#### Heatmap
+
+- [ ] Label best day ever/per year
+
 ## Infrastructure
 
 - [ ] TypeScript?
 - [ ] **Move lambda code to external files**
 - [ ] Create an AWS tag for all resources associated with this app
 - [ ] Some sort of database that's not a giant JSON file
+- [ ] Separate pages for deck view, card view, review screen
 
 ## Complete
 
@@ -94,6 +126,7 @@
 - [x] Created Segmented Progress Bar
 - [x] Randomize order of new cards
 - [x] Fix calculation of due, new, and learned cards
+- [x] **Add a icon that will show up for web app**
 
 2025-12-02
 
