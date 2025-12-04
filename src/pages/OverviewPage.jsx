@@ -290,14 +290,27 @@ function OverviewPage() {
 
 		let nextDue = now;
 
+		const inOneHour = now + 1 * 60 * 60 * 1000;
+		const oneDayMoreThanCurrentDueDate =
+			card.whenDue + 1 * 24 * 60 * 60 * 1000;
+
 		if (result === "again") {
-			nextDue = now + 1 * 24 * 60 * 60 * 1000; // 1 day
+			nextDue = inOneHour;
 		} else if (result === "hard") {
-			nextDue = now + 0.5 * timeSinceLastReview;
+			// nextDue = now + 0.5 * timeSinceLastReview;
+			nextDue = Math.max(now + 0.5 * timeSinceLastReview, inOneHour);
 		} else if (result === "good") {
-			nextDue = now + timeSinceLastReview;
+			// Same interval as last review, but at least 1 day more than current due date
+			nextDue = Math.max(
+				now + timeSinceLastReview,
+				oneDayMoreThanCurrentDueDate
+			);
 		} else if (result === "easy") {
-			nextDue = now + 2 * timeSinceLastReview;
+			// Double the interval, but at least 1 day more than current due date
+			nextDue = Math.max(
+				now + 2 * timeSinceLastReview,
+				oneDayMoreThanCurrentDueDate
+			);
 		}
 
 		// Update the card in the data
