@@ -10,6 +10,7 @@ import {
 	Flag,
 	Star,
 } from "lucide-react";
+import { useState } from "react";
 import SegmentedProgressBar from "./SegmentedProgressBar";
 
 export default function CardReviewView({
@@ -29,9 +30,92 @@ export default function CardReviewView({
 	const isFlagged = currentCard?.isFlagged || false;
 	const isStarred = currentCard?.isStarred || false;
 
+	// Animation state for review result
+	const [animationResult, setAnimationResult] = useState(null);
+	const [nextDueDate, setNextDueDate] = useState(null);
+
 	if (!currentCard) {
 		return null;
 	}
+
+	// Calculate next due date based on result (same logic as in OverviewPage)
+	const calculateNextDueDate = (result) => {
+		const now = Date.now();
+		const reviews = currentCard.reviews || [];
+
+		const timeSinceLastReview =
+			reviews.length > 0
+				? now - reviews[reviews.length - 1].timestamp
+				: 1 * 24 * 60 * 60 * 1000; // Default 1 day for first review
+
+		const inOneHour = now + 1 * 60 * 60 * 1000;
+		const oneDayMoreThanCurrentDueDate =
+			currentCard.whenDue + 1 * 24 * 60 * 60 * 1000;
+
+		let nextDue = now;
+
+		if (result === "again") {
+			nextDue = inOneHour;
+		} else if (result === "hard") {
+			nextDue = Math.max(now + 0.5 * timeSinceLastReview, inOneHour);
+		} else if (result === "good") {
+			nextDue = Math.max(
+				now + timeSinceLastReview,
+				oneDayMoreThanCurrentDueDate
+			);
+		} else if (result === "easy") {
+			nextDue = Math.max(
+				now + 2 * timeSinceLastReview,
+				oneDayMoreThanCurrentDueDate
+			);
+		}
+
+		return nextDue;
+	};
+
+	// Format time until next due date
+	const formatTimeUntilDue = (dueTimestamp) => {
+		const now = Date.now();
+		const msUntilDue = dueTimestamp - now;
+
+		const seconds = Math.floor(msUntilDue / 1000);
+		const minutes = Math.floor(seconds / 60);
+		const hours = Math.floor(minutes / 60);
+		const days = Math.floor(hours / 24);
+
+		if (days > 0) return `Due in ${days} day${days !== 1 ? "s" : ""}`;
+		if (hours > 0) return `Due in ${hours} hour${hours !== 1 ? "s" : ""}`;
+		if (minutes > 0)
+			return `Due in ${minutes} minute${minutes !== 1 ? "s" : ""}`;
+		return "Due in less than a minute";
+	};
+
+	// Handle review button click - trigger animation then record
+	const handleReview = (result) => {
+		const nextDue = calculateNextDueDate(result);
+		setAnimationResult(result);
+		setNextDueDate(nextDue);
+
+		// After animation completes, record the review
+		setTimeout(() => {
+			onReview(result);
+			setAnimationResult(null);
+			setNextDueDate(null);
+		}, 600);
+	};
+
+	// Get animation color based on result
+	const getAnimationColor = () => {
+		if (!animationResult) return null;
+
+		const colors = {
+			again: "bg-red-500/20 dark:bg-red-500/30 border-red-500/50",
+			hard: "bg-orange-500/20 dark:bg-orange-500/30 border-orange-500/50",
+			good: "bg-green-500/20 dark:bg-green-500/30 border-green-500/50",
+			easy: "bg-teal-500/20 dark:bg-teal-500/30 border-teal-500/50",
+		};
+		return colors[animationResult] || null;
+	};
 
 	// Calculate statistics
 	const reviews = currentCard.reviews || [];
@@ -124,55 +208,90 @@ export default function CardReviewView({
 			/>
 
 			{/* Card */}
-			<div className="mb-8">
+			<div className="mb-8" style={{ perspective: "1000px" }}>
 				<div
-					className="relative min-h-[100px] cursor-pointer backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] group animate-scale-in"
-					onClick={onFlip}
+					className={`cursor-pointer group animate-scale-in ${
+						animationResult ? "pointer-events-none" : ""
+					}`}
+					onClick={animationResult ? undefined : onFlip}
+					style={{
+						transformStyle: "preserve-3d",
+						transform: isFlipped
+							? "rotateY(180deg)"
+							: "rotateY(0deg)",
+						transition:
+							"transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)",
+						display: "grid",
+					}}
 				>
-					{/* Star Button */}
-					<button
-						onClick={(e) => {
-							e.stopPropagation();
-							if (onToggleStar) {
-								onToggleStar(currentCard.cardId);
-							}
-						}}
-						className={`absolute top-4 right-16 p-2 rounded-lg transition-all duration-200 z-10 ${
-							isStarred
-								? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
-								: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-yellow-500 dark:hover:text-yellow-400 border border-gray-200 dark:border-slate-600"
+					{/* Front Side */}
+					<div
+						className={`backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl min-h-[100px] relative overflow-hidden transition-all ${
+							animationResult ? getAnimationColor() : ""
 						}`}
-						title={isStarred ? "Unstar card" : "Star card"}
-					>
-						<Star
-							className={`h-5 w-5 ${
-								isStarred ? "fill-current" : ""
-							}`}
-						/>
-					</button>
-					{/* Flag Button */}
-					<button
-						onClick={(e) => {
-							e.stopPropagation();
-							if (onToggleFlag) {
-								onToggleFlag(currentCard.cardId);
-							}
+						style={{
+							backfaceVisibility: "hidden",
+							WebkitBackfaceVisibility: "hidden",
+							gridArea: "1 / 1",
+							transitionDuration: "0.6s",
 						}}
-						className={`absolute top-4 right-4 p-2 rounded-lg transition-all duration-200 z-10 ${
-							isFlagged
-								? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50"
-								: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-orange-500 dark:hover:text-orange-400 border border-gray-200 dark:border-slate-600"
-						}`}
-						title={isFlagged ? "Unflag card" : "Flag card"}
 					>
-						<Flag
-							className={`h-5 w-5 ${
-								isFlagged ? "fill-current" : ""
+						{/* Animation overlay with next due date */}
+						{animationResult && (
+							<div className="absolute inset-0 flex items-center justify-center z-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
+								<div className="text-center px-6">
+									<div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+										{formatTimeUntilDue(nextDueDate)}
+									</div>
+									<div className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+										Next Review
+									</div>
+								</div>
+							</div>
+						)}
+						{/* Star Button */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								if (onToggleStar) {
+									onToggleStar(currentCard.cardId);
+								}
+							}}
+							className={`absolute top-4 right-16 p-2 rounded-lg transition-all duration-200 z-10 ${
+								isStarred
+									? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
+									: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-yellow-500 dark:hover:text-yellow-400 border border-gray-200 dark:border-slate-600"
 							}`}
-						/>
-					</button>
-					<div className="flex h-full flex-col justify-center p-6">
-						{!isFlipped ? (
+							title={isStarred ? "Unstar card" : "Star card"}
+						>
+							<Star
+								className={`h-5 w-5 ${
+									isStarred ? "fill-current" : ""
+								}`}
+							/>
+						</button>
+						{/* Flag Button */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								if (onToggleFlag) {
+									onToggleFlag(currentCard.cardId);
+								}
+							}}
+							className={`absolute top-4 right-4 p-2 rounded-lg transition-all duration-200 z-10 ${
+								isFlagged
+									? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50"
+									: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-orange-500 dark:hover:text-orange-400 border border-gray-200 dark:border-slate-600"
+							}`}
+							title={isFlagged ? "Unflag card" : "Flag card"}
+						>
+							<Flag
+								className={`h-5 w-5 ${
+									isFlagged ? "fill-current" : ""
+								}`}
+							/>
+						</button>
+						<div className="flex h-full flex-col justify-center p-6">
 							<div className="text-center">
 								<div className="mb-4 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
 									Front
@@ -181,7 +300,81 @@ export default function CardReviewView({
 									{currentCard.front}
 								</div>
 							</div>
-						) : (
+						</div>
+						<div className="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+							Click to flip
+						</div>
+					</div>
+
+					{/* Back Side */}
+					<div
+						className={`backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl min-h-[100px] relative overflow-hidden transition-all ${
+							animationResult ? getAnimationColor() : ""
+						}`}
+						style={{
+							backfaceVisibility: "hidden",
+							WebkitBackfaceVisibility: "hidden",
+							transform: "rotateY(180deg)",
+							gridArea: "1 / 1",
+							transitionDuration: "0.6s",
+						}}
+					>
+						{/* Animation overlay with next due date */}
+						{animationResult && (
+							<div className="absolute inset-0 flex items-center justify-center z-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
+								<div className="text-center px-6">
+									<div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+										{formatTimeUntilDue(nextDueDate)}
+									</div>
+									<div className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+										Next Review
+									</div>
+								</div>
+							</div>
+						)}
+						{/* Star Button */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								if (onToggleStar) {
+									onToggleStar(currentCard.cardId);
+								}
+							}}
+							className={`absolute top-4 right-16 p-2 rounded-lg transition-all duration-200 z-10 ${
+								isStarred
+									? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
+									: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-yellow-500 dark:hover:text-yellow-400 border border-gray-200 dark:border-slate-600"
+							}`}
+							title={isStarred ? "Unstar card" : "Star card"}
+						>
+							<Star
+								className={`h-5 w-5 ${
+									isStarred ? "fill-current" : ""
+								}`}
+							/>
+						</button>
+						{/* Flag Button */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								if (onToggleFlag) {
+									onToggleFlag(currentCard.cardId);
+								}
+							}}
+							className={`absolute top-4 right-4 p-2 rounded-lg transition-all duration-200 z-10 ${
+								isFlagged
+									? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50"
+									: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-orange-500 dark:hover:text-orange-400 border border-gray-200 dark:border-slate-600"
+							}`}
+							title={isFlagged ? "Unflag card" : "Flag card"}
+						>
+							<Flag
+								className={`h-5 w-5 ${
+									isFlagged ? "fill-current" : ""
+								}`}
+							/>
+						</button>
+						<div className="flex h-full flex-col justify-center p-6">
 							<div className="text-center">
 								<div className="mb-4 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
 									Back
@@ -190,11 +383,10 @@ export default function CardReviewView({
 									{currentCard.back}
 								</div>
 							</div>
-						)}
-					</div>
-
-					<div className="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-						Click to flip
+						</div>
+						<div className="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+							Click to flip
+						</div>
 					</div>
 				</div>
 			</div>
@@ -281,8 +473,9 @@ export default function CardReviewView({
 						</h3>
 						<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
 							<button
-								onClick={() => onReview("again")}
-								className="px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+								onClick={() => handleReview("again")}
+								disabled={!!animationResult}
+								className="px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
 							>
 								<div className="text-lg font-semibold">
 									Again
@@ -290,8 +483,9 @@ export default function CardReviewView({
 								<div className="text-sm opacity-90">Poor</div>
 							</button>
 							<button
-								onClick={() => onReview("hard")}
-								className="px-6 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+								onClick={() => handleReview("hard")}
+								disabled={!!animationResult}
+								className="px-6 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
 							>
 								<div className="text-lg font-semibold">
 									Hard
@@ -301,8 +495,9 @@ export default function CardReviewView({
 								</div>
 							</button>
 							<button
-								onClick={() => onReview("good")}
-								className="px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+								onClick={() => handleReview("good")}
+								disabled={!!animationResult}
+								className="px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
 							>
 								<div className="text-lg font-semibold">
 									Good
@@ -312,8 +507,9 @@ export default function CardReviewView({
 								</div>
 							</button>
 							<button
-								onClick={() => onReview("easy")}
-								className="px-6 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+								onClick={() => handleReview("easy")}
+								disabled={!!animationResult}
+								className="px-6 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
 							>
 								<div className="text-lg font-semibold">
 									Easy
