@@ -62,7 +62,7 @@
 
 ### Header
 
-- [ ] Show current streak
+
 
 ### Footer
 
@@ -99,6 +99,9 @@
 - [ ] Sort cards by due date, creation date, **review order**, num reviews, etc
 - [ ] Color selection for folders and decks
 - [ ] Icon selection for folders and decks
+- [ ] Disable "Duplicate" when all cards in the deck already have a partner card
+- [ ] Show whether cards already have a partner card - link to it if so
+- [ ] Show how many cards in deck have a partner card
 
 ### Profile Page
 
@@ -123,6 +126,8 @@
 2025-12-22
 
 - [x] Add PATCH method to API for incrementing card review updates
+- [x] Show current streak in header
+- [x] Show reviews today in header
 
 2025-12-03
 

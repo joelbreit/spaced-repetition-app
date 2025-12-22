@@ -1,10 +1,75 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { User as UserIcon, ChevronDown, Cloud, CloudOff } from "lucide-react";
+import {
+	User as UserIcon,
+	ChevronDown,
+	Cloud,
+	CloudOff,
+	Flame,
+	BookOpen,
+} from "lucide-react";
+import { useAppData } from "../contexts/AppDataContext";
 
 function Header({ user, isSaving, isOnline }) {
 	const [showUserMenu, setShowUserMenu] = useState(false);
 	const navigate = useNavigate();
+	const { appData } = useAppData();
+
+	// Format date as YYYY-MM-DD in local timezone
+	const formatDateKey = (date) => {
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, "0");
+		const day = String(date.getDate()).padStart(2, "0");
+		return `${year}-${month}-${day}`;
+	};
+
+	// Calculate streak and reviews today
+	const { streak, reviewsToday } = useMemo(() => {
+		if (!appData || !appData.decks) {
+			return { streak: 0, reviewsToday: 0 };
+		}
+
+		// Build activity map
+		const activityMap = new Map();
+		appData.decks.forEach((deck) => {
+			deck.cards?.forEach((card) => {
+				card.reviews?.forEach((review) => {
+					const date = new Date(review.timestamp);
+					date.setHours(0, 0, 0, 0);
+					const dateStr = formatDateKey(date);
+
+					if (!activityMap.has(dateStr)) {
+						activityMap.set(dateStr, 0);
+					}
+					activityMap.set(dateStr, activityMap.get(dateStr) + 1);
+				});
+			});
+		});
+
+		// Calculate streak
+		let streak = 0;
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		for (let i = 0; i < 365; i++) {
+			const date = new Date(today);
+			date.setDate(date.getDate() - i);
+			const dateStr = formatDateKey(date);
+
+			if (activityMap.has(dateStr)) {
+				streak++;
+			} else if (i > 0) {
+				// Only break streak if it's not today (allow for no activity yet today)
+				break;
+			}
+		}
+
+		// Calculate reviews today
+		const todayStr = formatDateKey(today);
+		const reviewsToday = activityMap.get(todayStr) || 0;
+
+		return { streak, reviewsToday };
+	}, [appData]);
 
 	return (
 		<header className="relative z-30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
@@ -14,17 +79,34 @@ function Header({ user, isSaving, isOnline }) {
 					<div className="flex items-center min-w-0 flex-1">
 						<h1
 							onClick={() => navigate("/")}
-							className="text-lg sm:text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate cursor-pointer hover:opacity-80 transition-opacity"
+							className="text-lg md:text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate cursor-pointer hover:opacity-80 transition-opacity"
 						>
-							<span className="hidden sm:inline">
+							<span className="hidden md:inline">
 								Spaced Repetition Flashcards
 							</span>
-							<span className="sm:hidden">Flashcards</span>
+							<span className="md:hidden">Flashcards</span>
 						</h1>
 					</div>
 
 					{/* Desktop: Show all items */}
-					<div className="hidden md:flex items-center space-x-3 shrink-0">
+					<div className="hidden sm:flex items-center space-x-3 shrink-0">
+						{/* Streak */}
+						<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
+							<Flame className="h-4 w-4 text-orange-500" />
+							<span className="text-xs font-medium text-orange-700 dark:text-orange-300">
+								{streak} {streak === 1 ? "day" : "days"}
+							</span>
+						</div>
+
+						{/* Reviews Today */}
+						<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800">
+							<BookOpen className="h-4 w-4 text-teal-500" />
+							<span className="text-xs font-medium text-teal-700 dark:text-teal-300">
+								{reviewsToday}{" "}
+								{reviewsToday === 1 ? "review" : "reviews"}
+							</span>
+						</div>
+
 						{/* Sync Status Indicator */}
 						<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
 							{isSaving ? (
@@ -63,7 +145,7 @@ function Header({ user, isSaving, isOnline }) {
 					</div>
 
 					{/* Mobile: Dropdown menu */}
-					<div className="md:hidden relative shrink-0">
+					<div className="sm:hidden relative shrink-0">
 						<button
 							onClick={() => setShowUserMenu(!showUserMenu)}
 							className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors duration-200"
@@ -93,6 +175,33 @@ function Header({ user, isSaving, isOnline }) {
 											<span className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
 												{user?.signInDetails?.loginId ||
 													"User"}
+											</span>
+										</div>
+									</div>
+
+									{/* Streak */}
+									<div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
+										<div className="flex items-center gap-2">
+											<Flame className="h-4 w-4 text-orange-500" />
+											<span className="text-sm text-gray-600 dark:text-slate-400">
+												Streak:{" "}
+											</span>
+											<span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+												{streak}{" "}
+												{streak === 1 ? "day" : "days"}
+											</span>
+										</div>
+									</div>
+
+									{/* Reviews Today */}
+									<div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
+										<div className="flex items-center gap-2">
+											<BookOpen className="h-4 w-4 text-teal-500" />
+											<span className="text-sm text-gray-600 dark:text-slate-400">
+												Reviews today:{" "}
+											</span>
+											<span className="text-sm font-medium text-teal-600 dark:text-teal-400">
+												{reviewsToday}
 											</span>
 										</div>
 									</div>
