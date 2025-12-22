@@ -120,6 +120,10 @@
 
 ## Complete
 
+2025-12-22
+
+- [x] Add PATCH method to API for incrementing card review updates
+
 2025-12-03
 
 - [x] Show today on activity heatmap

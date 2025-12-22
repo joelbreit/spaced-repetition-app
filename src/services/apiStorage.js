@@ -67,6 +67,41 @@ export async function saveToAPI(data, authToken) {
 }
 
 /**
+ * Patch flashcard data to the API (with authentication)
+ * Only sends the changed portion (card or deck) instead of entire dataset
+ * @param {Object} patchData - The patch data object with format:
+ *   - Card patch: { type: 'card', deckId: string, card: CardObject }
+ *   - Deck patch: { type: 'deck', deck: DeckObject }
+ * @param {string} authToken - JWT token from Cognito
+ * @returns {Promise<Object>} Response from the API
+ */
+export async function patchToAPI(patchData, authToken) {
+	try {
+		const response = await fetch(`${API_ENDPOINT}/data`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${authToken}`,
+			},
+			body: JSON.stringify(patchData),
+		});
+
+		if (!response.ok) {
+			if (response.status === 401) {
+				throw new Error('Unauthorized - please log in again');
+			}
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const result = await response.json();
+		return result;
+	} catch (error) {
+		console.error('Error patching to API:', error);
+		throw error;
+	}
+}
+
+/**
  * Check if the API is accessible
  * @returns {Promise<boolean>}
  */

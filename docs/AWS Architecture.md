@@ -1,6 +1,6 @@
 ## AWS Resources Created
 
-### Core Infrastructure (from `setup-lambda-api.sh`)
+### Core Infrastructure (from `scripts/setup-lambda-api.sh`)
 
 1. **S3 Bucket**
    - Name: `spaced-rep-flashcards-data`
@@ -33,7 +33,7 @@
    - Name: `flashcards-s3-access`
    - Permissions: GetObject, PutObject, DeleteObject, ListBucket on the S3 bucket
 
-### Authentication (from `setup-cognito.sh`)
+### Authentication (from `scripts/setup-cognito.sh`)
 
 6. **Cognito User Pool**
    - Name: `flashcards-users`

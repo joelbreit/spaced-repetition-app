@@ -39,8 +39,7 @@ export default function CardReviewView({
 	}
 
 	// Calculate next due date based on result (same logic as in OverviewPage)
-	const calculateNextDueDate = (result) => {
-		const now = Date.now();
+	const calculateNextDueDate = (result, now) => {
 		const reviews = currentCard.reviews || [];
 
 		const timeSinceLastReview =
@@ -92,13 +91,14 @@ export default function CardReviewView({
 
 	// Handle review button click - trigger animation then record
 	const handleReview = (result) => {
-		const nextDue = calculateNextDueDate(result);
+		const timestamp = Date.now(); // Capture timestamp at button click
+		const nextDue = calculateNextDueDate(result, timestamp);
 		setAnimationResult(result);
 		setNextDueDate(nextDue);
 
-		// After animation completes, record the review
+		// After animation completes, record the review with the same timestamp
 		setTimeout(() => {
-			onReview(result);
+			onReview(result, timestamp);
 			setAnimationResult(null);
 			setNextDueDate(null);
 		}, 600);

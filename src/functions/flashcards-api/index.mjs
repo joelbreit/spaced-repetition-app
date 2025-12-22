@@ -15,7 +15,7 @@ const verifier = CognitoJwtVerifier.create({
 const headers = {
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
-	'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+	'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,OPTIONS',
 	'Access-Control-Max-Age': '86400',
 	'Content-Type': 'application/json'
 };
@@ -119,6 +119,98 @@ export const handler = async (event) => {
 				body: JSON.stringify({
 					success: true,
 					message: 'Data saved successfully',
+					userId: userId
+				})
+			};
+		}
+
+		if (method === 'PATCH') {
+			const patchData = JSON.parse(event.body);
+			const { type, deckId, card, deck } = patchData;
+
+			// Load existing data from S3
+			let existingData;
+			try {
+				const getCommand = new GetObjectCommand({
+					Bucket: BUCKET,
+					Key: key
+				});
+				const response = await s3Client.send(getCommand);
+				const jsonString = await response.Body.transformToString();
+				existingData = JSON.parse(jsonString);
+			} catch (error) {
+				if (error.name === 'NoSuchKey') {
+					existingData = { decks: [] };
+				} else {
+					throw error;
+				}
+			}
+
+			// Ensure decks array exists
+			if (!existingData.decks) {
+				existingData.decks = [];
+			}
+
+			// Apply patch based on type
+			if (type === 'card' && deckId && card) {
+				// Find the deck and update the card
+				const deckIndex = existingData.decks.findIndex(d => d.deckId === deckId);
+				if (deckIndex === -1) {
+					return {
+						statusCode: 404,
+						headers,
+						body: JSON.stringify({ error: 'Deck not found' })
+					};
+				}
+
+				const deck = existingData.decks[deckIndex];
+				if (!deck.cards) {
+					deck.cards = [];
+				}
+
+				// Find and replace the card
+				const cardIndex = deck.cards.findIndex(c => c.cardId === card.cardId);
+				if (cardIndex === -1) {
+					// Card doesn't exist, add it
+					deck.cards.push(card);
+				} else {
+					// Replace existing card
+					deck.cards[cardIndex] = card;
+				}
+			} else if (type === 'deck' && deck) {
+				// Find and replace the deck
+				const deckIndex = existingData.decks.findIndex(d => d.deckId === deck.deckId);
+				if (deckIndex === -1) {
+					// Deck doesn't exist, add it
+					existingData.decks.push(deck);
+				} else {
+					// Replace existing deck
+					existingData.decks[deckIndex] = deck;
+				}
+			} else {
+				return {
+					statusCode: 400,
+					headers,
+					body: JSON.stringify({ error: 'Invalid patch data format' })
+				};
+			}
+
+			// Save updated data back to S3
+			const putCommand = new PutObjectCommand({
+				Bucket: BUCKET,
+				Key: key,
+				Body: JSON.stringify(existingData, null, 2),
+				ContentType: 'application/json'
+			});
+
+			await s3Client.send(putCommand);
+
+			return {
+				statusCode: 200,
+				headers,
+				body: JSON.stringify({
+					success: true,
+					message: 'Data patched successfully',
 					userId: userId
 				})
 			};

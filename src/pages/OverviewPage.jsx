@@ -264,22 +264,20 @@ function OverviewPage() {
 		}
 	};
 
-	const recordReview = (result) => {
+	const recordReview = (result, timestamp = Date.now()) => {
 		if (!currentDeckForReview) return;
 
 		const card = currentDeckForReview.cards[currentCardIndex];
 		if (!card) return;
 
 		const review = {
-			reviewId: `${Date.now()}-${Math.random()
-				.toString(36)
-				.slice(2, 11)}`,
-			timestamp: Date.now(),
+			reviewId: `${timestamp}-${Math.random().toString(36).slice(2, 11)}`,
+			timestamp: timestamp,
 			result, // "again", "hard", "good", "easy"
 		};
 
 		// Calculate next due date based on time since last review
-		const now = Date.now();
+		const now = timestamp;
 		const reviews = card.reviews || [];
 
 		// Calculate time since last review, or use 1 day default for first review

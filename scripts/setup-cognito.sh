@@ -286,7 +286,7 @@ API_ID=$(aws apigatewayv2 get-apis \
 if [ -n "$API_ID" ]; then
     echo "✅ API Gateway configured: $API_ID"
 else
-    echo "❌ API Gateway not found. Please run setup-lambda-api.sh first."
+    echo "❌ API Gateway not found. Please run scripts/setup-lambda-api.sh first."
     exit 1
 fi
 
