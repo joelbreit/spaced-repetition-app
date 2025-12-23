@@ -115,8 +115,6 @@
 
 ## Infrastructure
 
-- [ ] TypeScript?
-- [ ] **Move lambda code to external files**
 - [ ] Create an AWS tag for all resources associated with this app
 - [ ] Some sort of database that's not a giant JSON file
 - [ ] Separate pages for deck view, card view, review screen

@@ -146,7 +146,6 @@ export default function CardReviewView({
 		if (reviews.length === 0) return 0;
 
 		const recentReviews = reviews.slice(-10);
-		console.log(recentReviews);
 		const weights = Array.from({ length: 10 }, (_, i) => 1 / (i + 1));
 		const resultScores = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
 
@@ -159,10 +158,7 @@ export default function CardReviewView({
 			totalWeight += weight;
 		});
 
-		console.log(weightedSum);
-		console.log(totalWeight);
 		const score = weightedSum / totalWeight;
-		console.log(score);
 		return (score * 100).toFixed(0);
 	};
 

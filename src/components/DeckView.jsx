@@ -32,6 +32,28 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+// Calculate learning strength for a card (same logic as CardReviewView)
+const calculateLearningStrength = (card) => {
+	const reviews = card.reviews || [];
+	if (reviews.length === 0) return 0;
+
+	const recentReviews = reviews.slice(-10);
+	const weights = Array.from({ length: 10 }, (_, i) => 1 / (i + 1));
+	const resultScores = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
+
+	let weightedSum = 0;
+	let totalWeight = 0;
+
+	recentReviews.forEach((review, index) => {
+		const weight = weights[recentReviews.length - 1 - index] || 0.25;
+		weightedSum += resultScores[review.result] * weight;
+		totalWeight += weight;
+	});
+
+	const score = weightedSum / totalWeight;
+	return score * 100;
+};
+
 function SortableDeckItem({
 	deck,
 	editingDeckId,
@@ -61,6 +83,16 @@ function SortableDeckItem({
 		transition,
 		opacity: isDragging ? 0.5 : 1,
 	};
+
+	const averageLearningStrength =
+		deck.cards.length > 0
+			? Math.round(
+					deck.cards.reduce(
+						(sum, card) => sum + calculateLearningStrength(card),
+						0
+					) / deck.cards.length
+			  )
+			: 0;
 
 	return (
 		<div
@@ -125,7 +157,7 @@ function SortableDeckItem({
 					</div>
 
 					{/* Stats */}
-					<div className="grid grid-cols-3 gap-3 mb-4">
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
 						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
 							<div className="text-2xl font-bold text-orange-600">
 								{
@@ -164,6 +196,16 @@ function SortableDeckItem({
 							</div>
 							<div className="text-xs text-gray-600 dark:text-slate-400">
 								Learned
+							</div>
+						</div>
+						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+							<div className="text-2xl font-bold text-green-500 dark:text-green-400">
+								{deck.cards.length > 0
+									? `${averageLearningStrength}%`
+									: "—"}
+							</div>
+							<div className="text-xs text-gray-600 dark:text-slate-400">
+								Avg Strength
 							</div>
 						</div>
 					</div>
@@ -453,28 +495,6 @@ export default function DeckView({
 		}
 	};
 
-	// Calculate learning strength for a card (same logic as CardReviewView)
-	const calculateLearningStrength = (card) => {
-		const reviews = card.reviews || [];
-		if (reviews.length === 0) return 0;
-
-		const recentReviews = reviews.slice(-10);
-		const weights = Array.from({ length: 10 }, (_, i) => 1 / (i + 1));
-		const resultScores = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
-
-		let weightedSum = 0;
-		let totalWeight = 0;
-
-		recentReviews.forEach((review, index) => {
-			const weight = weights[recentReviews.length - 1 - index] || 0.25;
-			weightedSum += resultScores[review.result] * weight;
-			totalWeight += weight;
-		});
-
-		const score = weightedSum / totalWeight;
-		return (score * 100).toFixed(0);
-	};
-
 	return (
 		<div>
 			{selectedDeckId && selectedDeck ? (
@@ -671,16 +691,13 @@ export default function DeckView({
 															}{" "}
 															reviews
 														</span>
-														{card.reviews.length >
-															0 && (
-															<span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-md">
-																<Target className="h-3 w-3" />
-																{
-																	learningStrength
-																}
-																% learned
-															</span>
-														)}
+														<span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-md">
+															<Target className="h-3 w-3" />
+															{Math.round(
+																learningStrength
+															)}
+															% learned
+														</span>
 														{isStarred && (
 															<span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-md">
 																<Star className="h-3 w-3 fill-current" />
