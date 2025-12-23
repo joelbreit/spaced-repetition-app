@@ -141,46 +141,32 @@ export default function CardReviewView({
 		return "Just now";
 	};
 
-	// Learning strength (based on last 5 reviews, weighted towards recent)
+	// Learning strength (based on last 10 reviews, weighted towards recent)
 	const calculateLearningStrength = () => {
-		if (reviews.length === 0)
-			return { score: 0, label: "New", color: "gray" };
+		if (reviews.length === 0) return 0;
 
-		const recentReviews = reviews.slice(-5);
-		const weights = [0.1, 0.15, 0.2, 0.25, 0.3]; // More weight to recent reviews
-		const resultScores = { again: 0, hard: 1, good: 2, easy: 3 };
+		const recentReviews = reviews.slice(-10);
+		console.log(recentReviews);
+		const weights = Array.from({ length: 10 }, (_, i) => 1 / (i + 1));
+		const resultScores = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
 
 		let weightedSum = 0;
 		let totalWeight = 0;
 
 		recentReviews.forEach((review, index) => {
-			const weight = weights[recentReviews.length - 1 - index] || 0.2;
+			const weight = weights[recentReviews.length - 1 - index] || 0.25;
 			weightedSum += resultScores[review.result] * weight;
 			totalWeight += weight;
 		});
 
+		console.log(weightedSum);
+		console.log(totalWeight);
 		const score = weightedSum / totalWeight;
-
-		if (score >= 2.5) return { score, label: "Mastered", color: "teal" };
-		if (score >= 1.5) return { score, label: "Learning", color: "green" };
-		if (score >= 0.5)
-			return { score, label: "Struggling", color: "orange" };
-		return { score, label: "New", color: "red" };
+		console.log(score);
+		return (score * 100).toFixed(0);
 	};
 
 	const learningStrength = calculateLearningStrength();
-
-	// Success rate (percentage of "good" or "easy" reviews)
-	const successRate =
-		reviews.length > 0
-			? Math.round(
-					(reviews.filter(
-						(r) => r.result === "good" || r.result === "easy"
-					).length /
-						reviews.length) *
-						100
-			  )
-			: 0;
 
 	// Days until next due
 	const daysUntilDue = currentCard.whenDue
@@ -416,32 +402,12 @@ export default function CardReviewView({
 
 						{/* Learning Strength */}
 						<div className="flex items-center gap-1.5">
-							<TrendingUp className="h-3 w-3 text-purple-500" />
-							<span
-								className={`font-medium ${
-									learningStrength.color === "teal"
-										? "text-teal-600 dark:text-teal-400"
-										: learningStrength.color === "green"
-										? "text-green-600 dark:text-green-400"
-										: learningStrength.color === "orange"
-										? "text-orange-600 dark:text-orange-400"
-										: learningStrength.color === "red"
-										? "text-red-600 dark:text-red-400"
-										: "text-gray-600 dark:text-gray-400"
-								}`}
-							>
-								{learningStrength.label}
-							</span>
-						</div>
-
-						{/* Success Rate */}
-						<div className="flex items-center gap-1.5">
 							<Target className="h-3 w-3 text-green-500" />
 							<span className="text-gray-600 dark:text-gray-400 font-medium">
-								{successRate}%
+								{learningStrength}%
 							</span>
 							<span className="text-gray-500 dark:text-gray-500">
-								success
+								learned
 							</span>
 						</div>
 

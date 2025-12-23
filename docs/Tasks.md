@@ -128,6 +128,7 @@
 - [x] Add PATCH method to API for incrementing card review updates
 - [x] Show current streak in header
 - [x] Show reviews today in header
+- [x] Add learning strength to card review view
 
 2025-12-03
 
