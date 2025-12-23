@@ -13,6 +13,7 @@ import {
 	Copy,
 	Upload,
 	Eye,
+	Target,
 } from "lucide-react";
 import { useNotification } from "../hooks/useNotification";
 import StudyStatistics from "./StudyStatistics";
@@ -452,6 +453,28 @@ export default function DeckView({
 		}
 	};
 
+	// Calculate learning strength for a card (same logic as CardReviewView)
+	const calculateLearningStrength = (card) => {
+		const reviews = card.reviews || [];
+		if (reviews.length === 0) return 0;
+
+		const recentReviews = reviews.slice(-10);
+		const weights = Array.from({ length: 10 }, (_, i) => 1 / (i + 1));
+		const resultScores = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
+
+		let weightedSum = 0;
+		let totalWeight = 0;
+
+		recentReviews.forEach((review, index) => {
+			const weight = weights[recentReviews.length - 1 - index] || 0.25;
+			weightedSum += resultScores[review.result] * weight;
+			totalWeight += weight;
+		});
+
+		const score = weightedSum / totalWeight;
+		return (score * 100).toFixed(0);
+	};
+
 	return (
 		<div>
 			{selectedDeckId && selectedDeck ? (
@@ -598,6 +621,8 @@ export default function DeckView({
 								selectedDeck.cards.map((card) => {
 									const isFlagged = card.isFlagged || false;
 									const isStarred = card.isStarred || false;
+									const learningStrength =
+										calculateLearningStrength(card);
 									return (
 										<div
 											key={card.cardId}
@@ -646,6 +671,16 @@ export default function DeckView({
 															}{" "}
 															reviews
 														</span>
+														{card.reviews.length >
+															0 && (
+															<span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-md">
+																<Target className="h-3 w-3" />
+																{
+																	learningStrength
+																}
+																% learned
+															</span>
+														)}
 														{isStarred && (
 															<span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-md">
 																<Star className="h-3 w-3 fill-current" />
