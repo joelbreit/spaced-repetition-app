@@ -78,10 +78,9 @@ function SortableDeckItem({
 
 	const aggregateReviewRate =
 		deck.cards.length > 0
-			? deck.cards.reduce(
-					(sum, card) => sum + getPerDayReviewRate(card),
-					0
-			  )
+			? deck.cards
+					.filter((card) => card.reviews && card.reviews.length > 0)
+					.reduce((sum, card) => sum + getPerDayReviewRate(card), 0)
 			: 0;
 
 	// Color scale for mastery: red (0%) -> orange (25%) -> yellow (50%) -> green (100%)
