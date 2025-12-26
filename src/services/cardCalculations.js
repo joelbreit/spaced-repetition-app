@@ -1,11 +1,30 @@
 // 10 minutes
 const MIN_INTERVAL = 10 * 60 * 1000;
 
+function prettyPrintInterval(interval) {
+	// days
+	const days = interval / (1000 * 60 * 60 * 24);
+	if (days > 1) {
+		return `${Math.round(days)} days`;
+	}
+	// hours
+	const hours = interval / (1000 * 60 * 60);
+	if (hours > 1) {
+		return `${Math.round(hours)} hours`;
+	}
+	// minutes
+	const minutes = interval / (1000 * 60);
+	if (minutes > 1) {
+		return `${Math.round(minutes)} minutes`;
+	}
+	return `${Math.round(interval / 1000)} seconds`;
+}
+
 export function calculateNextInterval(result, card, timestamp = Date.now()) {
 
 	// Always go to minimum interval
 	if (result === "again") {
-		console.log(`again, returning MIN_INTERVAL: ${MIN_INTERVAL}`);
+		console.log(`again, returning MIN_INTERVAL: ${prettyPrintInterval(MIN_INTERVAL)}`);
 		return MIN_INTERVAL;
 	}
 
@@ -19,12 +38,12 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	// const previousInterval = reviews.length > 0 && reviews[reviews.length - 1].interval ? reviews[reviews.length - 1].interval : timeSinceLastReview;
 	const previousInterval = getInterval(card);
 
-	console.log(`previousInterval: ${previousInterval}`);
-	console.log(`timeSinceLastReview: ${timeSinceLastReview}`);
+	console.log(`previousInterval: ${prettyPrintInterval(previousInterval)}`);
+	console.log(`timeSinceLastReview: ${prettyPrintInterval(timeSinceLastReview)}`);
 
 	// 0.5x MIN(last interval, time since last review)
 	if (result === "hard") {
-		console.log(`hard, returning: ${Math.max(Math.min(previousInterval, timeSinceLastReview) * 0.5, MIN_INTERVAL)}`);
+		console.log(`hard, returning: ${prettyPrintInterval(Math.max(Math.min(previousInterval, timeSinceLastReview) * 0.5, MIN_INTERVAL))}`);
 		return Math.max(
 			Math.min(previousInterval, timeSinceLastReview) * 0.5,
 			MIN_INTERVAL
@@ -33,7 +52,7 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 
 	// 1x last interval
 	if (result === "good") {
-		console.log(`good, returning: ${Math.max(Math.min(previousInterval, timeSinceLastReview), MIN_INTERVAL)}`);
+		console.log(`good, returning: ${prettyPrintInterval(Math.max(Math.min(previousInterval, timeSinceLastReview), MIN_INTERVAL))}`);
 		return Math.max(
 			previousInterval,
 			MIN_INTERVAL
@@ -42,13 +61,12 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 
 	// 2x MAX(last interval, time since last review)
 	if (result === "easy") {
-		console.log(`easy, returning: ${Math.max(Math.max(previousInterval, timeSinceLastReview) * 2, MIN_INTERVAL)}`);
 		if (timeSinceLastReview < previousInterval) { // prevent exploding due date for early reviews
 			// interval + 2x time since last review
-			console.log(`easy, but early, returning: ${previousInterval + 2 * timeSinceLastReview}`);
+			console.log(`easy, but early, returning: ${prettyPrintInterval(previousInterval + 2 * timeSinceLastReview)}`);
 			return previousInterval + 2 * timeSinceLastReview;
 		} else {
-			console.log(`easy, returning: ${Math.max(Math.max(previousInterval, timeSinceLastReview) * 2, MIN_INTERVAL)}`);
+			console.log(`easy, returning: ${prettyPrintInterval(Math.max(Math.max(previousInterval, timeSinceLastReview) * 2, MIN_INTERVAL))}`);
 			return Math.max(
 				Math.max(previousInterval, timeSinceLastReview) * 2,
 				MIN_INTERVAL
@@ -77,7 +95,7 @@ export function getInterval(card) {
 		? Date.now() - reviews[reviews.length - 1].timestamp
 		: Date.now() - card.createdAt || MIN_INTERVAL;
 
-	return timeSinceLastReview;
+	return timeSinceLastReview || MIN_INTERVAL;
 }
 
 export function calculateLearningStrength(card) {

@@ -126,6 +126,8 @@
 
 2025-12-26
 
+- [x] Color coded % mastery
+- [x] Added reviews/day rate
 - [x] Update timing logic
 
 2025-12-22

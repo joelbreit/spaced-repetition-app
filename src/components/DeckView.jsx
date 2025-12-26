@@ -31,7 +31,10 @@ import {
 	useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { calculateLearningStrength } from "../services/cardCalculations";
+import {
+	calculateLearningStrength,
+	getPerDayReviewRate,
+} from "../services/cardCalculations";
 
 function SortableDeckItem({
 	deck,
@@ -72,6 +75,29 @@ function SortableDeckItem({
 					) / deck.cards.length
 			  )
 			: 0;
+
+	const aggregateReviewRate =
+		deck.cards.length > 0
+			? deck.cards.reduce(
+					(sum, card) => sum + getPerDayReviewRate(card),
+					0
+			  )
+			: 0;
+
+	// Color scale for mastery: red (0%) -> orange (25%) -> yellow (50%) -> green (100%)
+	const getMasteryColor = (mastery) => {
+		if (mastery < 25) return "text-red-500 dark:text-red-400";
+		if (mastery < 50) return "text-orange-500 dark:text-orange-400";
+		if (mastery < 75) return "text-yellow-500 dark:text-yellow-400";
+		return "text-green-500 dark:text-green-400";
+	};
+
+	const getMasteryDotColor = (mastery) => {
+		if (mastery < 25) return "bg-red-500";
+		if (mastery < 50) return "bg-orange-500";
+		if (mastery < 75) return "bg-yellow-500";
+		return "bg-green-500";
+	};
 
 	return (
 		<div
@@ -135,10 +161,10 @@ function SortableDeckItem({
 						</div>
 					</div>
 
-					{/* Stats */}
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
-							<div className="text-2xl font-bold text-orange-600">
+					{/* Card Counts */}
+					<div className="grid grid-cols-3 gap-2 mb-3">
+						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-2.5 text-center">
+							<div className="text-xl font-bold text-orange-600">
 								{
 									deck.cards.filter(
 										(card) =>
@@ -151,8 +177,8 @@ function SortableDeckItem({
 								Due
 							</div>
 						</div>
-						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
-							<div className="text-2xl font-bold text-teal-600">
+						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-2.5 text-center">
+							<div className="text-xl font-bold text-teal-600">
 								{
 									deck.cards.filter(
 										(card) => card.reviews.length === 0
@@ -163,8 +189,8 @@ function SortableDeckItem({
 								New
 							</div>
 						</div>
-						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
-							<div className="text-2xl font-bold text-green-600">
+						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-2.5 text-center">
+							<div className="text-xl font-bold text-green-600">
 								{
 									deck.cards.filter(
 										(card) =>
@@ -177,15 +203,39 @@ function SortableDeckItem({
 								Learned
 							</div>
 						</div>
-						<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
-							<div className="text-2xl font-bold text-green-500 dark:text-green-400">
+					</div>
+
+					{/* Scores */}
+					<div className="flex items-center gap-4 mb-4 px-1">
+						<div className="flex items-center gap-1.5">
+							<div
+								className={`w-2 h-2 rounded-full ${getMasteryDotColor(
+									averageLearningStrength
+								)}`}
+							></div>
+							<span
+								className={`text-sm font-semibold ${getMasteryColor(
+									averageLearningStrength
+								)}`}
+							>
 								{deck.cards.length > 0
 									? `${averageLearningStrength}%`
 									: "—"}
-							</div>
-							<div className="text-xs text-gray-600 dark:text-slate-400">
-								Mastery
-							</div>
+							</span>
+							<span className="text-xs text-gray-500 dark:text-slate-500">
+								mastery
+							</span>
+						</div>
+						<div className="flex items-center gap-1.5">
+							<div className="w-2 h-2 rounded-full bg-purple-500"></div>
+							<span className="text-sm font-semibold text-gray-700 dark:text-slate-300">
+								{deck.cards.length > 0
+									? aggregateReviewRate.toFixed(1)
+									: "—"}
+							</span>
+							<span className="text-xs text-gray-500 dark:text-slate-500">
+								reviews/day
+							</span>
 						</div>
 					</div>
 
@@ -282,6 +332,17 @@ export default function DeckView({
 	const selectedDeck = selectedDeckId
 		? appData.decks.find((d) => d.deckId === selectedDeckId)
 		: null;
+
+	// Color scale for mastery badges: red (0%) -> orange (25%) -> yellow (50%) -> green (100%)
+	const getMasteryBadgeColors = (mastery) => {
+		if (mastery < 25)
+			return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400";
+		if (mastery < 50)
+			return "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400";
+		if (mastery < 75)
+			return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400";
+		return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400";
+	};
 
 	const filteredDecks = appData.decks.filter((deck) => {
 		if (!searchTerm) return true;
@@ -670,7 +731,11 @@ export default function DeckView({
 															}{" "}
 															reviews
 														</span>
-														<span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-md">
+														<span
+															className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md ${getMasteryBadgeColors(
+																learningStrength
+															)}`}
+														>
 															<Target className="h-3 w-3" />
 															{Math.round(
 																learningStrength
