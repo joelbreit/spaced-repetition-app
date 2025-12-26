@@ -78,24 +78,30 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 }
 
 export function getInterval(card) {
+
+	let interval = 0;
 	// Previous interval available
 	if (card.reviews && card.reviews.length > 0 && card.reviews[card.reviews.length - 1].interval) {
-		return card.reviews[card.reviews.length - 1].interval;
+		interval = card.reviews[card.reviews.length - 1].interval;
 	}
 
 	// Previous interval not available, try dueDate - last review timestamp
-	if (card.whenDue && card.reviews.length > 0) {
-		return card.whenDue - card.reviews[card.reviews.length - 1].timestamp;
+	else if (card.whenDue && card.reviews.length > 0) {
+		interval = card.whenDue - card.reviews[card.reviews.length - 1].timestamp;
 	}
 
 	// Else, just use time since last review
-	const reviews = card.reviews || [];
+	else {
+		const reviews = card.reviews || [];
 
-	const timeSinceLastReview = reviews.length > 0
-		? Date.now() - reviews[reviews.length - 1].timestamp
-		: Date.now() - card.createdAt || MIN_INTERVAL;
+		if (reviews.length === 0) {
+			interval = Date.now() - card.createdAt || MIN_INTERVAL;
+		} else {
+			interval = Date.now() - reviews[reviews.length - 1].timestamp;
+		}
+	}
 
-	return timeSinceLastReview || MIN_INTERVAL;
+	return interval || MIN_INTERVAL;
 }
 
 export function calculateLearningStrength(card) {

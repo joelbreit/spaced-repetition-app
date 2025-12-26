@@ -233,7 +233,7 @@ function SortableDeckItem({
 									: "—"}
 							</span>
 							<span className="text-xs text-gray-500 dark:text-slate-500">
-								reviews/day
+								burden/day
 							</span>
 						</div>
 					</div>

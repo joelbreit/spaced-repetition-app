@@ -18,7 +18,7 @@ export default function StudyStatistics({ appData }) {
 		{ label: "Due", value: cardsDue, highlight: cardsDue > 0 },
 		{ label: "New", value: newCards },
 		{ label: "Studied", value: studiedCards.length },
-		{ label: "Reviews/day", value: reviewsPerDay.toFixed(1) },
+		{ label: "Burden/Day", value: reviewsPerDay.toFixed(1) },
 	];
 
 	return (
