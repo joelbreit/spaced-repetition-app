@@ -31,28 +31,7 @@ import {
 	useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
-// Calculate learning strength for a card (same logic as CardReviewView)
-const calculateLearningStrength = (card) => {
-	const reviews = card.reviews || [];
-	if (reviews.length === 0) return 0;
-
-	const recentReviews = reviews.slice(-10);
-	const weights = Array.from({ length: 10 }, (_, i) => 1 / (i + 1));
-	const resultScores = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
-
-	let weightedSum = 0;
-	let totalWeight = 0;
-
-	recentReviews.forEach((review, index) => {
-		const weight = weights[recentReviews.length - 1 - index] || 0.25;
-		weightedSum += resultScores[review.result] * weight;
-		totalWeight += weight;
-	});
-
-	const score = weightedSum / totalWeight;
-	return score * 100;
-};
+import { calculateLearningStrength } from "../services/cardCalculations";
 
 function SortableDeckItem({
 	deck,
@@ -205,7 +184,7 @@ function SortableDeckItem({
 									: "—"}
 							</div>
 							<div className="text-xs text-gray-600 dark:text-slate-400">
-								Avg Strength
+								Mastery
 							</div>
 						</div>
 					</div>
@@ -696,7 +675,7 @@ export default function DeckView({
 															{Math.round(
 																learningStrength
 															)}
-															% learned
+															% mastery
 														</span>
 														{isStarred && (
 															<span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-md">

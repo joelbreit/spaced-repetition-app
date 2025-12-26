@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import SegmentedProgressBar from "./SegmentedProgressBar";
+import {
+	calculateNextInterval,
+	getInterval,
+	calculateLearningStrength,
+} from "../services/cardCalculations";
 
 export default function CardReviewView({
 	deck,
@@ -38,40 +43,6 @@ export default function CardReviewView({
 		return null;
 	}
 
-	// Calculate next due date based on result (same logic as in OverviewPage)
-	const calculateNextDueDate = (result, now) => {
-		const reviews = currentCard.reviews || [];
-
-		const timeSinceLastReview =
-			reviews.length > 0
-				? now - reviews[reviews.length - 1].timestamp
-				: 1 * 24 * 60 * 60 * 1000; // Default 1 day for first review
-
-		const inOneHour = now + 1 * 60 * 60 * 1000;
-		const oneDayMoreThanCurrentDueDate =
-			currentCard.whenDue + 1 * 24 * 60 * 60 * 1000;
-
-		let nextDue = now;
-
-		if (result === "again") {
-			nextDue = inOneHour;
-		} else if (result === "hard") {
-			nextDue = Math.max(now + 0.5 * timeSinceLastReview, inOneHour);
-		} else if (result === "good") {
-			nextDue = Math.max(
-				now + timeSinceLastReview,
-				oneDayMoreThanCurrentDueDate
-			);
-		} else if (result === "easy") {
-			nextDue = Math.max(
-				now + 2 * timeSinceLastReview,
-				oneDayMoreThanCurrentDueDate
-			);
-		}
-
-		return nextDue;
-	};
-
 	// Format time until next due date
 	const formatTimeUntilDue = (dueTimestamp) => {
 		const now = Date.now();
@@ -85,14 +56,19 @@ export default function CardReviewView({
 		if (days > 0) return `Due in ${days} day${days !== 1 ? "s" : ""}`;
 		if (hours > 0) return `Due in ${hours} hour${hours !== 1 ? "s" : ""}`;
 		if (minutes > 0)
-			return `Due in ${minutes} minute${minutes !== 1 ? "s" : ""}`;
+			return `Due in ${Math.ceil(minutes)} minute${
+				minutes !== 1 ? "s" : ""
+			}`;
 		return "Due in less than a minute";
 	};
 
 	// Handle review button click - trigger animation then record
 	const handleReview = (result) => {
 		const timestamp = Date.now(); // Capture timestamp at button click
-		const nextDue = calculateNextDueDate(result, timestamp);
+		const interval = calculateNextInterval(result, currentCard, timestamp);
+		const nextDue = timestamp + interval;
+		console.log(`interval: ${interval}`);
+		console.log(`nextDue: ${nextDue}`);
 		setAnimationResult(result);
 		setNextDueDate(nextDue);
 
@@ -141,28 +117,7 @@ export default function CardReviewView({
 		return "Just now";
 	};
 
-	// Learning strength (based on last 10 reviews, weighted towards recent)
-	const calculateLearningStrength = () => {
-		if (reviews.length === 0) return 0;
-
-		const recentReviews = reviews.slice(-10);
-		const weights = Array.from({ length: 10 }, (_, i) => 1 / (i + 1));
-		const resultScores = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
-
-		let weightedSum = 0;
-		let totalWeight = 0;
-
-		recentReviews.forEach((review, index) => {
-			const weight = weights[recentReviews.length - 1 - index] || 0.25;
-			weightedSum += resultScores[review.result] * weight;
-			totalWeight += weight;
-		});
-
-		const score = weightedSum / totalWeight;
-		return (score * 100).toFixed(0);
-	};
-
-	const learningStrength = calculateLearningStrength();
+	const learningStrength = calculateLearningStrength(currentCard);
 
 	// Days until next due
 	const daysUntilDue = currentCard.whenDue
@@ -170,14 +125,68 @@ export default function CardReviewView({
 		: 0;
 
 	const formatDaysUntilDue = () => {
+		if (!currentCard.whenDue) {
+			return "Due";
+		}
 		if (daysUntilDue < 0) {
 			const daysAgo = Math.abs(daysUntilDue);
 			if (daysAgo === 1) return "Due yesterday";
 			return `Due ${daysAgo} days ago`;
 		}
-		if (daysUntilDue === 0) return "Due today";
+		// if (daysUntilDue === 0) return "Due today";
+		if (daysUntilDue === 0) return formatHoursAgo();
 		if (daysUntilDue === 1) return "Due tomorrow";
 		return `Due in ${daysUntilDue} days`;
+	};
+
+	// e.g. Due x hours ago
+	const formatHoursAgo = () => {
+		const hoursAgo = Math.ceil(
+			(Date.now() - currentCard.whenDue) / (1000 * 60 * 60)
+		);
+		console.log(`Date.now(): ${Date.now()}`);
+		console.log(`currentCard.whenDue: ${currentCard.whenDue}`);
+		console.log(
+			`(Date.now() - currentCard.whenDue): ${
+				Date.now() - currentCard.whenDue
+			}`
+		);
+		console.log(`(1000 * 60 * 60): ${1000 * 60 * 60}`);
+		console.log(
+			`(Date.now() - currentCard.whenDue) / (1000 * 60 * 60): ${
+				(Date.now() - currentCard.whenDue) / (1000 * 60 * 60)
+			}`
+		);
+		console.log(
+			`Math.ceil((Date.now() - currentCard.whenDue) / (1000 * 60 * 60)): ${Math.ceil(
+				(Date.now() - currentCard.whenDue) / (1000 * 60 * 60)
+			)}`
+		);
+		console.log(`hoursAgo: ${hoursAgo}`);
+		if (hoursAgo === 1) return formatMinutesAgo();
+		return `Due ${hoursAgo} hours ago`;
+	};
+
+	// e.g. Due x minutes ago
+	const formatMinutesAgo = () => {
+		const minutesAgo = Math.ceil(
+			(Date.now() - currentCard.whenDue) / (1000 * 60)
+		);
+		return `Due ${minutesAgo} minutes ago`;
+	};
+
+	const formatInterval = () => {
+		const interval = getInterval(currentCard);
+		console.log(`interval: ${interval}`);
+		// days
+		const days = Math.floor(interval / (1000 * 60 * 60 * 24));
+		if (days > 0) return `${days} days`;
+		// hours
+		const hours = Math.floor(interval / (1000 * 60 * 60));
+		if (hours > 0) return `${hours} hours`;
+		// minutes
+		const minutes = Math.floor(interval / (1000 * 60));
+		return `${minutes} minutes`;
 	};
 
 	return (
@@ -400,10 +409,10 @@ export default function CardReviewView({
 						<div className="flex items-center gap-1.5">
 							<Target className="h-3 w-3 text-green-500" />
 							<span className="text-gray-600 dark:text-gray-400 font-medium">
-								{learningStrength}%
+								{Math.round(learningStrength)}%
 							</span>
 							<span className="text-gray-500 dark:text-gray-500">
-								learned
+								mastery
 							</span>
 						</div>
 
@@ -420,6 +429,14 @@ export default function CardReviewView({
 								}`}
 							>
 								{formatDaysUntilDue()}
+							</span>
+						</div>
+
+						{/* Interval */}
+						<div className="flex items-center gap-1.5">
+							<Clock className="h-3 w-3 text-blue-500" />
+							<span className="text-gray-600 dark:text-gray-400 font-medium">
+								{formatInterval()}
 							</span>
 						</div>
 					</div>

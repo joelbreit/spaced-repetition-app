@@ -34,33 +34,7 @@ npm run preview
 
 ## Data Structure
 
-The app uses a JSON structure for storing deck and card data:
-
-```json
-{
-  "decks": [
-    {
-      "deckId": "unique-id",
-      "deckName": "Deck Name",
-      "cards": [
-        {
-          "cardId": "unique-id",
-          "front": "Question or front of card",
-          "back": "Answer or back of card",
-          "reviews": [
-            {
-              "reviewId": "unique-id",
-              "timestamp": 1234567890,
-              "result": "again" | "hard" | "good" | "easy"
-            }
-          ],
-          "whenDue": 1234567890
-        }
-      ]
-    }
-  ]
-}
-```
+The app uses a JSON structure (see [Data.md](docs/Data.md)) for storing deck and card data.
 
 ## How Spaced Repetition Works
 

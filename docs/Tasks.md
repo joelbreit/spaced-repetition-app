@@ -7,7 +7,8 @@
 
 ## Features
 
-- [ ] Card flip animation
+- [ ] Math/paper aesthetic?
+- [ ] No more emojis in text
 - [ ] Replace `alert("Account confirmed! Please log in.");`
 - [ ] Allow confirmation of prompts / form submissions with 'Enter'
   - [ ] Delete deck dialog
@@ -16,6 +17,7 @@
     - [ ] Add folder function
     - [ ] Show folders
     - [ ] Hide decks that are in a folder
+    - [ ] Show per day review rate
   - Deck view:
     - [ ] Add to folder
       - [ ] Add to existing folder
@@ -62,7 +64,8 @@
 
 ### Header
 
-
+- [ ] Highlight/don't highlight streak if today is included in the streak
+- [ ] Reconnect by clicking "Offline"
 
 ### Footer
 
@@ -120,6 +123,10 @@
 - [ ] Separate pages for deck view, card view, review screen
 
 ## Complete
+
+2025-12-26
+
+- [x] Update timing logic
 
 2025-12-22
 

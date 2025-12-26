@@ -9,6 +9,7 @@ import { useNotification } from "../hooks/useNotification";
 import NotificationContainer from "../components/NotificationContainer";
 import Footer from "../components/Footer.jsx";
 import { useAppData } from "../contexts/AppDataContext";
+import { calculateNextInterval } from "../services/cardCalculations";
 
 function OverviewPage() {
 	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -270,46 +271,15 @@ function OverviewPage() {
 		const card = currentDeckForReview.cards[currentCardIndex];
 		if (!card) return;
 
+		const interval = calculateNextInterval(result, card, timestamp);
+		const nextDue = timestamp + interval;
+
 		const review = {
 			reviewId: `${timestamp}-${Math.random().toString(36).slice(2, 11)}`,
 			timestamp: timestamp,
+			interval: interval,
 			result, // "again", "hard", "good", "easy"
 		};
-
-		// Calculate next due date based on time since last review
-		const now = timestamp;
-		const reviews = card.reviews || [];
-
-		// Calculate time since last review, or use 1 day default for first review
-		const timeSinceLastReview =
-			reviews.length > 0
-				? now - reviews[reviews.length - 1].timestamp
-				: 1 * 24 * 60 * 60 * 1000; // Default 1 day for first review
-
-		let nextDue = now;
-
-		const inOneHour = now + 1 * 60 * 60 * 1000;
-		const oneDayMoreThanCurrentDueDate =
-			card.whenDue + 1 * 24 * 60 * 60 * 1000;
-
-		if (result === "again") {
-			nextDue = inOneHour;
-		} else if (result === "hard") {
-			// nextDue = now + 0.5 * timeSinceLastReview;
-			nextDue = Math.max(now + 0.5 * timeSinceLastReview, inOneHour);
-		} else if (result === "good") {
-			// Same interval as last review, but at least 1 day more than current due date
-			nextDue = Math.max(
-				now + timeSinceLastReview,
-				oneDayMoreThanCurrentDueDate
-			);
-		} else if (result === "easy") {
-			// Double the interval, but at least 1 day more than current due date
-			nextDue = Math.max(
-				now + 2 * timeSinceLastReview,
-				oneDayMoreThanCurrentDueDate
-			);
-		}
 
 		// Update the card in the data
 		const updatedCard = {

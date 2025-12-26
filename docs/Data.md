@@ -4,30 +4,33 @@
 
 ```json
 {
-  "decks": [
-    {
-      "deckId": "unique-id",
-      "deckName": "Deck Name",
-      "cards": [
-        {
-          "cardId": "unique-id",
-          "front": "Front text",
-          "back": "Back text",
-          "reviews": [
+	"decks": [
+	{
+		"deckId": "unique-id",
+		"deckName": "Deck Name",
+		"cards": [
+		{
+			"cardId": "unique-id",
+			"front": "Front text",
+			"back": "Back text",
+			"reviews": [
 			{
-				"reviewId": "unique-id",
-				"timestamp": 1234567890,
-				"result": "again" | "hard" | "good" | "easy"
+			"reviewId": "unique-id",
+			"timestamp": 1234567890,
+			"interval": 1234567890, // added later, may be missing
+			"result": "again" | "hard" | "good" | "easy"
 			}
-		  ],
-		  "whenDue": 1234567890,
-		  "partnerCardId": "unique-id",
-		  "isFlagged": false,
-		  "isStarred": false
+			],
+			"whenDue": 1234567890,
+			"partnerCardId": "unique-id",
+			"isFlagged": false,
+			"isStarred": false,
+			"createdAt": 1234567890, // added later, may be missing
 		}
-	  ]
+		],
+		"createdAt": 1234567890, // added later, may be missing
 	}
-  ]
+	]
 }
 ```
 
