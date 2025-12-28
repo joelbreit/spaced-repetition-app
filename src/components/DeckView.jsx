@@ -14,6 +14,7 @@ import {
 	Upload,
 	Eye,
 	Target,
+	BarChart3,
 } from "lucide-react";
 import { useNotification } from "../hooks/useNotification";
 import StudyStatistics from "./StudyStatistics";
@@ -730,6 +731,7 @@ export default function DeckView({
 															}{" "}
 															reviews
 														</span>
+														{/* Mastery */}
 														<span
 															className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md ${getMasteryBadgeColors(
 																learningStrength
@@ -740,6 +742,14 @@ export default function DeckView({
 																learningStrength
 															)}
 															% mastery
+														</span>
+														{/* Burden/Day */}
+														<span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium rounded-md">
+															<BarChart3 className="h-3 w-3" />
+															{getPerDayReviewRate(
+																card
+															).toFixed(2)}
+															{" / day"}
 														</span>
 														{isStarred && (
 															<span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-md">

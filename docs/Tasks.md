@@ -74,8 +74,6 @@
 
 ### Overview View
 
-- [ ] **Reduce intro stats section size**
-- [ ] Break progress bar into sections: due, new, learned
 
 ### Card Review View
 
@@ -123,6 +121,11 @@
 - [ ] Separate pages for deck view, card view, review screen
 
 ## Complete
+
+2025-12-27
+
+- [x] Cap burden/day at 1 per day
+- [x] Show burden/day in deck view
 
 2025-12-26
 

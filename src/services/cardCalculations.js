@@ -126,6 +126,7 @@ export function calculateLearningStrength(card) {
 };
 
 // Based on current interval, how often does the card get reviewed?
+// Cap at 1 per day
 export function getPerDayReviewRate(card) {
 	const interval = getInterval(card);
 	if (!interval) {
@@ -135,7 +136,7 @@ export function getPerDayReviewRate(card) {
 
 	const days = interval / (1000 * 60 * 60 * 24);
 	if (days > 0) {
-		return 1 / days;
+		return Math.min(1 / days, 1);
 	} else {
 		return 0;
 	}
