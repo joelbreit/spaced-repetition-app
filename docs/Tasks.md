@@ -126,6 +126,7 @@
 
 - [x] Cap burden/day at 1 per day
 - [x] Show burden/day in deck view
+- [x] Add filter/sort to deck view
 
 2025-12-26
 
