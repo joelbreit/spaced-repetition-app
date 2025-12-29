@@ -6,7 +6,6 @@ import CardEditView from "../components/CardEditView";
 import CardReviewView from "../components/CardReviewView";
 import ReviewSummary from "../components/ReviewSummary";
 import Header from "../components/Header";
-import { useNotification } from "../hooks/useNotification";
 import NotificationContainer from "../components/NotificationContainer";
 import Footer from "../components/Footer.jsx";
 import { useAppData } from "../contexts/AppDataContext";
@@ -23,16 +22,16 @@ function OverviewPage() {
 	const [currentCardIndex, setCurrentCardIndex] = useState(0);
 	const [isFlipped, setIsFlipped] = useState(false);
 	const [reviewSections, setReviewSections] = useState([]);
-	const { showSuccess } = useNotification();
 
 	// Session tracking for review summary
 	const [sessionReviews, setSessionReviews] = useState([]);
 	const deckBeforeReviewRef = useRef(null);
 
-	const addDeck = (deckName) => {
+	const addDeck = (deckName, deckSymbol = "📚") => {
 		const newDeck = {
 			deckId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
 			deckName,
+			deckSymbol,
 			cards: [],
 		};
 		setAppData((prev) => ({
@@ -40,10 +39,12 @@ function OverviewPage() {
 		}));
 	};
 
-	const updateDeck = (deckId, deckName) => {
+	const updateDeck = (deckId, deckName, deckSymbol) => {
 		setAppData((prev) => ({
 			decks: prev.decks.map((deck) =>
-				deck.deckId === deckId ? { ...deck, deckName } : deck
+				deck.deckId === deckId
+					? { ...deck, deckName, deckSymbol }
+					: deck
 			),
 		}));
 	};

@@ -46,8 +46,10 @@ function SortableDeckItem({
 	deck,
 	editingDeckId,
 	editingDeckName,
+	editingDeckSymbol,
 	setEditingDeckId,
 	setEditingDeckName,
+	setEditingDeckSymbol,
 	handleUpdateDeck,
 	handleDeleteDeck,
 	onSelectDeck,
@@ -112,12 +114,28 @@ function SortableDeckItem({
 		>
 			{editingDeckId === deck.deckId ? (
 				<div>
-					<input
-						type="text"
-						value={editingDeckName}
-						onChange={(e) => setEditingDeckName(e.target.value)}
-						className="mb-4 w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-					/>
+					<div className="flex gap-3 mb-4">
+						<input
+							type="text"
+							value={editingDeckSymbol}
+							onChange={(e) => {
+								// Take only the first character/emoji
+								const value = e.target.value;
+								const firstChar = [...value][0] || "";
+								setEditingDeckSymbol(firstChar);
+							}}
+							placeholder="📚"
+							className="w-16 px-3 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+							title="Enter an emoji or single character"
+						/>
+						<input
+							type="text"
+							value={editingDeckName}
+							onChange={(e) => setEditingDeckName(e.target.value)}
+							placeholder="Deck name..."
+							className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+						/>
+					</div>
 					<div className="flex gap-3">
 						<button
 							onClick={handleUpdateDeck}
@@ -129,6 +147,7 @@ function SortableDeckItem({
 							onClick={() => {
 								setEditingDeckId(null);
 								setEditingDeckName("");
+								setEditingDeckSymbol("");
 							}}
 							className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 						>
@@ -151,7 +170,9 @@ function SortableDeckItem({
 									<GripVertical className="h-5 w-5" />
 								</button>
 							)}
-							<span className="text-4xl">📚</span>
+							<span className="text-4xl">
+								{deck.deckSymbol || "📚"}
+							</span>
 							<div className="flex-1">
 								<h3
 									className="text-xl font-bold text-gray-900 dark:text-slate-100 cursor-pointer hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
@@ -283,6 +304,7 @@ function SortableDeckItem({
 							onClick={() => {
 								setEditingDeckId(deck.deckId);
 								setEditingDeckName(deck.deckName);
+								setEditingDeckSymbol(deck.deckSymbol || "📚");
 							}}
 							className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
 						>
@@ -318,8 +340,10 @@ export default function DeckView({
 	onDuplicateCardsReversed,
 }) {
 	const [newDeckName, setNewDeckName] = useState("");
+	const [newDeckSymbol, setNewDeckSymbol] = useState("📚");
 	const [editingDeckId, setEditingDeckId] = useState(null);
 	const [editingDeckName, setEditingDeckName] = useState("");
+	const [editingDeckSymbol, setEditingDeckSymbol] = useState("");
 	const [showNewDeckForm, setShowNewDeckForm] = useState(false);
 	const [newCardFront, setNewCardFront] = useState("");
 	const [newCardBack, setNewCardBack] = useState("");
@@ -474,17 +498,23 @@ export default function DeckView({
 
 	const handleAddDeck = () => {
 		if (newDeckName.trim()) {
-			onAddDeck(newDeckName.trim());
+			onAddDeck(newDeckName.trim(), newDeckSymbol || "📚");
 			setNewDeckName("");
+			setNewDeckSymbol("📚");
 			setShowNewDeckForm(false);
 		}
 	};
 
 	const handleUpdateDeck = () => {
 		if (editingDeckName.trim()) {
-			onUpdateDeck(editingDeckId, editingDeckName.trim());
+			onUpdateDeck(
+				editingDeckId,
+				editingDeckName.trim(),
+				editingDeckSymbol || "📚"
+			);
 			setEditingDeckId(null);
 			setEditingDeckName("");
+			setEditingDeckSymbol("");
 		}
 	};
 
@@ -663,7 +693,9 @@ export default function DeckView({
 					<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-6 hover:shadow-xl transition-shadow duration-300">
 						<div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div className="flex items-center gap-3">
-								<span className="text-4xl">📚</span>
+								<span className="text-4xl">
+									{selectedDeck.deckSymbol || "📚"}
+								</span>
 								<div>
 									<h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
 										{selectedDeck.deckName}
@@ -1146,6 +1178,19 @@ export default function DeckView({
 							<div className="flex gap-3">
 								<input
 									type="text"
+									placeholder="📚"
+									value={newDeckSymbol}
+									onChange={(e) => {
+										// Take only the first character/emoji
+										const value = e.target.value;
+										const firstChar = [...value][0] || "";
+										setNewDeckSymbol(firstChar);
+									}}
+									className="w-16 px-3 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+									title="Enter an emoji or single character"
+								/>
+								<input
+									type="text"
 									placeholder="Deck name..."
 									value={newDeckName}
 									onChange={(e) =>
@@ -1163,6 +1208,7 @@ export default function DeckView({
 									onClick={() => {
 										setShowNewDeckForm(false);
 										setNewDeckName("");
+										setNewDeckSymbol("📚");
 									}}
 									className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 								>
@@ -1211,9 +1257,15 @@ export default function DeckView({
 											deck={deck}
 											editingDeckId={editingDeckId}
 											editingDeckName={editingDeckName}
+											editingDeckSymbol={
+												editingDeckSymbol
+											}
 											setEditingDeckId={setEditingDeckId}
 											setEditingDeckName={
 												setEditingDeckName
+											}
+											setEditingDeckSymbol={
+												setEditingDeckSymbol
 											}
 											handleUpdateDeck={handleUpdateDeck}
 											handleDeleteDeck={handleDeleteDeck}

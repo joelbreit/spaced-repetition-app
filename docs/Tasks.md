@@ -99,7 +99,6 @@
 - [ ] Filter cards by flag, star, etc
 - [ ] Sort cards by due date, creation date, **review order**, num reviews, etc
 - [ ] Color selection for folders and decks
-- [ ] Icon selection for folders and decks
 - [ ] Disable "Duplicate" when all cards in the deck already have a partner card
 - [ ] Show whether cards already have a partner card - link to it if so
 - [ ] Show how many cards in deck have a partner card
@@ -127,6 +126,7 @@
 Todo:
 
 Done:
+- [x] Symbol selection for decks
 - [x] Show overview after "End Review" button is clicked
 - [x] Fix edit, delete, etc buttons not showing up issue
 - [x] Show burden/day in card review view

@@ -8,6 +8,7 @@
 	{
 		"deckId": "unique-id",
 		"deckName": "Deck Name",
+		"deckSymbol": "📚", // optional, defaults to "📚"
 		"cards": [
 		{
 			"cardId": "unique-id",
