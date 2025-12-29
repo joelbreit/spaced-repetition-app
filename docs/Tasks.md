@@ -122,6 +122,10 @@
 
 ## Complete
 
+2025-12-29
+
+- [x] Fix edit, delete, etc buttons not showing up issue
+
 2025-12-27
 
 - [x] Cap burden/day at 1 per day

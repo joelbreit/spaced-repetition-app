@@ -284,13 +284,13 @@ function SortableDeckItem({
 								setEditingDeckId(deck.deckId);
 								setEditingDeckName(deck.deckName);
 							}}
-							className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200 opacity-0 sm:opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100"
+							className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
 						>
 							<Edit className="h-4 w-4" />
 						</button>
 						<button
 							onClick={() => handleDeleteDeck(deck.deckId)}
-							className="p-2 text-gray-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors duration-200 opacity-0 sm:opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100"
+							className="p-2 text-gray-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors duration-200"
 						>
 							<Trash2 className="h-4 w-4" />
 						</button>
@@ -1028,7 +1028,7 @@ export default function DeckView({
 														)}
 													</div>
 												</div>
-												<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+												<div className="flex gap-2 transition-opacity duration-200">
 													{onToggleCardStar && (
 														<button
 															onClick={(e) => {

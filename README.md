@@ -38,11 +38,11 @@ The app uses a JSON structure (see [Data.md](docs/Data.md)) for storing deck and
 
 ## How Spaced Repetition Works
 
-The app uses a time-based spaced repetition algorithm that adapts to each card's review history:
+All cards are scheduled to be reviewed at intervals that adapt to the card's review history. Each time cards are reviewed, they are marked with a result: again, hard, good, or easy.
 
-- **Again**: Card is scheduled for 1 day from now
-- **Hard**: Card is scheduled for now + 0.5× time since last review
-- **Good**: Card is scheduled for now + 1× time since last review
-- **Easy**: Card is scheduled for now + 2× time since last review
+- **Again**: Schedules the card for review in the minimum interval
+- **Hard**: Schedules the card for review in half the previous interval
+- **Good**: Schedules the card again at the previous interval
+- **Easy**: Schedules the card again in twice the previous interval
 
 The system tracks all your reviews and schedules cards based on your performance to optimize long-term retention.
