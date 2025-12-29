@@ -1,9 +1,10 @@
 import { useAuth } from "../contexts/AuthContext";
 import AuthView from "../components/AuthView";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import DeckView from "../components/DeckView";
 import CardEditView from "../components/CardEditView";
 import CardReviewView from "../components/CardReviewView";
+import ReviewSummary from "../components/ReviewSummary";
 import Header from "../components/Header";
 import { useNotification } from "../hooks/useNotification";
 import NotificationContainer from "../components/NotificationContainer";
@@ -23,6 +24,10 @@ function OverviewPage() {
 	const [isFlipped, setIsFlipped] = useState(false);
 	const [reviewSections, setReviewSections] = useState([]);
 	const { showSuccess } = useNotification();
+
+	// Session tracking for review summary
+	const [sessionReviews, setSessionReviews] = useState([]);
+	const deckBeforeReviewRef = useRef(null);
 
 	const addDeck = (deckName) => {
 		const newDeck = {
@@ -216,6 +221,11 @@ function OverviewPage() {
 	const startReview = (deckId) => {
 		const deck = appData.decks.find((d) => d.deckId === deckId);
 		if (deck) {
+			// Capture deck state before review for summary comparison
+			// Deep clone to preserve the state
+			deckBeforeReviewRef.current = JSON.parse(JSON.stringify(deck));
+			setSessionReviews([]);
+
 			// Create a copy of cards without mutating stored deck
 			const cards = deck.cards.slice();
 			const now = Date.now();
@@ -281,6 +291,12 @@ function OverviewPage() {
 			result, // "again", "hard", "good", "easy"
 		};
 
+		// Track session review for summary
+		setSessionReviews((prev) => [
+			...prev,
+			{ cardId: card.cardId, result, timestamp },
+		]);
+
 		// Update the card in the data
 		const updatedCard = {
 			...card,
@@ -315,11 +331,8 @@ function OverviewPage() {
 		if (currentCardIndex < currentDeckForReview.cards.length - 1) {
 			setCurrentCardIndex(currentCardIndex + 1);
 		} else {
-			// End of review
-			showSuccess("Review complete!");
-			setCurrentView("deck");
-			setCurrentDeckForReview(null);
-			setCurrentCardIndex(0);
+			// End of review - show summary
+			setCurrentView("summary");
 		}
 	};
 
@@ -421,11 +434,8 @@ function OverviewPage() {
 							setCurrentView("edit");
 						}}
 						onEndReview={() => {
-							setCurrentView("deck");
-							setCurrentDeckForReview(null);
-							setCurrentCardIndex(0);
-							setReviewSections([]);
-							setIsFlipped(false);
+							// Show summary instead of going directly to deck
+							setCurrentView("summary");
 						}}
 						onToggleFlag={(cardId) => {
 							toggleCardFlag(currentDeckForReview.deckId, cardId);
@@ -464,6 +474,24 @@ function OverviewPage() {
 								...currentDeckForReview,
 								cards: updatedCards,
 							});
+						}}
+					/>
+				)}
+				{currentView === "summary" && currentDeckForReview && (
+					<ReviewSummary
+						sessionReviews={sessionReviews}
+						deckBefore={deckBeforeReviewRef.current}
+						deckAfter={appData.decks.find(
+							(d) => d.deckId === currentDeckForReview.deckId
+						)}
+						onClose={() => {
+							setCurrentView("deck");
+							setCurrentDeckForReview(null);
+							setCurrentCardIndex(0);
+							setReviewSections([]);
+							setIsFlipped(false);
+							setSessionReviews([]);
+							deckBeforeReviewRef.current = null;
 						}}
 					/>
 				)}

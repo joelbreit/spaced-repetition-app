@@ -127,6 +127,7 @@
 Todo:
 
 Done:
+- [x] Show overview after "End Review" button is clicked
 - [x] Fix edit, delete, etc buttons not showing up issue
 - [x] Show burden/day in card review view
 
