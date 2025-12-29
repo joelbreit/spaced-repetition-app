@@ -11,7 +11,7 @@ import {
 	RulerDimensionLine,
 	Weight,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import SegmentedProgressBar from "./SegmentedProgressBar";
 import {
 	calculateNextInterval,
@@ -40,6 +40,25 @@ export default function CardReviewView({
 	// Animation state for review result
 	const [animationResult, setAnimationResult] = useState(null);
 	const [nextDueDate, setNextDueDate] = useState(null);
+
+	// Track if the current card has been flipped at least once
+	const [hasBeenFlipped, setHasBeenFlipped] = useState(false);
+	const previousCardIndexRef = useRef(currentCardIndex);
+
+	// Reset hasBeenFlipped when card changes
+	useEffect(() => {
+		if (previousCardIndexRef.current !== currentCardIndex) {
+			setHasBeenFlipped(false);
+			previousCardIndexRef.current = currentCardIndex;
+		}
+	}, [currentCardIndex]);
+
+	// Mark as flipped when isFlipped becomes true
+	useEffect(() => {
+		if (isFlipped && !hasBeenFlipped) {
+			setHasBeenFlipped(true);
+		}
+	}, [isFlipped, hasBeenFlipped]);
 
 	if (!currentCard) {
 		return null;
@@ -458,7 +477,7 @@ export default function CardReviewView({
 
 			{/* Review buttons */}
 			<div className="space-y-6">
-				{isFlipped ? (
+				{hasBeenFlipped ? (
 					<div>
 						<h3 className="mb-6 text-center text-xl font-semibold text-gray-700 dark:text-gray-300">
 							How did you do?

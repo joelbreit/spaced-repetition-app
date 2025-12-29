@@ -123,9 +123,7 @@
 
 2025-12-29
 
-Todo:
-
-Done:
+- [x] Continue showing result buttons after initial flip 
 - [x] Symbol selection for decks
 - [x] Show overview after "End Review" button is clicked
 - [x] Fix edit, delete, etc buttons not showing up issue
