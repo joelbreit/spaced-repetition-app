@@ -124,7 +124,11 @@
 
 2025-12-29
 
+Todo:
+
+Done:
 - [x] Fix edit, delete, etc buttons not showing up issue
+- [x] Show burden/day in card review view
 
 2025-12-27
 

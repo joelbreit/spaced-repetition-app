@@ -4,11 +4,12 @@ import {
 	X,
 	BarChart3,
 	Clock,
-	TrendingUp,
 	Target,
 	Calendar,
 	Flag,
 	Star,
+	RulerDimensionLine,
+	Weight,
 } from "lucide-react";
 import { useState } from "react";
 import SegmentedProgressBar from "./SegmentedProgressBar";
@@ -16,6 +17,7 @@ import {
 	calculateNextInterval,
 	getInterval,
 	calculateLearningStrength,
+	getPerDayReviewRate,
 } from "../services/cardCalculations";
 
 export default function CardReviewView({
@@ -434,9 +436,20 @@ export default function CardReviewView({
 
 						{/* Interval */}
 						<div className="flex items-center gap-1.5">
-							<Clock className="h-3 w-3 text-blue-500" />
+							<RulerDimensionLine className="h-3 w-3 text-blue-500" />
 							<span className="text-gray-600 dark:text-gray-400 font-medium">
 								{formatInterval()}
+							</span>
+						</div>
+
+						{/* Burden/Day */}
+						<div className="flex items-center gap-1.5">
+							<Weight className="h-3 w-3 text-purple-500" />
+							<span className="text-gray-600 dark:text-gray-400 font-medium">
+								{getPerDayReviewRate(currentCard).toFixed(2)}
+							</span>
+							<span className="text-gray-500 dark:text-gray-500">
+								burden/day
 							</span>
 						</div>
 					</div>
