@@ -989,78 +989,20 @@ export default function DeckView({
 													: "border-gray-100 dark:border-slate-700"
 											}`}
 										>
-											<div className="flex items-start justify-between">
-												<div className="flex-1">
-													<div className="mb-2 flex items-start gap-2">
-														<div className="flex-1">
-															<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
-																Front
-															</h4>
-															<p className="text-base text-gray-900 dark:text-slate-100 font-medium">
-																{card.front}
-															</p>
-														</div>
-														<div className="shrink-0 pt-1 flex items-center gap-1">
-															{isStarred && (
-																<Star className="h-4 w-4 text-yellow-500 dark:text-yellow-400 fill-current" />
-															)}
-															{isFlagged && (
-																<Flag className="h-4 w-4 text-orange-500 dark:text-orange-400 fill-current" />
-															)}
-														</div>
-													</div>
-													<div className="mb-3">
-														<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
-															Back
-														</h4>
-														<p className="text-base text-gray-700 dark:text-slate-300">
-															{card.back}
-														</p>
-													</div>
-													<div className="flex items-center gap-2">
-														<span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium rounded-md">
-															<BookOpen className="h-3 w-3" />
-															{
-																card.reviews
-																	.length
-															}{" "}
-															reviews
-														</span>
-														{/* Mastery */}
-														<span
-															className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md ${getMasteryBadgeColors(
-																learningStrength
-															)}`}
-														>
-															<Target className="h-3 w-3" />
-															{Math.round(
-																learningStrength
-															)}
-															% mastery
-														</span>
-														{/* Burden/Day */}
-														<span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium rounded-md">
-															<BarChart3 className="h-3 w-3" />
-															{getPerDayReviewRate(
-																card
-															).toFixed(2)}
-															{" / day"}
-														</span>
-														{isStarred && (
-															<span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-md">
-																<Star className="h-3 w-3 fill-current" />
-																Starred
-															</span>
-														)}
-														{isFlagged && (
-															<span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md">
-																<Flag className="h-3 w-3 fill-current" />
-																Flagged
-															</span>
-														)}
-													</div>
+											{/* Header row with Front label and action buttons */}
+											<div className="flex items-start justify-between gap-2 mb-2">
+												<div className="flex items-center gap-2">
+													<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
+														Front
+													</h4>
+													{isStarred && (
+														<Star className="h-4 w-4 text-yellow-500 dark:text-yellow-400 fill-current" />
+													)}
+													{isFlagged && (
+														<Flag className="h-4 w-4 text-orange-500 dark:text-orange-400 fill-current" />
+													)}
 												</div>
-												<div className="flex gap-2 transition-opacity duration-200">
+												<div className="flex gap-1 shrink-0">
 													{onToggleCardStar && (
 														<button
 															onClick={(e) => {
@@ -1070,10 +1012,10 @@ export default function DeckView({
 																	card.cardId
 																);
 															}}
-															className={`p-2 rounded-lg transition-colors duration-200 ${
+															className={`p-1.5 rounded-lg transition-colors duration-200 ${
 																isStarred
 																	? "text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
-																	: "text-gray-600 dark:text-slate-400 hover:text-yellow-500 dark:hover:text-yellow-400 hover:bg-gray-100 dark:hover:bg-slate-700"
+																	: "text-gray-400 dark:text-slate-500 hover:text-yellow-500 dark:hover:text-yellow-400 hover:bg-gray-100 dark:hover:bg-slate-700"
 															}`}
 															title={
 																isStarred
@@ -1099,10 +1041,10 @@ export default function DeckView({
 																	card.cardId
 																);
 															}}
-															className={`p-2 rounded-lg transition-colors duration-200 ${
+															className={`p-1.5 rounded-lg transition-colors duration-200 ${
 																isFlagged
 																	? "text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-																	: "text-gray-600 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-slate-700"
+																	: "text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-slate-700"
 															}`}
 															title={
 																isFlagged
@@ -1126,7 +1068,7 @@ export default function DeckView({
 																card.cardId
 															)
 														}
-														className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
+														className="p-1.5 text-gray-400 dark:text-slate-500 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
 													>
 														<Edit className="h-4 w-4" />
 													</button>
@@ -1136,11 +1078,65 @@ export default function DeckView({
 																card.cardId
 															)
 														}
-														className="p-2 text-gray-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors duration-200"
+														className="p-1.5 text-gray-400 dark:text-slate-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors duration-200"
 													>
 														<Trash2 className="h-4 w-4" />
 													</button>
 												</div>
+											</div>
+
+											{/* Front content */}
+											<p className="text-base text-gray-900 dark:text-slate-100 font-medium mb-3">
+												{card.front}
+											</p>
+
+											{/* Back section */}
+											<div className="mb-3">
+												<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
+													Back
+												</h4>
+												<p className="text-base text-gray-700 dark:text-slate-300">
+													{card.back}
+												</p>
+											</div>
+
+											{/* Stats badges */}
+											<div className="flex flex-wrap items-center gap-2">
+												<span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium rounded-md">
+													<BookOpen className="h-3 w-3" />
+													{card.reviews.length}{" "}
+													reviews
+												</span>
+												<span
+													className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md ${getMasteryBadgeColors(
+														learningStrength
+													)}`}
+												>
+													<Target className="h-3 w-3" />
+													{Math.round(
+														learningStrength
+													)}
+													% mastery
+												</span>
+												<span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium rounded-md">
+													<BarChart3 className="h-3 w-3" />
+													{getPerDayReviewRate(
+														card
+													).toFixed(2)}
+													{" / day"}
+												</span>
+												{isStarred && (
+													<span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-md">
+														<Star className="h-3 w-3 fill-current" />
+														Starred
+													</span>
+												)}
+												{isFlagged && (
+													<span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md">
+														<Flag className="h-3 w-3 fill-current" />
+														Flagged
+													</span>
+												)}
 											</div>
 										</div>
 									);

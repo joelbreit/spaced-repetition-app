@@ -2,7 +2,6 @@
 
 ## Issues
 
-- [ ] Wide card content on small devices
 - [ ] Scroll to top of new pages/views
 
 ## Features
@@ -31,12 +30,8 @@
     - [ ] When a deck is selected, go to its deck view
 - [ ] Show count of search results
 - [ ] Allow for reviewing card subsets: flagged cards, new cards, etc
-- [ ] Delete button doesn't show up in dark mode
 - [ ] Add demo mode / tutorial
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
-- [ ] **Add button to allow for duplicating cards in a deck with reverse direction**
-  - [x] Add duplication button
-  - [x] Check for partner cards before duplicating
   - [ ] Track partner cards that are tied to each other
     - [ ] When deleting a card, ask if you want to delete the related card
     - [ ] When deleting a deck with cards that are tied to partner cards
@@ -120,6 +115,16 @@
 - [ ] Separate pages for deck view, card view, review screen
 
 ## Complete
+
+2025-12-30
+
+TODO:
+- [ ] Add forgot password functionality and login page button
+- [ ] Add change email functionality and profile page button
+- [ ] Add change password functionality and profile page button
+
+Done:
+- [x] Reposition buttons on deck cards
 
 2025-12-29
 
