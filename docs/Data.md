@@ -4,11 +4,27 @@
 
 ```json
 {
+	// Folders added in v2
+	"folders": [
+		{
+			"folderId": "unique-id",
+			"folderName": "Folder Name",
+			"folderDescription": "Optional description",
+			"folderColor": "#3b82f6",
+			"folderSymbol": "📁",
+			"parentFolderId": null, // null or missing = root level, otherwise references another folderId
+			"createdAt": 1234567890,
+			"updatedAt": 1234567890
+		},
+	],
 	"decks": [
 	{
 		"deckId": "unique-id",
 		"deckName": "Deck Name",
 		"deckSymbol": "📚", // optional, defaults to "📚"
+		"parentFolderId": null, // v2, null or missing = root level, otherwise references another folderId
+		"createdAt": 1234567890, // added later, may be missing
+		"updatedAt": 1234567890, // v2
 		"cards": [
 		{
 			"cardId": "unique-id",
@@ -29,7 +45,6 @@
 			"createdAt": 1234567890, // added later, may be missing
 		}
 		],
-		"createdAt": 1234567890, // added later, may be missing
 	}
 	]
 }
@@ -43,7 +58,7 @@
     - [ ] Add "folderName" to folders
     - [ ] Add "folderDescription" to folders
     - [ ] Add "folderColor" to folders
-    - [ ] Add "folderIcon" to folders
+    - [ ] Add "folderSymbol" to folders
     - [ ] Add "folderCreatedAt" to folders
     - [ ] Add "folderUpdatedAt" to folders
 - [ ] Related cards (TBD)

@@ -435,8 +435,12 @@ function OverviewPage() {
 							setCurrentView("edit");
 						}}
 						onEndReview={() => {
-							// Show summary instead of going directly to deck
-							setCurrentView("summary");
+							// If there are reviews, show summary
+							if (sessionReviews.length > 0) {
+								setCurrentView("summary");
+							} else {
+								setCurrentView("deck");
+							}
 						}}
 						onToggleFlag={(cardId) => {
 							toggleCardFlag(currentDeckForReview.deckId, cardId);

@@ -3,6 +3,9 @@
 ## Issues
 
 - [ ] Scroll to top of new pages/views
+- [ ] Disconnecting:
+  - Error: "Failed to save to cloud. Data saved locally"
+  - Offline
 
 ## Features
 
@@ -124,6 +127,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Skip summary if no cards were reviewed
 - [x] Keep steak, reviews count, and sync status in header on small devices
 - [x] Reposition buttons on deck cards
 
