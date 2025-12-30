@@ -124,6 +124,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Keep steak, reviews count, and sync status in header on small devices
 - [x] Reposition buttons on deck cards
 
 2025-12-29

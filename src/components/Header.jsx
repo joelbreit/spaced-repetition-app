@@ -88,6 +88,36 @@ function Header({ user, isSaving, isOnline }) {
 						</h1>
 					</div>
 
+					{/* Mobile: Show icons only (no text) */}
+					<div className="sm:hidden flex items-center space-x-2 shrink-0 mr-2">
+						{/* Streak */}
+						<div className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
+							<Flame className="h-4 w-4 text-orange-500" />
+							<span className="text-xs font-medium text-orange-700 dark:text-orange-300">
+								{streak}
+							</span>
+						</div>
+
+						{/* Reviews Today */}
+						<div className="flex items-center gap-1 px-2 py-1 rounded-full bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800">
+							<BookOpen className="h-4 w-4 text-teal-500" />
+							<span className="text-xs font-medium text-teal-700 dark:text-teal-300">
+								{reviewsToday}
+							</span>
+						</div>
+
+						{/* Sync Status Indicator */}
+						<div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 dark:bg-slate-700">
+							{isSaving ? (
+								<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
+							) : isOnline ? (
+								<Cloud className="h-3 w-3 text-green-500" />
+							) : (
+								<CloudOff className="h-3 w-3 text-orange-500" />
+							)}
+						</div>
+					</div>
+
 					{/* Desktop: Show all items */}
 					<div className="hidden sm:flex items-center space-x-3 shrink-0">
 						{/* Streak */}
@@ -176,61 +206,6 @@ function Header({ user, isSaving, isOnline }) {
 												{user?.signInDetails?.loginId ||
 													"User"}
 											</span>
-										</div>
-									</div>
-
-									{/* Streak */}
-									<div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
-										<div className="flex items-center gap-2">
-											<Flame className="h-4 w-4 text-orange-500" />
-											<span className="text-sm text-gray-600 dark:text-slate-400">
-												Streak:{" "}
-											</span>
-											<span className="text-sm font-medium text-orange-600 dark:text-orange-400">
-												{streak}{" "}
-												{streak === 1 ? "day" : "days"}
-											</span>
-										</div>
-									</div>
-
-									{/* Reviews Today */}
-									<div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
-										<div className="flex items-center gap-2">
-											<BookOpen className="h-4 w-4 text-teal-500" />
-											<span className="text-sm text-gray-600 dark:text-slate-400">
-												Reviews today:{" "}
-											</span>
-											<span className="text-sm font-medium text-teal-600 dark:text-teal-400">
-												{reviewsToday}
-											</span>
-										</div>
-									</div>
-
-									{/* Sync Status */}
-									<div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
-										<div className="flex items-center gap-2">
-											{isSaving ? (
-												<>
-													<div className="animate-spin h-4 w-4 border-2 border-teal-500 border-t-transparent rounded-full" />
-													<span className="text-sm text-gray-600 dark:text-slate-400">
-														Saving...
-													</span>
-												</>
-											) : isOnline ? (
-												<>
-													<Cloud className="h-4 w-4 text-green-500" />
-													<span className="text-sm text-gray-600 dark:text-slate-400">
-														Synced
-													</span>
-												</>
-											) : (
-												<>
-													<CloudOff className="h-4 w-4 text-orange-500" />
-													<span className="text-sm text-gray-600 dark:text-slate-400">
-														Offline
-													</span>
-												</>
-											)}
 										</div>
 									</div>
 
