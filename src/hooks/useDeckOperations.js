@@ -35,6 +35,17 @@ export function useDeckOperations() {
 		}));
 	};
 
+	const moveDeck = (deckId, newParentFolderId) => {
+		setAppData((prev) => ({
+			...prev,
+			decks: (prev.decks || []).map((deck) =>
+				deck.deckId === deckId
+					? { ...deck, parentFolderId: newParentFolderId }
+					: deck
+			),
+		}));
+	};
+
 	const reorderDecks = (sourceIndex, destinationIndex) => {
 		if (sourceIndex === destinationIndex) return;
 
@@ -267,6 +278,7 @@ export function useDeckOperations() {
 		addDeck,
 		updateDeck,
 		deleteDeck,
+		moveDeck,
 		reorderDecks,
 		addCard,
 		updateCard,

@@ -15,6 +15,8 @@ import {
 	ArrowDown,
 	Filter,
 	X,
+	FolderPlus,
+	Folder,
 } from "lucide-react";
 import { useNotification } from "../hooks/useNotification";
 import { useAppData } from "../contexts/AppDataContext";
@@ -30,7 +32,14 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const { deckId } = useParams();
 	const navigate = useNavigate();
 	const { appData } = useAppData();
-	const { addCard, deleteCard, toggleCardFlag, toggleCardStar, duplicateCardsReversed } = useDeckOperations();
+	const {
+		addCard,
+		deleteCard,
+		toggleCardFlag,
+		toggleCardStar,
+		duplicateCardsReversed,
+		moveDeck,
+	} = useDeckOperations();
 	const { showConfirmation, showSuccess, showError } = useNotification();
 
 	const [newCardFront, setNewCardFront] = useState("");
@@ -40,6 +49,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const [sortBy, setSortBy] = useState("default");
 	const [sortDirection, setSortDirection] = useState("desc");
 	const [filterBy, setFilterBy] = useState("all");
+	const [showMoveDialog, setShowMoveDialog] = useState(false);
 
 	const selectedDeck = appData.decks?.find((d) => d.deckId === deckId);
 
@@ -267,6 +277,61 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 		}
 	};
 
+	// Build folder tree for selection (excluding current deck's folder to prevent circular moves)
+	const buildFolderOptions = () => {
+		const options = [{ id: null, name: "Root (No Folder)", level: 0 }];
+
+		const addFolderRecursive = (
+			folderId,
+			level = 0,
+			excludeFolderId = null
+		) => {
+			const folders = (appData.folders || []).filter(
+				(f) =>
+					f.parentFolderId === folderId &&
+					f.folderId !== excludeFolderId
+			);
+
+			folders.forEach((folder) => {
+				const indent = "  ".repeat(level);
+				options.push({
+					id: folder.folderId,
+					name: `${indent}${folder.folderSymbol || "📁"} ${
+						folder.folderName
+					}`,
+					level: level + 1,
+				});
+				addFolderRecursive(folder.folderId, level + 1, excludeFolderId);
+			});
+		};
+
+		// Start from root, excluding current folder if deck is in one
+		addFolderRecursive(null, 0, selectedDeck?.parentFolderId);
+
+		return options;
+	};
+
+	const handleMoveDeck = async (targetFolderId) => {
+		if (targetFolderId === selectedDeck?.parentFolderId) {
+			showError("Deck is already in this folder.", "Move Failed");
+			setShowMoveDialog(false);
+			return;
+		}
+
+		moveDeck(deckId, targetFolderId);
+		setShowMoveDialog(false);
+		showSuccess("Deck moved successfully.", "Move Complete");
+
+		// Navigate to the new location after a brief delay
+		setTimeout(() => {
+			if (targetFolderId) {
+				navigate(`/folder/${targetFolderId}`);
+			} else {
+				navigate("/");
+			}
+		}, 500);
+	};
+
 	if (!selectedDeck) {
 		return (
 			<div className="py-12 text-center">
@@ -327,8 +392,20 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 							title="Import cards from a TSV file (2 columns: front and back)"
 						>
 							<Upload className="h-5 w-5" />
-							<span className="hidden sm:inline">Import Cards</span>
+							<span className="hidden sm:inline">
+								Import Cards
+							</span>
 						</label>
+						<button
+							onClick={() => setShowMoveDialog(true)}
+							className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+							title="Move this deck to a different folder"
+						>
+							<FolderPlus className="h-5 w-5" />
+							<span className="hidden sm:inline">
+								Move to Folder
+							</span>
+						</button>
 						{selectedDeck.cards.length > 0 && (
 							<button
 								onClick={handleDuplicateCardsReversed}
@@ -347,7 +424,9 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 								className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 							>
 								<Play className="h-5 w-5" />
-								<span className="hidden sm:inline">Study Now</span>
+								<span className="hidden sm:inline">
+									Study Now
+								</span>
 							</button>
 						)}
 					</div>
@@ -388,7 +467,9 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 								<Filter className="h-4 w-4 text-gray-500 dark:text-slate-500" />
 								<select
 									value={filterBy}
-									onChange={(e) => setFilterBy(e.target.value)}
+									onChange={(e) =>
+										setFilterBy(e.target.value)
+									}
 									className="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-gray-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent cursor-pointer"
 								>
 									<option value="all">All Cards</option>
@@ -568,7 +649,76 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 					)}
 				</div>
 			</div>
+
+			{/* Move to Folder Dialog */}
+			{showMoveDialog && (
+				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+					<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
+						<div className="flex items-center justify-between mb-4">
+							<h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">
+								Move Deck to Folder
+							</h3>
+							<button
+								onClick={() => setShowMoveDialog(false)}
+								className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
+							>
+								<X className="h-5 w-5" />
+							</button>
+						</div>
+
+						<p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
+							Select a folder to move "{selectedDeck.deckName}"
+							into:
+						</p>
+
+						<div className="max-h-64 overflow-y-auto mb-4 border border-gray-200 dark:border-slate-700 rounded-lg">
+							{buildFolderOptions().map((option) => (
+								<button
+									key={option.id || "root"}
+									onClick={() => handleMoveDeck(option.id)}
+									className={`w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border-b border-gray-100 dark:border-slate-700 last:border-b-0 ${
+										option.id ===
+										selectedDeck?.parentFolderId
+											? "bg-teal-50 dark:bg-teal-900/20"
+											: ""
+									}`}
+									disabled={
+										option.id ===
+										selectedDeck?.parentFolderId
+									}
+								>
+									<div className="flex items-center gap-2">
+										<Folder className="h-4 w-4 text-gray-500 dark:text-slate-400 shrink-0" />
+										<span className="text-gray-900 dark:text-slate-100 font-medium">
+											{option.name}
+										</span>
+										{option.id ===
+											selectedDeck?.parentFolderId && (
+											<span className="ml-auto text-xs text-teal-600 dark:text-teal-400">
+												Current
+											</span>
+										)}
+									</div>
+								</button>
+							))}
+							{buildFolderOptions().length === 1 && (
+								<div className="px-4 py-3 text-sm text-gray-500 dark:text-slate-400 text-center">
+									No other folders available
+								</div>
+							)}
+						</div>
+
+						<div className="flex gap-3">
+							<button
+								onClick={() => setShowMoveDialog(false)}
+								className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-lg transition-colors duration-200"
+							>
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
-

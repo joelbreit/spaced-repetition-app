@@ -129,6 +129,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Add Move to Folder functionality to DeckCardsView
 - [x] Folder functionality! New FolderBrowserView, SortableContainerItem, and several other components
 - [x] Skip summary if no cards were reviewed
 - [x] Keep steak, reviews count, and sync status in header on small devices
