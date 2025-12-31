@@ -26,7 +26,7 @@ function OverviewPage() {
 	const [isFlipped, setIsFlipped] = useState(false);
 	const [reviewSections, setReviewSections] = useState([]);
 	const [sessionReviews, setSessionReviews] = useState([]);
-	const deckBeforeReviewRef = useRef(null);
+	const cardsCollectionBeforeReviewRef = useRef(null);
 
 	// View state for edit/review overlays
 	const [currentView, setCurrentView] = useState(null); // null, "edit", "review", "summary"
@@ -37,7 +37,9 @@ function OverviewPage() {
 	const startReview = (deckId) => {
 		const deck = appData.decks?.find((d) => d.deckId === deckId);
 		if (deck) {
-			deckBeforeReviewRef.current = JSON.parse(JSON.stringify(deck));
+			cardsCollectionBeforeReviewRef.current = JSON.parse(
+				JSON.stringify(deck)
+			);
 			setSessionReviews([]);
 
 			const cards = deck.cards.slice();
@@ -115,7 +117,7 @@ function OverviewPage() {
 		const decksBefore = folderDecks.map((deck) =>
 			JSON.parse(JSON.stringify(deck))
 		);
-		deckBeforeReviewRef.current = decksBefore;
+		cardsCollectionBeforeReviewRef.current = decksBefore;
 		setSessionReviews([]);
 
 		const now = Date.now();
@@ -268,7 +270,7 @@ function OverviewPage() {
 		setReviewSections([]);
 		setIsFlipped(false);
 		setSessionReviews([]);
-		deckBeforeReviewRef.current = null;
+		cardsCollectionBeforeReviewRef.current = null;
 	};
 
 	// Show auth screen if not authenticated
@@ -430,14 +432,29 @@ function OverviewPage() {
 				{currentView === "summary" && currentDeckForReview && (
 					<ReviewSummary
 						sessionReviews={sessionReviews}
-						deckBefore={
+						cardsCollectionBefore={
 							currentDeckForReview.isFolderReview
-								? null // Folder reviews don't show before/after comparison
-								: deckBeforeReviewRef.current
+								? {
+										cards:
+											cardsCollectionBeforeReviewRef.current?.flatMap(
+												(deck) => deck.cards
+											) || [],
+								  }
+								: cardsCollectionBeforeReviewRef.current
 						}
-						deckAfter={
+						cardsCollectionAfter={
 							currentDeckForReview.isFolderReview
-								? null // Folder reviews don't show before/after comparison
+								? {
+										cards: (appData.decks || [])
+											.filter((d) =>
+												cardsCollectionBeforeReviewRef.current?.some(
+													(beforeDeck) =>
+														beforeDeck.deckId ===
+														d.deckId
+												)
+											)
+											.flatMap((deck) => deck.cards),
+								  }
 								: appData.decks?.find(
 										(d) =>
 											d.deckId ===

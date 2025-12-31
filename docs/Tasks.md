@@ -11,9 +11,9 @@
 - [ ] I should be able to edit cards from the review screen
 - [ ] Should show an error if a folder or deck is orphaned (parentFolderId is not null and can't be found)
 - [ ] You can very breifly see the back of the next card when it flips into place
+- [ ] Navigate to top of page when clicking on a folder or deck
 
 v2 (folders) issues:
-- [ ] Review summary doesn't show due/new/learned count changes when reviewing a folder
 - [ ] Sortable folder components should have a Study button
 - [ ] All folders (not just root level) should have Due/New/Studied/Burden stats at top
 
@@ -120,6 +120,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Added before/after changes to review summary when reviewing a folder
 - [x] Fixed root level "Study All" button
 - [x] Added Due/New/Learned counts and mastery/burden stats to sortable folder components
 - [x] Standardized interval display formatting

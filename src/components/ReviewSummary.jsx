@@ -16,8 +16,8 @@ import {
 
 export default function ReviewSummary({
 	sessionReviews,
-	deckBefore,
-	deckAfter,
+	cardsCollectionBefore,
+	cardsCollectionAfter,
 	onClose,
 }) {
 	// Calculate session statistics
@@ -33,9 +33,13 @@ export default function ReviewSummary({
 	const getPercentage = (count) =>
 		totalReviewed > 0 ? Math.round((count / totalReviewed) * 100) : 0;
 
-	// Calculate deck metrics before and after
-	const calculateDeckMetrics = (deck) => {
-		if (!deck || !deck.cards || deck.cards.length === 0) {
+	// Calculate metrics before and after for a card collection (deck or folder)
+	const calculateCardCollectionMetrics = (cardCollection) => {
+		if (
+			!cardCollection ||
+			!cardCollection.cards ||
+			cardCollection.cards.length === 0
+		) {
 			return {
 				avgMastery: 0,
 				totalBurden: 0,
@@ -47,32 +51,32 @@ export default function ReviewSummary({
 
 		const now = Date.now();
 		const avgMastery =
-			deck.cards.reduce(
+			cardCollection.cards.reduce(
 				(sum, card) => sum + calculateLearningStrength(card),
 				0
-			) / deck.cards.length;
+			) / cardCollection.cards.length;
 
-		const totalBurden = deck.cards
+		const totalBurden = cardCollection.cards
 			.filter((card) => card.reviews && card.reviews.length > 0)
 			.reduce((sum, card) => sum + getPerDayReviewRate(card), 0);
 
-		const dueCount = deck.cards.filter(
+		const dueCount = cardCollection.cards.filter(
 			(card) => card.whenDue <= now && card.reviews.length > 0
 		).length;
 
-		const newCount = deck.cards.filter(
+		const newCount = cardCollection.cards.filter(
 			(card) => card.reviews.length === 0
 		).length;
 
-		const learnedCount = deck.cards.filter(
+		const learnedCount = cardCollection.cards.filter(
 			(card) => card.reviews.length > 0 && card.whenDue > now
 		).length;
 
 		return { avgMastery, totalBurden, dueCount, newCount, learnedCount };
 	};
 
-	const metricsBefore = calculateDeckMetrics(deckBefore);
-	const metricsAfter = calculateDeckMetrics(deckAfter);
+	const metricsBefore = calculateCardCollectionMetrics(cardsCollectionBefore);
+	const metricsAfter = calculateCardCollectionMetrics(cardsCollectionAfter);
 
 	// Calculate changes
 	const masteryChange = metricsAfter.avgMastery - metricsBefore.avgMastery;
@@ -86,13 +90,12 @@ export default function ReviewSummary({
 				  100
 				: 0;
 
-		if (totalReviewed === 0) return { emoji: "📚", message: "No cards reviewed" };
+		if (totalReviewed === 0)
+			return { emoji: "📚", message: "No cards reviewed" };
 		if (successRate >= 90)
 			return { emoji: "🌟", message: "Outstanding performance!" };
-		if (successRate >= 75)
-			return { emoji: "🎯", message: "Great job!" };
-		if (successRate >= 50)
-			return { emoji: "💪", message: "Keep it up!" };
+		if (successRate >= 75) return { emoji: "🎯", message: "Great job!" };
+		if (successRate >= 50) return { emoji: "💪", message: "Keep it up!" };
 		return { emoji: "📈", message: "Room to grow!" };
 	};
 
@@ -412,4 +415,3 @@ export default function ReviewSummary({
 		</div>
 	);
 }
-
