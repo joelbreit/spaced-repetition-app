@@ -8,6 +8,9 @@
   - Offline
   - 401
   - Error: "Unauthorized - please log in again"
+- [ ] I should be able to edit cards from the review screen
+- [ ] Should show an error if a folder or deck is orphaned (parentFolderId is not null and can't be found)
+- [ ] You can very breifly see the back of the next card when it flips into place
 
 v2 (folders) issues:
 - [ ] Root level "Study All" button doesn't work
@@ -17,7 +20,7 @@ v2 (folders) issues:
 
 ## Features
 
-- [ ] Configurable minimum interval
+- [ ] Configurable minimum interval +1
 - [ ] Math/paper aesthetic?
 - [ ] No more emojis in text
 - [ ] Replace `alert("Account confirmed! Please log in.");`
@@ -118,6 +121,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Fixed folders disappearing after review summary
 - [x] Highlight/don't highlight streak if today is included in the streak
 
 2025-12-30

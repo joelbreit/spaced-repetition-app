@@ -153,9 +153,7 @@ function OverviewPage() {
 			: null;
 		const virtualDeck = {
 			deckId: folderId || "root-folder", // Use folderId or special ID for root
-			deckName: folder
-				? `${folder.folderName} (All Decks)`
-				: "All Decks",
+			deckName: folder ? `${folder.folderName} (All Decks)` : "All Decks",
 			deckSymbol: folder?.folderSymbol || "📁",
 			cards: orderedCards,
 			isFolderReview: true, // Flag to indicate this is a folder review
@@ -199,6 +197,7 @@ function OverviewPage() {
 		};
 
 		setAppData((prev) => ({
+			...prev,
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? {
@@ -367,7 +366,8 @@ function OverviewPage() {
 								(c) => c.cardId === cardId
 							);
 							const deckId =
-								card?.sourceDeckId || currentDeckForReview.deckId;
+								card?.sourceDeckId ||
+								currentDeckForReview.deckId;
 							handleEditCard(deckId, cardId);
 						}}
 						onEndReview={handleEndReview}
@@ -376,7 +376,8 @@ function OverviewPage() {
 								(c) => c.cardId === cardId
 							);
 							const deckId =
-								card?.sourceDeckId || currentDeckForReview.deckId;
+								card?.sourceDeckId ||
+								currentDeckForReview.deckId;
 							toggleCardFlag(deckId, cardId);
 							const updatedCards = currentDeckForReview.cards.map(
 								(c) =>
@@ -399,7 +400,8 @@ function OverviewPage() {
 								(c) => c.cardId === cardId
 							);
 							const deckId =
-								card?.sourceDeckId || currentDeckForReview.deckId;
+								card?.sourceDeckId ||
+								currentDeckForReview.deckId;
 							toggleCardStar(deckId, cardId);
 							const updatedCards = currentDeckForReview.cards.map(
 								(c) =>

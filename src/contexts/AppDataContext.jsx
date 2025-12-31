@@ -365,6 +365,14 @@ export function AppDataProvider({ children }) {
 		isOnline,
 	};
 
+	// if there are decks, but no folders in appData, log an issue
+	useEffect(() => {
+		// Example data has 2 decks and no folders, so we'll use that as the threshold
+		if (appData.decks.length > 2 && appData.folders.length === 0) {
+			console.error("No folders in appData, but there are decks");
+		}
+	}, [appData]);
+
 	return (
 		<AppDataContext.Provider value={value}>
 			{children}
