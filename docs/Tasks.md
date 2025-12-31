@@ -121,6 +121,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Standardized interval display formatting
 - [x] Fixed folders disappearing after review summary
 - [x] Highlight/don't highlight streak if today is included in the streak
 

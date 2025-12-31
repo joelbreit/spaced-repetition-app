@@ -18,6 +18,7 @@ import {
 	getInterval,
 	calculateLearningStrength,
 	getPerDayReviewRate,
+	prettyPrintDueDateAsInterval,
 } from "../services/cardCalculations";
 
 export default function CardReviewView({
@@ -63,25 +64,6 @@ export default function CardReviewView({
 	if (!currentCard) {
 		return null;
 	}
-
-	// Format time until next due date
-	const formatTimeUntilDue = (dueTimestamp) => {
-		const now = Date.now();
-		const msUntilDue = dueTimestamp - now;
-
-		const seconds = Math.floor(msUntilDue / 1000);
-		const minutes = Math.floor(seconds / 60);
-		const hours = Math.floor(minutes / 60);
-		const days = Math.floor(hours / 24);
-
-		if (days > 0) return `Due in ${days} day${days !== 1 ? "s" : ""}`;
-		if (hours > 0) return `Due in ${hours} hour${hours !== 1 ? "s" : ""}`;
-		if (minutes > 0)
-			return `Due in ${Math.ceil(minutes)} minute${
-				minutes !== 1 ? "s" : ""
-			}`;
-		return "Due in less than a minute";
-	};
 
 	// Handle review button click - trigger animation then record
 	const handleReview = (result) => {
@@ -234,7 +216,9 @@ export default function CardReviewView({
 							<div className="absolute inset-0 flex items-center justify-center z-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
 								<div className="text-center px-6">
 									<div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-										{formatTimeUntilDue(nextDueDate)}
+										{prettyPrintDueDateAsInterval(
+											nextDueDate
+										)}
 									</div>
 									<div className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
 										Next Review
@@ -317,7 +301,9 @@ export default function CardReviewView({
 							<div className="absolute inset-0 flex items-center justify-center z-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
 								<div className="text-center px-6">
 									<div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-										{formatTimeUntilDue(nextDueDate)}
+										{prettyPrintDueDateAsInterval(
+											nextDueDate
+										)}
 									</div>
 									<div className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
 										Next Review
