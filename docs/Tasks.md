@@ -6,6 +6,8 @@
 - [ ] Disconnecting:
   - Error: "Failed to save to cloud. Data saved locally"
   - Offline
+  - 401
+  - Error: "Unauthorized - please log in again"
 
 ## Features
 
@@ -127,6 +129,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Folder functionality! New FolderBrowserView, SortableContainerItem, and several other components
 - [x] Skip summary if no cards were reviewed
 - [x] Keep steak, reviews count, and sync status in header on small devices
 - [x] Reposition buttons on deck cards

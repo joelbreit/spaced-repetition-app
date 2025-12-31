@@ -4,6 +4,7 @@
 
 ```json
 {
+	"version": "2",
 	// Folders added in v2
 	"folders": [
 		{
@@ -52,19 +53,7 @@
 
 ### To Do
 
-- [ ] Folders
-  - [ ] Add "folderId" to decks
-  - [ ] Add "folders" object to data
-    - [ ] Add "folderName" to folders
-    - [ ] Add "folderDescription" to folders
-    - [ ] Add "folderColor" to folders
-    - [ ] Add "folderSymbol" to folders
-    - [ ] Add "folderCreatedAt" to folders
-    - [ ] Add "folderUpdatedAt" to folders
-- [ ] Related cards (TBD)
-  - Embed in card front/back text? Like in a markdown sort of format
-- [ ] Add creation date
-  - [ ] For old cards 
-    - [ ] ...with no reviews, make creation date 24 hours before the due date
-    - [ ] ...with reviews, make creation date the first review timestamp
-  - [ ] All new cards should have creation dates set
+- [x] v2: Folders
+  - [x] Add the folders array to the data
+  - [x] folders/decks with no parent folder should be in the root level folder
+  - Note: There will be no representation of the root level folder in the data, but it will be implied. The root level folder doesn't have a color, symbol, or description; it is simply the implied parent of all folders and decks.

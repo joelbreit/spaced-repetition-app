@@ -15,7 +15,7 @@ function App() {
 					<AppDataProvider>
 						<Router>
 							<Routes>
-								<Route path="/" element={<OverviewPage />} />
+								<Route path="/*" element={<OverviewPage />} />
 								<Route
 									path="/profile"
 									element={<ProfilePage />}
