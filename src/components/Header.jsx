@@ -91,9 +91,27 @@ function Header({ user, isSaving, isOnline }) {
 					{/* Mobile: Show icons only (no text) */}
 					<div className="sm:hidden flex items-center space-x-2 shrink-0 mr-2">
 						{/* Streak */}
-						<div className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
-							<Flame className="h-4 w-4 text-orange-500" />
-							<span className="text-xs font-medium text-orange-700 dark:text-orange-300">
+						<div
+							className={`flex items-center gap-1 px-2 py-1 rounded-full border ${
+								reviewsToday > 0
+									? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800"
+									: "bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600"
+							}`}
+						>
+							<Flame
+								className={`h-4 w-4 ${
+									reviewsToday > 0
+										? "text-orange-500"
+										: "text-gray-400 dark:text-slate-500"
+								}`}
+							/>
+							<span
+								className={`text-xs font-medium ${
+									reviewsToday > 0
+										? "text-orange-700 dark:text-orange-300"
+										: "text-gray-500 dark:text-slate-400"
+								}`}
+							>
 								{streak}
 							</span>
 						</div>
@@ -121,9 +139,27 @@ function Header({ user, isSaving, isOnline }) {
 					{/* Desktop: Show all items */}
 					<div className="hidden sm:flex items-center space-x-3 shrink-0">
 						{/* Streak */}
-						<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
-							<Flame className="h-4 w-4 text-orange-500" />
-							<span className="text-xs font-medium text-orange-700 dark:text-orange-300">
+						<div
+							className={`flex items-center gap-2 px-3 py-1 rounded-full border ${
+								reviewsToday > 0
+									? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800"
+									: "bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600"
+							}`}
+						>
+							<Flame
+								className={`h-4 w-4 ${
+									reviewsToday > 0
+										? "text-orange-500"
+										: "text-gray-400 dark:text-slate-500"
+								}`}
+							/>
+							<span
+								className={`text-xs font-medium ${
+									reviewsToday > 0
+										? "text-orange-700 dark:text-orange-300"
+										: "text-gray-500 dark:text-slate-400"
+								}`}
+							>
 								{streak} {streak === 1 ? "day" : "days"}
 							</span>
 						</div>

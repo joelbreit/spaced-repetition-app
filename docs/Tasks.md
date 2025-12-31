@@ -9,8 +9,15 @@
   - 401
   - Error: "Unauthorized - please log in again"
 
+v2 (folders) issues:
+- [ ] Root level "Study All" button doesn't work
+- [ ] Sortable folder components should have Due/New/Learned counts, mastery/burden stats, and a Study button
+- [ ] Review summary doesn't show due/new/learned count changes when reviewing a folder
+- [ ] All folders (not just root level) should have Due/New/Studied/Burden stats at top
+
 ## Features
 
+- [ ] Configurable minimum interval
 - [ ] Math/paper aesthetic?
 - [ ] No more emojis in text
 - [ ] Replace `alert("Account confirmed! Please log in.");`
@@ -103,7 +110,7 @@
 
 ## Complete
 
-2025-12-30
+2026-12-31
 
 TODO:
 - [ ] Add forgot password functionality and login page button
@@ -111,6 +118,9 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Highlight/don't highlight streak if today is included in the streak
+
+2025-12-30
 - [x] Add Study All functionality for folders
 - [x] Add Move to Folder functionality to DeckCardsView
 - [x] Folder functionality! New FolderBrowserView, SortableContainerItem, and several other components
