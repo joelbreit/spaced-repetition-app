@@ -90,7 +90,7 @@ export const handler = async (event) => {
 				};
 			} catch (error) {
 				if (error.name === 'NoSuchKey') {
-					const initialData = { decks: [] };
+					const initialData = { folders: [], decks: [] };
 					return {
 						statusCode: 200,
 						headers,
@@ -140,13 +140,16 @@ export const handler = async (event) => {
 				existingData = JSON.parse(jsonString);
 			} catch (error) {
 				if (error.name === 'NoSuchKey') {
-					existingData = { decks: [] };
+					existingData = { folders: [], decks: [] };
 				} else {
 					throw error;
 				}
 			}
 
-			// Ensure decks array exists
+			// Ensure folders and decks arrays exist
+			if (!existingData.folders) {
+				existingData.folders = [];
+			}
 			if (!existingData.decks) {
 				existingData.decks = [];
 			}

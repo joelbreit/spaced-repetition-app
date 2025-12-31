@@ -12,6 +12,7 @@ const AppDataContext = createContext();
 
 // Initial sample data (used only if API has no data)
 const initialData = {
+	folders: [],
 	decks: [
 		{
 			deckId: "1",
