@@ -6,6 +6,7 @@ import {
 	confirmSignUp,
 	getCurrentUser,
 	fetchAuthSession,
+	updatePassword,
 } from "aws-amplify/auth";
 
 const AuthContext = createContext();
@@ -30,7 +31,7 @@ export function AuthProvider({ children }) {
 			const token = session.tokens?.accessToken?.toString();
 			setAuthToken(token);
 		} catch (error) {
-			console.log("No user logged in");
+			console.log("No user logged in", error);
 			setUser(null);
 			setAuthToken(null);
 		} finally {
@@ -108,6 +109,19 @@ export function AuthProvider({ children }) {
 		}
 	}
 
+	async function changePassword(oldPassword, newPassword) {
+		try {
+			await updatePassword({
+				oldPassword,
+				newPassword,
+			});
+			return { success: true };
+		} catch (error) {
+			console.error("Password change error:", error);
+			return { success: false, error: error.message };
+		}
+	}
+
 	const value = {
 		user,
 		authToken,
@@ -118,6 +132,7 @@ export function AuthProvider({ children }) {
 		register,
 		confirmRegistration,
 		checkUser,
+		changePassword,
 	};
 
 	return (

@@ -115,9 +115,9 @@ v2 (folders) issues:
 TODO:
 - [ ] Add forgot password functionality and login page button
 - [ ] Add change email functionality and profile page button
-- [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Added change password functionality and profile page
 - [x] 3-tiered progress bar for sortable folder/deck components
 - [x] Added before/after changes to review summary when reviewing a folder
 - [x] Fixed root level "Study All" button
