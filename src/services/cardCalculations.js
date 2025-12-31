@@ -33,7 +33,6 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 
 	// Always go to minimum interval
 	if (result === "again") {
-		console.log(`again, returning MIN_INTERVAL: ${prettyPrintInterval(MIN_INTERVAL)}`);
 		return MIN_INTERVAL;
 	}
 

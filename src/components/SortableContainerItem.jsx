@@ -1,12 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import {
-	Edit,
-	Trash2,
-	Play,
-	Eye,
-	GripVertical,
-	Folder,
-} from "lucide-react";
+import { Edit, Trash2, Play, Eye, GripVertical, Folder } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -75,7 +68,8 @@ export default function SortableContainerItem({
 							? Math.round(
 									item.cards.reduce(
 										(sum, card) =>
-											sum + calculateLearningStrength(card),
+											sum +
+											calculateLearningStrength(card),
 										0
 									) / item.cards.length
 							  )
@@ -85,7 +79,8 @@ export default function SortableContainerItem({
 							? item.cards
 									.filter(
 										(card) =>
-											card.reviews && card.reviews.length > 0
+											card.reviews &&
+											card.reviews.length > 0
 									)
 									.reduce(
 										(sum, card) =>
@@ -103,8 +98,7 @@ export default function SortableContainerItem({
 					).length,
 					learnedCount: item.cards.filter(
 						(card) =>
-							card.reviews.length > 0 &&
-							card.whenDue > Date.now()
+							card.reviews.length > 0 && card.whenDue > Date.now()
 					).length,
 					reviewedCount: item.cards.filter(
 						(card) => card.reviews.length > 0
@@ -112,18 +106,100 @@ export default function SortableContainerItem({
 			  }
 			: null;
 
-	// For folders, count contents
+	// Helper function to recursively get all decks in a folder and its subfolders
+	const getAllDecksInFolder = (folderId) => {
+		const allDecks = [];
+
+		// Get direct decks in this folder
+		const directDecks = (appData.decks || []).filter(
+			(d) => d.parentFolderId === folderId
+		);
+		allDecks.push(...directDecks);
+
+		// Get subfolders
+		const subfolders = (appData.folders || []).filter(
+			(f) => f.parentFolderId === folderId
+		);
+
+		// Recursively get decks from subfolders
+		subfolders.forEach((subfolder) => {
+			const subfolderDecks = getAllDecksInFolder(subfolder.folderId);
+			allDecks.push(...subfolderDecks);
+		});
+
+		return allDecks;
+	};
+
+	// For folders, count contents and aggregate stats
 	const folderStats = isFolder
-		? {
-				deckCount:
-					appData.decks?.filter(
-						(d) => d.parentFolderId === item.id
-					).length || 0,
-				folderCount:
-					appData.folders?.filter(
-						(f) => f.parentFolderId === item.id
-					).length || 0,
-		  }
+		? (() => {
+				const folderCount =
+					appData.folders?.filter((f) => f.parentFolderId === item.id)
+						.length || 0;
+
+				// Get all decks recursively
+				const allDecksInFolder = getAllDecksInFolder(item.id);
+
+				// Collect all cards from all decks
+				const allCards = [];
+				allDecksInFolder.forEach((deck) => {
+					if (deck.cards && deck.cards.length > 0) {
+						allCards.push(...deck.cards);
+					}
+				});
+
+				// Calculate aggregated stats
+				const stats = {
+					folderCount,
+					deckCount: allDecksInFolder.length,
+					totalCards: allCards.length,
+					averageLearningStrength:
+						allCards.length > 0
+							? Math.round(
+									allCards.reduce(
+										(sum, card) =>
+											sum +
+											calculateLearningStrength(card),
+										0
+									) / allCards.length
+							  )
+							: 0,
+					aggregateReviewRate:
+						allCards.length > 0
+							? allCards
+									.filter(
+										(card) =>
+											card.reviews &&
+											card.reviews.length > 0
+									)
+									.reduce(
+										(sum, card) =>
+											sum + getPerDayReviewRate(card),
+										0
+									)
+							: 0,
+					dueCount: allCards.filter(
+						(card) =>
+							card.whenDue <= Date.now() &&
+							card.reviews &&
+							card.reviews.length > 0
+					).length,
+					newCount: allCards.filter(
+						(card) => !card.reviews || card.reviews.length === 0
+					).length,
+					learnedCount: allCards.filter(
+						(card) =>
+							card.reviews &&
+							card.reviews.length > 0 &&
+							card.whenDue > Date.now()
+					).length,
+					reviewedCount: allCards.filter(
+						(card) => card.reviews && card.reviews.length > 0
+					).length,
+				};
+
+				return stats;
+		  })()
 		: null;
 
 	const handleClick = () => {
@@ -167,7 +243,9 @@ export default function SortableContainerItem({
 							type="text"
 							value={editingName}
 							onChange={(e) => setEditingName(e.target.value)}
-							placeholder={isFolder ? "Folder name..." : "Deck name..."}
+							placeholder={
+								isFolder ? "Folder name..." : "Deck name..."
+							}
 							className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 						/>
 					</div>
@@ -219,7 +297,9 @@ export default function SortableContainerItem({
 								</h3>
 								<p className="text-sm text-gray-600 dark:text-slate-400">
 									{isFolder
-										? `${folderStats.folderCount} folder(s), ${folderStats.deckCount} deck(s)`
+										? folderStats.totalCards > 0
+											? `${folderStats.totalCards} card(s) in ${folderStats.deckCount} deck(s)`
+											: `${folderStats.folderCount} folder(s), ${folderStats.deckCount} deck(s)`
 										: `${item.cards?.length || 0} card(s)`}
 								</p>
 							</div>
@@ -282,7 +362,9 @@ export default function SortableContainerItem({
 									<div className="w-2 h-2 rounded-full bg-purple-500"></div>
 									<span className="text-sm font-semibold text-gray-700 dark:text-slate-300">
 										{item.cards.length > 0
-											? deckStats.aggregateReviewRate.toFixed(1)
+											? deckStats.aggregateReviewRate.toFixed(
+													1
+											  )
 											: "—"}
 									</span>
 									<span className="text-xs text-gray-500 dark:text-slate-500">
@@ -309,27 +391,117 @@ export default function SortableContainerItem({
 						</>
 					)}
 
-					{isFolder && (
-						<div className="mb-4 flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
-							<Folder className="h-4 w-4" />
-							<span>
-								{folderStats.folderCount > 0 &&
-									`${folderStats.folderCount} folder${
-										folderStats.folderCount !== 1 ? "s" : ""
-									}`}
-								{folderStats.folderCount > 0 &&
-									folderStats.deckCount > 0 &&
-									", "}
-								{folderStats.deckCount > 0 &&
-									`${folderStats.deckCount} deck${
-										folderStats.deckCount !== 1 ? "s" : ""
-									}`}
-								{folderStats.folderCount === 0 &&
-									folderStats.deckCount === 0 &&
-									"Empty folder"}
-							</span>
-						</div>
+					{isFolder && folderStats && folderStats.totalCards > 0 && (
+						<>
+							{/* Card Counts */}
+							<div className="grid grid-cols-3 gap-2 mb-3">
+								<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-2.5 text-center">
+									<div className="text-xl font-bold text-orange-600">
+										{folderStats.dueCount}
+									</div>
+									<div className="text-xs text-gray-600 dark:text-slate-400">
+										Due
+									</div>
+								</div>
+								<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-2.5 text-center">
+									<div className="text-xl font-bold text-teal-600">
+										{folderStats.newCount}
+									</div>
+									<div className="text-xs text-gray-600 dark:text-slate-400">
+										New
+									</div>
+								</div>
+								<div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-2.5 text-center">
+									<div className="text-xl font-bold text-green-600">
+										{folderStats.learnedCount}
+									</div>
+									<div className="text-xs text-gray-600 dark:text-slate-400">
+										Learned
+									</div>
+								</div>
+							</div>
+
+							{/* Scores */}
+							<div className="flex items-center gap-4 mb-4 px-1">
+								<div className="flex items-center gap-1.5">
+									<div
+										className={`w-2 h-2 rounded-full ${getMasteryDotColor(
+											folderStats.averageLearningStrength
+										)}`}
+									></div>
+									<span
+										className={`text-sm font-semibold ${getMasteryColor(
+											folderStats.averageLearningStrength
+										)}`}
+									>
+										{folderStats.totalCards > 0
+											? `${folderStats.averageLearningStrength}%`
+											: "—"}
+									</span>
+									<span className="text-xs text-gray-500 dark:text-slate-500">
+										mastery
+									</span>
+								</div>
+								<div className="flex items-center gap-1.5">
+									<div className="w-2 h-2 rounded-full bg-purple-500"></div>
+									<span className="text-sm font-semibold text-gray-700 dark:text-slate-300">
+										{folderStats.totalCards > 0
+											? folderStats.aggregateReviewRate.toFixed(
+													1
+											  )
+											: "—"}
+									</span>
+									<span className="text-xs text-gray-500 dark:text-slate-500">
+										burden/day
+									</span>
+								</div>
+							</div>
+
+							{/* Progress */}
+							<div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
+								<div
+									className="h-full bg-linear-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
+									style={{
+										width: `${
+											folderStats.totalCards > 0
+												? (folderStats.reviewedCount /
+														folderStats.totalCards) *
+												  100
+												: 0
+										}%`,
+									}}
+								/>
+							</div>
+						</>
 					)}
+
+					{isFolder &&
+						folderStats &&
+						folderStats.totalCards === 0 && (
+							<div className="mb-4 flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+								<Folder className="h-4 w-4" />
+								<span>
+									{folderStats.folderCount > 0 &&
+										`${folderStats.folderCount} folder${
+											folderStats.folderCount !== 1
+												? "s"
+												: ""
+										}`}
+									{folderStats.folderCount > 0 &&
+										folderStats.deckCount > 0 &&
+										", "}
+									{folderStats.deckCount > 0 &&
+										`${folderStats.deckCount} deck${
+											folderStats.deckCount !== 1
+												? "s"
+												: ""
+										}`}
+									{folderStats.folderCount === 0 &&
+										folderStats.deckCount === 0 &&
+										"Empty folder"}
+								</span>
+							</div>
+						)}
 
 					{/* Actions */}
 					<div className="flex gap-2">
@@ -349,9 +521,7 @@ export default function SortableContainerItem({
 								<span className="hidden sm:inline">Study</span>
 							</button>
 						)}
-						{!isDeck && onStartReview && (
-							<div className="flex-1" />
-						)}
+						{!isDeck && onStartReview && <div className="flex-1" />}
 						<button
 							onClick={(e) => {
 								e.stopPropagation();
@@ -382,4 +552,3 @@ export default function SortableContainerItem({
 		</div>
 	);
 }
-

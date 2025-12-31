@@ -14,8 +14,8 @@
 
 v2 (folders) issues:
 - [ ] Root level "Study All" button doesn't work
-- [ ] Sortable folder components should have Due/New/Learned counts, mastery/burden stats, and a Study button
 - [ ] Review summary doesn't show due/new/learned count changes when reviewing a folder
+- [ ] Sortable folder components should have a Study button
 - [ ] All folders (not just root level) should have Due/New/Studied/Burden stats at top
 
 ## Features
@@ -121,6 +121,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Added Due/New/Learned counts and mastery/burden stats to sortable folder components
 - [x] Standardized interval display formatting
 - [x] Fixed folders disappearing after review summary
 - [x] Highlight/don't highlight streak if today is included in the streak
