@@ -84,9 +84,13 @@ function OverviewPage() {
 
 	const startFolderReview = (folderId) => {
 		// Get all decks in the folder (folderId can be null for root)
-		const folderDecks = (appData.decks || []).filter(
+		let folderDecks = (appData.decks || []).filter(
 			(d) => d.parentFolderId === folderId
 		);
+
+		if (folderId === null) {
+			folderDecks = appData.decks || [];
+		}
 
 		if (folderDecks.length === 0) {
 			return; // No decks in folder

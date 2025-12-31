@@ -13,7 +13,6 @@
 - [ ] You can very breifly see the back of the next card when it flips into place
 
 v2 (folders) issues:
-- [ ] Root level "Study All" button doesn't work
 - [ ] Review summary doesn't show due/new/learned count changes when reviewing a folder
 - [ ] Sortable folder components should have a Study button
 - [ ] All folders (not just root level) should have Due/New/Studied/Burden stats at top
@@ -121,6 +120,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Fixed root level "Study All" button
 - [x] Added Due/New/Learned counts and mastery/burden stats to sortable folder components
 - [x] Standardized interval display formatting
 - [x] Fixed folders disappearing after review summary
