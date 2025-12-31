@@ -374,19 +374,44 @@ export default function SortableContainerItem({
 							</div>
 
 							{/* Progress */}
-							<div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
-								<div
-									className="h-full bg-linear-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
-									style={{
-										width: `${
-											item.cards.length > 0
-												? (deckStats.reviewedCount /
+							<div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden flex">
+								{item.cards.length > 0 ? (
+									<>
+										{/* Due segment */}
+										<div
+											className="h-full bg-linear-to-r from-orange-500 to-amber-500 transition-all duration-500"
+											style={{
+												width: `${
+													(deckStats.dueCount /
 														item.cards.length) *
-												  100
-												: 0
-										}%`,
-									}}
-								/>
+													100
+												}%`,
+											}}
+										/>
+										{/* New segment */}
+										<div
+											className="h-full bg-linear-to-r from-teal-500 to-cyan-500 transition-all duration-500"
+											style={{
+												width: `${
+													(deckStats.newCount /
+														item.cards.length) *
+													100
+												}%`,
+											}}
+										/>
+										{/* Learned segment */}
+										<div
+											className="h-full bg-linear-to-r from-green-500 to-emerald-500 transition-all duration-500 rounded-r-full"
+											style={{
+												width: `${
+													(deckStats.learnedCount /
+														item.cards.length) *
+													100
+												}%`,
+											}}
+										/>
+									</>
+								) : null}
 							</div>
 						</>
 					)}
@@ -458,19 +483,44 @@ export default function SortableContainerItem({
 							</div>
 
 							{/* Progress */}
-							<div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden">
-								<div
-									className="h-full bg-linear-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
-									style={{
-										width: `${
-											folderStats.totalCards > 0
-												? (folderStats.reviewedCount /
+							<div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full mb-4 overflow-hidden flex">
+								{folderStats.totalCards > 0 ? (
+									<>
+										{/* Due segment */}
+										<div
+											className="h-full bg-linear-to-r from-orange-500 to-amber-500 transition-all duration-500"
+											style={{
+												width: `${
+													(folderStats.dueCount /
 														folderStats.totalCards) *
-												  100
-												: 0
-										}%`,
-									}}
-								/>
+													100
+												}%`,
+											}}
+										/>
+										{/* New segment */}
+										<div
+											className="h-full bg-linear-to-r from-teal-500 to-cyan-500 transition-all duration-500"
+											style={{
+												width: `${
+													(folderStats.newCount /
+														folderStats.totalCards) *
+													100
+												}%`,
+											}}
+										/>
+										{/* Learned segment */}
+										<div
+											className="h-full bg-linear-to-r from-green-500 to-emerald-500 transition-all duration-500 rounded-r-full"
+											style={{
+												width: `${
+													(folderStats.learnedCount /
+														folderStats.totalCards) *
+													100
+												}%`,
+											}}
+										/>
+									</>
+								) : null}
 							</div>
 						</>
 					)}

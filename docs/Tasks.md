@@ -107,8 +107,6 @@ v2 (folders) issues:
 ## Infrastructure
 
 - [ ] Create an AWS tag for all resources associated with this app
-- [ ] Some sort of database that's not a giant JSON file
-- [ ] Separate pages for deck view, card view, review screen
 
 ## Complete
 
@@ -120,6 +118,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] 3-tiered progress bar for sortable folder/deck components
 - [x] Added before/after changes to review summary when reviewing a folder
 - [x] Fixed root level "Study All" button
 - [x] Added Due/New/Learned counts and mastery/burden stats to sortable folder components
