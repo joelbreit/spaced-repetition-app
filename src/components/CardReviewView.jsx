@@ -88,8 +88,7 @@ export default function CardReviewView({
 		const timestamp = Date.now(); // Capture timestamp at button click
 		const interval = calculateNextInterval(result, currentCard, timestamp);
 		const nextDue = timestamp + interval;
-		console.log(`interval: ${interval}`);
-		console.log(`nextDue: ${nextDue}`);
+
 		setAnimationResult(result);
 		setNextDueDate(nextDue);
 
@@ -165,25 +164,7 @@ export default function CardReviewView({
 		const hoursAgo = Math.ceil(
 			(Date.now() - currentCard.whenDue) / (1000 * 60 * 60)
 		);
-		console.log(`Date.now(): ${Date.now()}`);
-		console.log(`currentCard.whenDue: ${currentCard.whenDue}`);
-		console.log(
-			`(Date.now() - currentCard.whenDue): ${
-				Date.now() - currentCard.whenDue
-			}`
-		);
-		console.log(`(1000 * 60 * 60): ${1000 * 60 * 60}`);
-		console.log(
-			`(Date.now() - currentCard.whenDue) / (1000 * 60 * 60): ${
-				(Date.now() - currentCard.whenDue) / (1000 * 60 * 60)
-			}`
-		);
-		console.log(
-			`Math.ceil((Date.now() - currentCard.whenDue) / (1000 * 60 * 60)): ${Math.ceil(
-				(Date.now() - currentCard.whenDue) / (1000 * 60 * 60)
-			)}`
-		);
-		console.log(`hoursAgo: ${hoursAgo}`);
+
 		if (hoursAgo === 1) return formatMinutesAgo();
 		return `Due ${hoursAgo} hours ago`;
 	};
@@ -198,7 +179,7 @@ export default function CardReviewView({
 
 	const formatInterval = () => {
 		const interval = getInterval(currentCard);
-		console.log(`interval: ${interval}`);
+
 		// days
 		const days = Math.floor(interval / (1000 * 60 * 60 * 24));
 		if (days > 0) return `${days} days`;

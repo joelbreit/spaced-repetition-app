@@ -16,23 +16,6 @@
 - [ ] Replace `alert("Account confirmed! Please log in.");`
 - [ ] Allow confirmation of prompts / form submissions with 'Enter'
   - [ ] Delete deck dialog
-- [ ] **Deck folders**
-  - Decks view:
-    - [ ] Add folder function
-    - [ ] Show folders
-    - [ ] Hide decks that are in a folder
-    - [ ] Show per day review rate
-  - Deck view:
-    - [ ] Add to folder
-      - [ ] Add to existing folder
-      - [ ] Create new folder
-    - [ ] Remove from folder
-  - Folder view (new):
-    - [ ] Add deck
-    - [ ] Remove deck
-    - [ ] Rename folder
-    - [ ] Delete folder
-    - [ ] When a deck is selected, go to its deck view
 - [ ] Show count of search results
 - [ ] Allow for reviewing card subsets: flagged cards, new cards, etc
 - [ ] Add demo mode / tutorial
@@ -52,7 +35,6 @@
 - [ ] Ability to archive decks 
 - [ ] Log how much things are probably costing
 - [ ] Markdown support
-- [ ] Track Lambda code in functions/ folder
 - [ ] Reduce front page stats hero section size
 
 ### Account Management
@@ -129,6 +111,7 @@ TODO:
 - [ ] Add change password functionality and profile page button
 
 Done:
+- [x] Add Study All functionality for folders
 - [x] Add Move to Folder functionality to DeckCardsView
 - [x] Folder functionality! New FolderBrowserView, SortableContainerItem, and several other components
 - [x] Skip summary if no cards were reviewed

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Plus, Search, FolderOpen } from "lucide-react";
+import { Plus, Search, FolderOpen, Play } from "lucide-react";
 import {
 	DndContext,
 	closestCenter,
@@ -9,7 +9,10 @@ import {
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
-import { SortableContext, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import {
+	SortableContext,
+	sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
 import { useNotification } from "../hooks/useNotification";
 import { useAppData } from "../contexts/AppDataContext";
 import { useDeckOperations } from "../hooks/useDeckOperations";
@@ -17,7 +20,10 @@ import StudyStatistics from "./StudyStatistics";
 import SortableContainerItem from "./SortableContainerItem";
 import Breadcrumbs from "./Breadcrumbs";
 
-export default function FolderBrowserView({ onStartReview }) {
+export default function FolderBrowserView({
+	onStartReview,
+	onStartFolderReview,
+}) {
 	const { folderId } = useParams();
 	const { appData } = useAppData();
 	const {
@@ -48,11 +54,6 @@ export default function FolderBrowserView({ onStartReview }) {
 			coordinateGetter: sortableKeyboardCoordinates,
 		})
 	);
-
-	// Get current folder (null for root)
-	const currentFolder = folderId
-		? appData.folders?.find((f) => f.folderId === folderId)
-		: null;
 
 	// Get folders and decks in current folder
 	const folders = (appData.folders || []).filter(
@@ -104,7 +105,11 @@ export default function FolderBrowserView({ onStartReview }) {
 
 	const handleAddDeck = () => {
 		if (newDeckName.trim()) {
-			addDeck(newDeckName.trim(), newDeckSymbol || "📚", folderId || null);
+			addDeck(
+				newDeckName.trim(),
+				newDeckSymbol || "📚",
+				folderId || null
+			);
 			setNewDeckName("");
 			setNewDeckSymbol("📚");
 			setShowNewDeckForm(false);
@@ -149,9 +154,7 @@ export default function FolderBrowserView({ onStartReview }) {
 			title: `Delete ${type === "folder" ? "Folder" : "Deck"}`,
 			message: `Are you sure you want to delete this ${
 				type === "folder" ? "folder" : "deck"
-			}${
-				type === "deck" ? " and all its cards" : ""
-			}?`,
+			}${type === "deck" ? " and all its cards" : ""}?`,
 			confirmText: "Delete",
 			cancelText: "Cancel",
 			type: "danger",
@@ -178,8 +181,12 @@ export default function FolderBrowserView({ onStartReview }) {
 			return;
 		}
 
-		const activeIndex = filteredItems.findIndex((item) => item.id === active.id);
-		const overIndex = filteredItems.findIndex((item) => item.id === over.id);
+		const activeIndex = filteredItems.findIndex(
+			(item) => item.id === active.id
+		);
+		const overIndex = filteredItems.findIndex(
+			(item) => item.id === over.id
+		);
 
 		if (activeIndex !== -1 && overIndex !== -1) {
 			reorderContainers(activeIndex, overIndex, filteredItems);
@@ -196,7 +203,7 @@ export default function FolderBrowserView({ onStartReview }) {
 			{/* Breadcrumbs */}
 			<Breadcrumbs folderId={folderId} />
 
-			{/* Search */}
+			{/* Search and Study All */}
 			<div className="mb-6 flex items-center gap-3">
 				<div className="relative flex-1">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-slate-500" />
@@ -208,6 +215,15 @@ export default function FolderBrowserView({ onStartReview }) {
 						className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 					/>
 				</div>
+				{onStartFolderReview && decks.length > 0 && (
+					<button
+						onClick={() => onStartFolderReview(folderId || null)}
+						className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 whitespace-nowrap"
+					>
+						<Play className="h-5 w-5" />
+						Study All
+					</button>
+				)}
 			</div>
 
 			{/* Create Forms */}
@@ -234,7 +250,9 @@ export default function FolderBrowserView({ onStartReview }) {
 								type="text"
 								placeholder="Folder name..."
 								value={newFolderName}
-								onChange={(e) => setNewFolderName(e.target.value)}
+								onChange={(e) =>
+									setNewFolderName(e.target.value)
+								}
 								className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 							/>
 							<button
@@ -375,4 +393,3 @@ export default function FolderBrowserView({ onStartReview }) {
 		</div>
 	);
 }
-

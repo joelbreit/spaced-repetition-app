@@ -82,11 +82,100 @@ function OverviewPage() {
 		}
 	};
 
+	const startFolderReview = (folderId) => {
+		// Get all decks in the folder (folderId can be null for root)
+		const folderDecks = (appData.decks || []).filter(
+			(d) => d.parentFolderId === folderId
+		);
+
+		if (folderDecks.length === 0) {
+			return; // No decks in folder
+		}
+
+		// Collect all cards from all decks, tagging each with its source deckId
+		const allCards = [];
+		folderDecks.forEach((deck) => {
+			deck.cards.forEach((card) => {
+				allCards.push({
+					...card,
+					sourceDeckId: deck.deckId, // Track which deck this card belongs to
+				});
+			});
+		});
+
+		if (allCards.length === 0) {
+			return; // No cards in any deck
+		}
+
+		// Create a snapshot of all decks before review for summary
+		const decksBefore = folderDecks.map((deck) =>
+			JSON.parse(JSON.stringify(deck))
+		);
+		deckBeforeReviewRef.current = decksBefore;
+		setSessionReviews([]);
+
+		const now = Date.now();
+
+		const dueCards = allCards.filter(
+			(card) => card.whenDue <= now && card.reviews.length > 0
+		);
+		const newCards = allCards.filter((card) => card.reviews.length === 0);
+		const notYetDueCards = allCards.filter(
+			(card) => card.whenDue > now && card.reviews.length > 0
+		);
+
+		dueCards.sort((a, b) => b.whenDue - a.whenDue);
+
+		for (let i = newCards.length - 1; i > 0; i -= 1) {
+			const j = Math.floor(Math.random() * (i + 1));
+			const temp = newCards[i];
+			newCards[i] = newCards[j];
+			newCards[j] = temp;
+		}
+
+		notYetDueCards.sort((a, b) => a.whenDue - b.whenDue);
+
+		const orderedCards = [...dueCards, ...newCards, ...notYetDueCards];
+
+		const sections = [
+			{ type: "due", label: "Due", total: dueCards.length },
+			{ type: "new", label: "New", total: newCards.length },
+			{
+				type: "learned",
+				label: "Learned",
+				total: notYetDueCards.length,
+			},
+		];
+
+		// Create a virtual deck object for the folder review
+		const folder = folderId
+			? appData.folders?.find((f) => f.folderId === folderId)
+			: null;
+		const virtualDeck = {
+			deckId: folderId || "root-folder", // Use folderId or special ID for root
+			deckName: folder
+				? `${folder.folderName} (All Decks)`
+				: "All Decks",
+			deckSymbol: folder?.folderSymbol || "📁",
+			cards: orderedCards,
+			isFolderReview: true, // Flag to indicate this is a folder review
+		};
+
+		setCurrentDeckForReview(virtualDeck);
+		setReviewSections(sections);
+		setCurrentCardIndex(0);
+		setIsFlipped(false);
+		setCurrentView("review");
+	};
+
 	const recordReview = (result, timestamp = Date.now()) => {
 		if (!currentDeckForReview) return;
 
 		const card = currentDeckForReview.cards[currentCardIndex];
 		if (!card) return;
+
+		// Get the deckId for this card (use sourceDeckId for folder reviews)
+		const deckId = card.sourceDeckId || currentDeckForReview.deckId;
 
 		const interval = calculateNextInterval(result, card, timestamp);
 		const nextDue = timestamp + interval;
@@ -111,7 +200,7 @@ function OverviewPage() {
 
 		setAppData((prev) => ({
 			decks: (prev.decks || []).map((deck) =>
-				deck.deckId === currentDeckForReview.deckId
+				deck.deckId === deckId
 					? {
 							...deck,
 							cards: deck.cards.map((c) =>
@@ -228,6 +317,7 @@ function OverviewPage() {
 							element={
 								<FolderBrowserView
 									onStartReview={startReview}
+									onStartFolderReview={startFolderReview}
 								/>
 							}
 						/>
@@ -236,6 +326,7 @@ function OverviewPage() {
 							element={
 								<FolderBrowserView
 									onStartReview={startReview}
+									onStartFolderReview={startFolderReview}
 								/>
 							}
 						/>
@@ -272,11 +363,21 @@ function OverviewPage() {
 						onFlip={() => setIsFlipped(!isFlipped)}
 						onReview={recordReview}
 						onEditCard={(cardId) => {
-							handleEditCard(currentDeckForReview.deckId, cardId);
+							const card = currentDeckForReview.cards.find(
+								(c) => c.cardId === cardId
+							);
+							const deckId =
+								card?.sourceDeckId || currentDeckForReview.deckId;
+							handleEditCard(deckId, cardId);
 						}}
 						onEndReview={handleEndReview}
 						onToggleFlag={(cardId) => {
-							toggleCardFlag(currentDeckForReview.deckId, cardId);
+							const card = currentDeckForReview.cards.find(
+								(c) => c.cardId === cardId
+							);
+							const deckId =
+								card?.sourceDeckId || currentDeckForReview.deckId;
+							toggleCardFlag(deckId, cardId);
 							const updatedCards = currentDeckForReview.cards.map(
 								(c) =>
 									c.cardId === cardId
@@ -294,7 +395,12 @@ function OverviewPage() {
 							});
 						}}
 						onToggleStar={(cardId) => {
-							toggleCardStar(currentDeckForReview.deckId, cardId);
+							const card = currentDeckForReview.cards.find(
+								(c) => c.cardId === cardId
+							);
+							const deckId =
+								card?.sourceDeckId || currentDeckForReview.deckId;
+							toggleCardStar(deckId, cardId);
 							const updatedCards = currentDeckForReview.cards.map(
 								(c) =>
 									c.cardId === cardId
@@ -318,10 +424,20 @@ function OverviewPage() {
 				{currentView === "summary" && currentDeckForReview && (
 					<ReviewSummary
 						sessionReviews={sessionReviews}
-						deckBefore={deckBeforeReviewRef.current}
-						deckAfter={appData.decks?.find(
-							(d) => d.deckId === currentDeckForReview.deckId
-						)}
+						deckBefore={
+							currentDeckForReview.isFolderReview
+								? null // Folder reviews don't show before/after comparison
+								: deckBeforeReviewRef.current
+						}
+						deckAfter={
+							currentDeckForReview.isFolderReview
+								? null // Folder reviews don't show before/after comparison
+								: appData.decks?.find(
+										(d) =>
+											d.deckId ===
+											currentDeckForReview.deckId
+								  )
+						}
 						onClose={handleCloseSummary}
 					/>
 				)}
