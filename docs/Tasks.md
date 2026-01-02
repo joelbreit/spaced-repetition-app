@@ -15,7 +15,6 @@
 
 v2 (folders) issues:
 - [ ] Sortable folder components should have a Study button
-- [ ] All folders (not just root level) should have Due/New/Studied/Burden stats at top
 
 ## Features
 
@@ -26,7 +25,6 @@ v2 (folders) issues:
 - [ ] Allow confirmation of prompts / form submissions with 'Enter'
   - [ ] Delete deck dialog
 - [ ] Show count of search results
-- [ ] Allow for reviewing card subsets: flagged cards, new cards, etc
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
   - [ ] Track partner cards that are tied to each other
     - [ ] When deleting a card, ask if you want to delete the related card
@@ -37,13 +35,11 @@ v2 (folders) issues:
 - [ ] Track related cards
 - [ ] **Cloze deletions**
 - [ ] Email login should not be case sensitive
-- [ ] User should be able to delete account or reset password
+- [ ] User should be able to delete account
 - [ ] Documentation of pages, components, algorithms, data structure
-- [ ] Feature request form
 - [ ] Ability to archive decks 
 - [ ] Log how much things are probably costing
 - [ ] Markdown support
-- [ ] Reduce front page stats hero section size
 
 ### Account Management
 
@@ -53,7 +49,6 @@ v2 (folders) issues:
 
 ### Header
 
-- [ ] Highlight/don't highlight streak if today is included in the streak
 - [ ] Reconnect by clicking "Offline"
 
 ### Footer
@@ -61,25 +56,15 @@ v2 (folders) issues:
 - [ ] Feature request form
 - [ ] App version history
 
-### Overview View
-
-
-### Card Review View
-
-- [ ] Display stats e.g. num correct while reviewing cards
-- [ ] Results screen when you finish reviewing cards
-- [ ] Create views for when you finish the due and new sections
-
 #### Read Aloud
 
 - [ ] Add persistent audio playback speed control
 - [ ] Cache audio for a side of a card after read aloud button has been used once
-- [ ] Upgraded read aloud button 
+- [ ] **Upgraded read aloud button** 
   - [ ] Dropdown with
     - [ ] Listed playback speed, +/- for 0.1 speed changes
     - [ ] Automatically play toggle
 - [ ] Hotkey for read aloud and other controls
-
 
 ### Card View
 
@@ -121,6 +106,7 @@ v2 (folders) issues:
 
 2026-01-02
 
+- [x] Added StudyStatistics to all folder views
 - [x] Fixed issue where you could very breifly see the back of the next card when it flips into place
 - [x] Added read aloud functionality to card review view using AWS Polly
 - [x] Added review duration timing to data and review summary page

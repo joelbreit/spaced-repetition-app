@@ -197,11 +197,11 @@ export default function FolderBrowserView({
 
 	return (
 		<div>
-			{/* Statistics Hero Section - Only show at root */}
-			{isRoot && <StudyStatistics appData={appData} />}
-
 			{/* Breadcrumbs */}
 			<Breadcrumbs folderId={folderId} />
+
+			{/* Statistics */}
+			<StudyStatistics appData={appData} folderId={folderId || null} />
 
 			{/* Search and Study All */}
 			<div className="mb-6 flex items-center gap-3">
