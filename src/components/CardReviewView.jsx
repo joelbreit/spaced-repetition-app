@@ -122,8 +122,13 @@ export default function CardReviewView({
 		// After animation completes, record the review with the same timestamp and duration
 		setTimeout(() => {
 			onReview(result, timestamp, reviewDuration);
-			setAnimationResult(null);
-			setNextDueDate(null);
+
+			// Keep the animation result visible for a bit longer while it flips back
+			// This matches the 300ms delay in OverviewPage.jsx
+			setTimeout(() => {
+				setAnimationResult(null);
+				setNextDueDate(null);
+			}, 300);
 		}, 600);
 	};
 

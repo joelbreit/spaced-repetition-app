@@ -234,11 +234,17 @@ function OverviewPage() {
 		});
 
 		setIsFlipped(false);
-		if (currentCardIndex < currentDeckForReview.cards.length - 1) {
-			setCurrentCardIndex(currentCardIndex + 1);
-		} else {
-			setCurrentView("summary");
-		}
+
+		// Delay showing the next card until the current one has flipped back enough
+		// so the back side isn't visible. This prevents seeing the next card's back
+		// during the flip-back animation.
+		setTimeout(() => {
+			if (currentCardIndex < currentDeckForReview.cards.length - 1) {
+				setCurrentCardIndex(currentCardIndex + 1);
+			} else {
+				setCurrentView("summary");
+			}
+		}, 300);
 	};
 
 	const handleEditCard = (deckId, cardId) => {

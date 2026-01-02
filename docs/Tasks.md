@@ -10,7 +10,6 @@
   - Error: "Unauthorized - please log in again"
 - [ ] I should be able to edit cards from the review screen
 - [ ] Should show an error if a folder or deck is orphaned (parentFolderId is not null and can't be found)
-- [ ] You can very breifly see the back of the next card when it flips into place
 - [ ] Navigate to top of page when clicking on a folder or deck
 - [ ] In Firefox, the back of cards shows up dimmly when flipped
 
@@ -70,7 +69,17 @@ v2 (folders) issues:
 - [ ] Display stats e.g. num correct while reviewing cards
 - [ ] Results screen when you finish reviewing cards
 - [ ] Create views for when you finish the due and new sections
+
+#### Read Aloud
+
 - [ ] Add persistent audio playback speed control
+- [ ] Cache audio for a side of a card after read aloud button has been used once
+- [ ] Upgraded read aloud button 
+  - [ ] Dropdown with
+    - [ ] Listed playback speed, +/- for 0.1 speed changes
+    - [ ] Automatically play toggle
+- [ ] Hotkey for read aloud and other controls
+
 
 ### Card View
 
@@ -112,6 +121,7 @@ v2 (folders) issues:
 
 2026-01-02
 
+- [x] Fixed issue where you could very breifly see the back of the next card when it flips into place
 - [x] Added read aloud functionality to card review view using AWS Polly
 - [x] Added review duration timing to data and review summary page
 - [x] Add demo mode
