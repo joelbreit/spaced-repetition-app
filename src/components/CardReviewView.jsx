@@ -9,6 +9,7 @@ import {
 	Flag,
 	Star,
 	RulerDimensionLine,
+	Volume2,
 	Weight,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -20,6 +21,7 @@ import {
 	getPerDayReviewRate,
 	prettyPrintDueDateAsInterval,
 } from "../services/cardCalculations";
+import { readAloudAPI } from "../services/apiStorage";
 
 export default function CardReviewView({
 	deck,
@@ -76,6 +78,32 @@ export default function CardReviewView({
 	if (!currentCard) {
 		return null;
 	}
+
+	const readAloud = async (text) => {
+		try {
+			const audioBlob = await readAloudAPI(text);
+
+			// Get or create persistent audio element in the DOM for extensions to detect
+			let audioPlayer = document.getElementById("flashcard-audio-player");
+			if (!audioPlayer) {
+				audioPlayer = document.createElement("audio");
+				audioPlayer.id = "flashcard-audio-player";
+				audioPlayer.style.display = "none";
+				document.body.appendChild(audioPlayer);
+			}
+
+			// Clean up previous URL if exists
+			if (audioPlayer.src) {
+				URL.revokeObjectURL(audioPlayer.src);
+			}
+
+			// Set new audio and play
+			audioPlayer.src = URL.createObjectURL(audioBlob);
+			audioPlayer.play();
+		} catch (error) {
+			console.error("Failed to read aloud:", error);
+		}
+	};
 
 	// Handle review button click - trigger animation then record
 	const handleReview = (result) => {
@@ -243,6 +271,18 @@ export default function CardReviewView({
 								</div>
 							</div>
 						)}
+						{/* Read Aloud Button */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								// read this side of the card aloud
+								readAloud(currentCard.front);
+							}}
+							className={`absolute top-4 right-28 p-2 rounded-lg transition-all duration-200 z-10 bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 border border-gray-200 dark:border-slate-600`}
+							title="Read aloud"
+						>
+							<Volume2 className="h-5 w-5" />
+						</button>
 						{/* Star Button */}
 						<button
 							onClick={(e) => {
@@ -328,6 +368,19 @@ export default function CardReviewView({
 								</div>
 							</div>
 						)}
+
+						{/* Read Aloud Button */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								// read this side of the card aloud
+								readAloud(currentCard.back);
+							}}
+							className={`absolute top-4 right-28 p-2 rounded-lg transition-all duration-200 z-10 bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 border border-gray-200 dark:border-slate-600`}
+							title="Read aloud"
+						>
+							<Volume2 className="h-5 w-5" />
+						</button>
 						{/* Star Button */}
 						<button
 							onClick={(e) => {
@@ -466,7 +519,7 @@ export default function CardReviewView({
 						<h3 className="mb-6 text-center text-xl font-semibold text-gray-700 dark:text-gray-300">
 							How did you do?
 						</h3>
-						<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+						<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 							<button
 								onClick={() => handleReview("again")}
 								disabled={!!animationResult}

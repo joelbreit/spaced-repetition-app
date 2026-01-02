@@ -70,6 +70,7 @@ v2 (folders) issues:
 - [ ] Display stats e.g. num correct while reviewing cards
 - [ ] Results screen when you finish reviewing cards
 - [ ] Create views for when you finish the due and new sections
+- [ ] Add persistent audio playback speed control
 
 ### Card View
 
@@ -111,6 +112,7 @@ v2 (folders) issues:
 
 2026-01-02
 
+- [x] Added read aloud functionality to card review view using AWS Polly
 - [x] Added review duration timing to data and review summary page
 - [x] Add demo mode
 - [x] Switch initial page to be the demo with a banner and optional login button

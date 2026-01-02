@@ -116,3 +116,40 @@ export async function checkAPIHealth() {
 		return false;
 	}
 }
+
+export async function readAloudAPI(text) {
+	try {
+		console.log('Reading aloud:', text);
+		const response = await fetch(`${API_ENDPOINT}/read-aloud`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ text }),
+		});
+
+		if (!response.ok) {
+			let errorMessage = `HTTP error! status: ${response.status}`;
+			try {
+				const errorData = await response.json();
+				errorMessage = errorData.error || errorData.message || errorMessage;
+			} catch {
+				errorMessage = response.statusText || errorMessage;
+			}
+			throw new Error(errorMessage);
+		}
+
+		const contentType = response.headers.get('content-type');
+
+		if (contentType && contentType.includes('audio/mpeg')) {
+			const blob = await response.blob();
+			return blob; // Just return the blob
+		} else {
+			const data = await response.json();
+			throw new Error(data.error || data.message || 'Unknown error');
+		}
+	} catch (error) {
+		console.error('Error reading aloud:', error);
+		throw error;
+	}
+}
