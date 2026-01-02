@@ -46,13 +46,25 @@ export default function CardReviewView({
 	const [hasBeenFlipped, setHasBeenFlipped] = useState(false);
 	const previousCardIndexRef = useRef(currentCardIndex);
 
-	// Reset hasBeenFlipped when card changes
+	// Track review timing - start time when card is first viewed
+	const reviewStartTimeRef = useRef(null);
+
+	// Initialize timer on mount and reset hasBeenFlipped and start timer when card changes
 	useEffect(() => {
 		if (previousCardIndexRef.current !== currentCardIndex) {
 			setHasBeenFlipped(false);
 			previousCardIndexRef.current = currentCardIndex;
+			// Start timing when card is first shown
+			reviewStartTimeRef.current = Date.now();
 		}
 	}, [currentCardIndex]);
+
+	// Initialize timer on initial mount
+	useEffect(() => {
+		if (reviewStartTimeRef.current === null && currentCard) {
+			reviewStartTimeRef.current = Date.now();
+		}
+	}, [currentCard]);
 
 	// Mark as flipped when isFlipped becomes true
 	useEffect(() => {
@@ -71,12 +83,17 @@ export default function CardReviewView({
 		const interval = calculateNextInterval(result, currentCard, timestamp);
 		const nextDue = timestamp + interval;
 
+		// Calculate review duration (time from card view to review button click)
+		const reviewDuration = reviewStartTimeRef.current
+			? timestamp - reviewStartTimeRef.current
+			: 0;
+
 		setAnimationResult(result);
 		setNextDueDate(nextDue);
 
-		// After animation completes, record the review with the same timestamp
+		// After animation completes, record the review with the same timestamp and duration
 		setTimeout(() => {
-			onReview(result, timestamp);
+			onReview(result, timestamp, reviewDuration);
 			setAnimationResult(null);
 			setNextDueDate(null);
 		}, 600);

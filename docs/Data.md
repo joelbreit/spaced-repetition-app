@@ -33,10 +33,11 @@
 			"back": "Back text",
 			"reviews": [
 			{
-			"reviewId": "unique-id",
-			"timestamp": 1234567890,
-			"interval": 1234567890, // added later, may be missing
-			"result": "again" | "hard" | "good" | "easy"
+				"reviewId": "unique-id",
+				"timestamp": 1234567890,
+				"reviewDuration": 1234567890, // v3: ms spent reviewing the card, may be missing
+				"interval": 1234567890, // added later, may be missing
+				"result": "again" | "hard" | "good" | "easy"
 			}
 			],
 			"whenDue": 1234567890,
@@ -51,7 +52,11 @@
 }
 ```
 
-### To Do
+## v3 (review times)
+
+- [ ] Add `reviewDuration` to the review object
+
+## v2 (folders)
 
 - [x] v2: Folders
   - [x] Add the folders array to the data

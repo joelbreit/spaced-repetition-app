@@ -174,7 +174,11 @@ function OverviewPage() {
 		setCurrentView("review");
 	};
 
-	const recordReview = (result, timestamp = Date.now()) => {
+	const recordReview = (
+		result,
+		timestamp = Date.now(),
+		reviewDuration = 0
+	) => {
 		if (!currentDeckForReview) return;
 
 		const card = currentDeckForReview.cards[currentCardIndex];
@@ -186,16 +190,19 @@ function OverviewPage() {
 		const interval = calculateNextInterval(result, card, timestamp);
 		const nextDue = timestamp + interval;
 
+		console.log("reviewDuration", reviewDuration);
+
 		const review = {
 			reviewId: `${timestamp}-${Math.random().toString(36).slice(2, 11)}`,
 			timestamp: timestamp,
 			interval: interval,
 			result,
+			reviewDuration: reviewDuration,
 		};
 
 		setSessionReviews((prev) => [
 			...prev,
-			{ cardId: card.cardId, result, timestamp },
+			{ cardId: card.cardId, result, timestamp, reviewDuration },
 		]);
 
 		const updatedCard = {

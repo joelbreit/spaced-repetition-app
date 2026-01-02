@@ -8,6 +8,7 @@ import {
 	Zap,
 	Award,
 	ArrowRight,
+	Clock,
 } from "lucide-react";
 import {
 	calculateLearningStrength,
@@ -27,6 +28,21 @@ export default function ReviewSummary({
 		hard: sessionReviews.filter((r) => r.result === "hard").length,
 		good: sessionReviews.filter((r) => r.result === "good").length,
 		easy: sessionReviews.filter((r) => r.result === "easy").length,
+	};
+
+	// Calculate total review time
+	const totalReviewTime = sessionReviews.reduce(
+		(sum, review) => sum + (review.reviewDuration || 0),
+		0
+	);
+
+	// Format review time as minutes:seconds
+	const formatReviewTime = (ms) => {
+		if (!ms || ms === 0) return "0:00";
+		const totalSeconds = Math.floor(ms / 1000);
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = totalSeconds % 60;
+		return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 	};
 
 	// Calculate percentages
@@ -166,6 +182,19 @@ export default function ReviewSummary({
 					<div className="text-gray-500 dark:text-gray-400">
 						card{totalReviewed !== 1 ? "s" : ""} this session
 					</div>
+					{totalReviewed > 0 && totalReviewTime > 0 && (
+						<div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+							<div className="flex items-center justify-center gap-2">
+								<Clock className="h-5 w-5 text-teal-500" />
+								<div className="text-2xl font-semibold text-gray-900 dark:text-white">
+									{formatReviewTime(totalReviewTime)}
+								</div>
+							</div>
+							<div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+								Total review time
+							</div>
+						</div>
+					)}
 				</div>
 
 				{/* Result Distribution */}

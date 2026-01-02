@@ -111,6 +111,7 @@ v2 (folders) issues:
 
 2026-01-02
 
+- [x] Added review duration timing to data and review summary page
 - [x] Add demo mode
 - [x] Switch initial page to be the demo with a banner and optional login button
 - [x] Add a demo card deck to teach visiting users how the app works
