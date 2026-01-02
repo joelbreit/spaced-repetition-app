@@ -7,10 +7,13 @@ import {
 	CloudOff,
 	Flame,
 	BookOpen,
+	LogIn,
 } from "lucide-react";
 import { useAppData } from "../contexts/AppDataContext";
+import { useAuth } from "../contexts/AuthContext";
 
-function Header({ user, isSaving, isOnline }) {
+function Header({ user, isSaving, isOnline, onSignInClick }) {
+	const { isAuthenticated } = useAuth();
 	const [showUserMenu, setShowUserMenu] = useState(false);
 	const navigate = useNavigate();
 	const { appData } = useAppData();
@@ -126,7 +129,12 @@ function Header({ user, isSaving, isOnline }) {
 
 						{/* Sync Status Indicator */}
 						<div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 dark:bg-slate-700">
-							{isSaving ? (
+							{!isAuthenticated ? (
+								<Cloud
+									className="h-3 w-3 text-gray-500"
+									title="Local storage"
+								/>
+							) : isSaving ? (
 								<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
 							) : isOnline ? (
 								<Cloud className="h-3 w-3 text-green-500" />
@@ -175,7 +183,14 @@ function Header({ user, isSaving, isOnline }) {
 
 						{/* Sync Status Indicator */}
 						<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
-							{isSaving ? (
+							{!isAuthenticated ? (
+								<>
+									<Cloud className="h-3 w-3 text-gray-500" />
+									<span className="text-xs text-gray-600 dark:text-slate-400">
+										Local
+									</span>
+								</>
+							) : isSaving ? (
 								<>
 									<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
 									<span className="text-xs text-gray-600 dark:text-slate-400">
@@ -199,15 +214,26 @@ function Header({ user, isSaving, isOnline }) {
 							)}
 						</div>
 
-						{/* Profile Button */}
-						<button
-							onClick={() => navigate("/profile")}
-							className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
-							title="View Profile"
-						>
-							<UserIcon className="h-4 w-4" />
-							Profile
-						</button>
+						{/* Profile or Sign In Button */}
+						{isAuthenticated ? (
+							<button
+								onClick={() => navigate("/profile")}
+								className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
+								title="View Profile"
+							>
+								<UserIcon className="h-4 w-4" />
+								Profile
+							</button>
+						) : (
+							<button
+								onClick={onSignInClick}
+								className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition-colors duration-200"
+								title="Sign In"
+							>
+								<LogIn className="h-4 w-4" />
+								Sign In
+							</button>
+						)}
 					</div>
 
 					{/* Mobile: Dropdown menu */}
@@ -245,17 +271,31 @@ function Header({ user, isSaving, isOnline }) {
 										</div>
 									</div>
 
-									{/* Profile */}
-									<button
-										onClick={() => {
-											setShowUserMenu(false);
-											navigate("/profile");
-										}}
-										className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
-									>
-										<UserIcon className="h-4 w-4" />
-										View Profile
-									</button>
+									{/* Profile or Sign In */}
+									{isAuthenticated ? (
+										<button
+											onClick={() => {
+												setShowUserMenu(false);
+												navigate("/profile");
+											}}
+											className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
+										>
+											<UserIcon className="h-4 w-4" />
+											View Profile
+										</button>
+									) : (
+										<button
+											onClick={() => {
+												setShowUserMenu(false);
+												if (onSignInClick)
+													onSignInClick();
+											}}
+											className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-teal-600 dark:text-teal-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
+										>
+											<LogIn className="h-4 w-4" />
+											Sign In
+										</button>
+									)}
 								</div>
 							</>
 						)}

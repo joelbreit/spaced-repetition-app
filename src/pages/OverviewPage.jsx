@@ -10,6 +10,7 @@ import ReviewSummary from "../components/ReviewSummary";
 import Header from "../components/Header";
 import NotificationContainer from "../components/NotificationContainer";
 import Footer from "../components/Footer.jsx";
+import DemoBanner from "../components/DemoBanner";
 import { useAppData } from "../contexts/AppDataContext";
 import { useDeckOperations } from "../hooks/useDeckOperations";
 import { calculateNextInterval } from "../services/cardCalculations";
@@ -17,6 +18,7 @@ import { calculateNextInterval } from "../services/cardCalculations";
 function OverviewPage() {
 	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 	const { appData, setAppData, isLoading, isSaving, isOnline } = useAppData();
+	const [showAuthModal, setShowAuthModal] = useState(false);
 
 	// Review session state
 	const [selectedCardId, setSelectedCardId] = useState(null);
@@ -273,25 +275,8 @@ function OverviewPage() {
 		cardsCollectionBeforeReviewRef.current = null;
 	};
 
-	// Show auth screen if not authenticated
-	if (authLoading) {
-		return (
-			<div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin h-12 w-12 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4" />
-					<p className="text-gray-600 dark:text-slate-400 text-lg">
-						Checking authentication...
-					</p>
-				</div>
-			</div>
-		);
-	}
-
-	if (!isAuthenticated) {
-		return <AuthView />;
-	}
-
-	if (isLoading) {
+	// Show loading screen while checking auth or loading data
+	if (authLoading || isLoading) {
 		return (
 			<div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
 				<div className="text-center">
@@ -311,7 +296,14 @@ function OverviewPage() {
 		<div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col">
 			<NotificationContainer />
 
-			<Header user={user} isSaving={isSaving} isOnline={isOnline} />
+			<DemoBanner />
+
+			<Header
+				user={user}
+				isSaving={isSaving}
+				isOnline={isOnline}
+				onSignInClick={() => setShowAuthModal(true)}
+			/>
 
 			{/* Main content */}
 			<main className="flex-1 mx-auto max-w-7xl px-6 py-8">
@@ -467,6 +459,11 @@ function OverviewPage() {
 			</main>
 
 			<Footer />
+
+			{/* Auth Modal - shown when user clicks Sign In or Sign Up */}
+			{!isAuthenticated && showAuthModal && (
+				<AuthView onClose={() => setShowAuthModal(false)} />
+			)}
 		</div>
 	);
 }

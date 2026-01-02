@@ -10,7 +10,63 @@ import {
 
 const AppDataContext = createContext();
 
-// Initial sample data (used only if API has no data)
+// Demo data for guest users - tutorial cards explaining how to use the app
+const demoData = {
+	folders: [],
+	decks: [
+		{
+			deckId: "demo-getting-started",
+			deckName: "Getting Started",
+			deckSymbol: "📚",
+			cards: [
+				{
+					cardId: "demo-1",
+					front: "What is spaced repetition?",
+					back: "Spaced repetition is a learning technique that reviews cards at increasing intervals. Cards you struggle with appear more often, while cards you know well appear less frequently. This helps you learn more efficiently!",
+					reviews: [],
+					whenDue: Date.now(),
+				},
+				{
+					cardId: "demo-2",
+					front: "Why are there 4 result buttons?",
+					back: "The 4 levels allow for distinguishing between common, but important levels or remembering. The difference allows cards to be scheduled at the appropriate intervals.",
+					reviews: [],
+					whenDue: Date.now(),
+				},
+				{
+					cardId: "demo-3",
+					front: "What does 'Again' mean?",
+					back: "Again means you didn't know the answer. It resets the review to the minimum interval e.g. 10 minutes.",
+					reviews: [],
+					whenDue: Date.now(),
+				},
+				{
+					cardId: "demo-4",
+					front: "What does 'Hard' mean?",
+					back: "Rating a card as 'Hard' means it is more difficult to remember than you would like. This rating reduces the review interval so that you'll be prompted to review it sooner next time.",
+					reviews: [],
+					whenDue: Date.now(),
+				},
+				{
+					cardId: "demo-5",
+					front: "What does 'Good' mean?",
+					back: "Rating a card as 'Good' means it is about as difficult to remember as you would like. This rating keeps the review interval the same as the last time you reviewed it.",
+					reviews: [],
+					whenDue: Date.now(),
+				},
+				{
+					cardId: "demo-6",
+					front: "What does 'Easy' mean?",
+					back: "Rating a card as 'Easy' means it is easy to remember and did not need to be due yet. This rating increases the review interval so that you'll be prompted to review it later next time.",
+					reviews: [],
+					whenDue: Date.now(),
+				},
+			],
+		},
+	],
+};
+
+// Initial sample data (used only if API has no data for authenticated users)
 const initialData = {
 	folders: [],
 	decks: [
@@ -54,7 +110,7 @@ export function AppDataProvider({ children }) {
 	const { authToken, isAuthenticated } = useAuth();
 	const { showSuccess, showError, showWarning } = useNotification();
 
-	const [appData, setAppData] = useState(initialData);
+	const [appData, setAppData] = useState(demoData);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isOnline, setIsOnline] = useState(true);
@@ -65,8 +121,13 @@ export function AppDataProvider({ children }) {
 	const lastSavedStateRef = useRef(null);
 	const healthCheckInProgress = useRef(false);
 
-	// Check API health on mount
+	// Check API health on mount (only for authenticated users)
 	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsOnline(false); // Guests are always "offline" (local only)
+			return;
+		}
+
 		async function checkHealth() {
 			if (healthCheckInProgress.current) {
 				return;
@@ -81,18 +142,50 @@ export function AppDataProvider({ children }) {
 			}
 		}
 		checkHealth();
-	}, []);
+	}, [isAuthenticated]);
 
-	// Load from API on mount
+	// Load data - from API if authenticated, from localStorage if guest
 	useEffect(() => {
 		async function loadData() {
-			if (!isAuthenticated || !authToken) return;
-
 			setIsLoading(true);
+
+			// Guest mode: load from localStorage only
+			if (!isAuthenticated || !authToken) {
+				try {
+					const localData = localStorage.getItem("spacedRepData");
+					let finalData;
+					if (localData) {
+						finalData = JSON.parse(localData);
+						setAppData(finalData);
+					} else {
+						finalData = demoData;
+						setAppData(demoData);
+					}
+					lastSavedStateRef.current = JSON.parse(
+						JSON.stringify(finalData)
+					);
+					setIsOnline(false); // Guests are always "local"
+				} catch (error) {
+					console.error("Failed to load local data:", error);
+					setAppData(demoData);
+					lastSavedStateRef.current = JSON.parse(
+						JSON.stringify(demoData)
+					);
+				} finally {
+					setIsLoading(false);
+				}
+				return;
+			}
+
+			// Authenticated mode: load from API
 			try {
 				const cloudData = await loadFromAPI(authToken);
 
 				let finalData;
+				const pendingUpload = localStorage.getItem(
+					"pendingSignupUpload"
+				);
+
 				if (
 					!cloudData ||
 					!cloudData.decks ||
@@ -104,19 +197,82 @@ export function AppDataProvider({ children }) {
 						setAppData(parsed);
 						await saveToAPI(parsed, authToken);
 						lastSaveTime.current = Date.now();
-						showSuccess("Local data synced to cloud");
+						if (pendingUpload) {
+							showSuccess(
+								"Your local data has been saved to the cloud!"
+							);
+							localStorage.removeItem("pendingSignupUpload");
+						} else {
+							showSuccess("Local data synced to cloud");
+						}
 						finalData = parsed;
 					} else {
 						setAppData(initialData);
 						finalData = initialData;
 					}
 				} else {
-					setAppData(cloudData);
+					// Cloud has data - check if we should merge with local (only on signup)
+					if (pendingUpload) {
+						const localData = localStorage.getItem("spacedRepData");
+						if (localData) {
+							const parsed = JSON.parse(localData);
+							// Merge local data with cloud data (local takes precedence for conflicts)
+							const mergedDecks = [...cloudData.decks];
+							const mergedFolders = [
+								...(cloudData.folders || []),
+							];
+
+							// Add local decks that don't exist in cloud
+							parsed.decks?.forEach((localDeck) => {
+								if (
+									!mergedDecks.find(
+										(d) => d.deckId === localDeck.deckId
+									)
+								) {
+									mergedDecks.push(localDeck);
+								}
+							});
+
+							// Add local folders that don't exist in cloud
+							parsed.folders?.forEach((localFolder) => {
+								if (
+									!mergedFolders.find(
+										(f) =>
+											f.folderId === localFolder.folderId
+									)
+								) {
+									mergedFolders.push(localFolder);
+								}
+							});
+
+							const mergedData = {
+								decks: mergedDecks,
+								folders: mergedFolders,
+							};
+
+							setAppData(mergedData);
+							await saveToAPI(mergedData, authToken);
+							lastSaveTime.current = Date.now();
+							showSuccess(
+								"Your local data has been saved to the cloud!"
+							);
+							localStorage.removeItem("pendingSignupUpload");
+							finalData = mergedData;
+						} else {
+							setAppData(cloudData);
+							finalData = cloudData;
+							localStorage.removeItem("pendingSignupUpload");
+						}
+					} else {
+						// Login (not signup) - prioritize cloud data
+						setAppData(cloudData);
+						finalData = cloudData;
+					}
+
 					localStorage.setItem(
 						"spacedRepData",
-						JSON.stringify(cloudData)
+						JSON.stringify(finalData)
 					);
-					finalData = cloudData;
 				}
 
 				// Initialize last saved state after loading
@@ -284,11 +440,9 @@ export function AppDataProvider({ children }) {
 		return null;
 	};
 
-	// Auto-save data to cloud with minimum 10-second interval
+	// Auto-save data - to cloud if authenticated, to localStorage if guest
 	useEffect(() => {
-		if (isLoading || !isAuthenticated || !authToken) return;
-
-		const currentAuthToken = authToken;
+		if (isLoading) return;
 
 		if (saveTimeoutRef.current) {
 			return;
@@ -297,7 +451,30 @@ export function AppDataProvider({ children }) {
 		const performSave = async () => {
 			setIsSaving(true);
 			const dataToSave = appDataRef.current;
-			const tokenToUse = currentAuthToken;
+
+			// Guest mode: save to localStorage only
+			if (!isAuthenticated || !authToken) {
+				try {
+					localStorage.setItem(
+						"spacedRepData",
+						JSON.stringify(dataToSave)
+					);
+					lastSavedStateRef.current = JSON.parse(
+						JSON.stringify(dataToSave)
+					);
+					lastSaveTime.current = Date.now();
+				} catch (error) {
+					console.error("Failed to save to localStorage:", error);
+					showError("Failed to save data locally.");
+				} finally {
+					setIsSaving(false);
+					saveTimeoutRef.current = null;
+				}
+				return;
+			}
+
+			// Authenticated mode: save to cloud
+			const currentAuthToken = authToken;
 			try {
 				// Try to compute patch data
 				const patchData = computePatchData(
@@ -307,10 +484,10 @@ export function AppDataProvider({ children }) {
 
 				if (patchData) {
 					// Use PATCH for incremental update
-					await patchToAPI(patchData, tokenToUse);
+					await patchToAPI(patchData, currentAuthToken);
 				} else {
 					// Fall back to POST for full save
-					await saveToAPI(dataToSave, tokenToUse);
+					await saveToAPI(dataToSave, currentAuthToken);
 				}
 
 				// Update local storage
@@ -357,12 +534,31 @@ export function AppDataProvider({ children }) {
 		};
 	}, [appData, isLoading, isAuthenticated, authToken, showError]);
 
+	// Function to upload local data to cloud (used after signup)
+	const uploadLocalDataToCloud = async (token) => {
+		try {
+			const localData = localStorage.getItem("spacedRepData");
+			if (localData) {
+				const parsed = JSON.parse(localData);
+				await saveToAPI(parsed, token);
+				showSuccess("Your local data has been saved to the cloud!");
+				return true;
+			}
+			return false;
+		} catch (error) {
+			console.error("Failed to upload local data to cloud:", error);
+			showError("Failed to upload local data to cloud.");
+			return false;
+		}
+	};
+
 	const value = {
 		appData,
 		setAppData,
 		isLoading,
 		isSaving,
 		isOnline,
+		uploadLocalDataToCloud,
 	};
 
 	// if there are decks, but no folders in appData, log an issue

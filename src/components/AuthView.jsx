@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Mail, Lock, User, AlertCircle, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Mail, Lock, X, AlertCircle } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function AuthView() {
+export default function AuthView({ onClose }) {
+	const { isAuthenticated, login, register, confirmRegistration } = useAuth();
 	const [isLogin, setIsLogin] = useState(true);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -11,7 +12,12 @@ export default function AuthView() {
 	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 
-	const { login, register, confirmRegistration } = useAuth();
+	// Close modal if user becomes authenticated
+	useEffect(() => {
+		if (isAuthenticated && onClose) {
+			onClose();
+		}
+	}, [isAuthenticated, onClose]);
 
 	async function handleSubmit(e) {
 		e.preventDefault();
@@ -29,7 +35,14 @@ export default function AuthView() {
 					setNeedsConfirmation(false);
 					setIsLogin(true);
 					setError("");
-					alert("Account confirmed! Please log in.");
+
+					// After confirmation, auto-login and upload local data
+					const loginResult = await login(email, password);
+					if (loginResult.success) {
+						// Mark that we need to upload local data after signup
+						localStorage.setItem("pendingSignupUpload", "true");
+						// The upload will happen in AppDataContext when authToken becomes available
+					}
 				} else {
 					setError(result.error || "Confirmation failed");
 				}
@@ -58,9 +71,29 @@ export default function AuthView() {
 		}
 	}
 
+	const handleBackdropClick = (e) => {
+		if (e.target === e.currentTarget && onClose) {
+			onClose();
+		}
+	};
+
 	return (
-		<div className="min-h-screen bg-linear-to-br from-teal-500 via-teal-600 to-cyan-600 flex items-center justify-center p-6">
-			<div className="w-full max-w-md">
+		<div
+			className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50"
+			onClick={handleBackdropClick}
+		>
+			<div className="w-full max-w-md relative">
+				{/* Close button */}
+				{onClose && (
+					<button
+						onClick={onClose}
+						className="absolute -top-12 right-0 text-white hover:text-gray-200 transition-colors"
+						aria-label="Close"
+					>
+						<X className="h-6 w-6" />
+					</button>
+				)}
+
 				{/* Logo/Title */}
 				<div className="text-center mb-8">
 					<div className="text-6xl mb-4">📚</div>
@@ -212,7 +245,7 @@ export default function AuthView() {
 							</div>
 
 							{/* Test Credentials (remove in production) */}
-							<div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+							{/* <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
 								<p className="text-xs text-blue-700 dark:text-blue-400 font-semibold mb-1">
 									Test Credentials:
 								</p>
@@ -221,7 +254,7 @@ export default function AuthView() {
 									<br />
 									Password: Test1234
 								</p>
-							</div>
+							</div> */}
 						</>
 					)}
 				</div>

@@ -12,6 +12,7 @@
 - [ ] Should show an error if a folder or deck is orphaned (parentFolderId is not null and can't be found)
 - [ ] You can very breifly see the back of the next card when it flips into place
 - [ ] Navigate to top of page when clicking on a folder or deck
+- [ ] In Firefox, the back of cards shows up dimmly when flipped
 
 v2 (folders) issues:
 - [ ] Sortable folder components should have a Study button
@@ -27,7 +28,6 @@ v2 (folders) issues:
   - [ ] Delete deck dialog
 - [ ] Show count of search results
 - [ ] Allow for reviewing card subsets: flagged cards, new cards, etc
-- [ ] Add demo mode / tutorial
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
   - [ ] Track partner cards that are tied to each other
     - [ ] When deleting a card, ask if you want to delete the related card
@@ -50,7 +50,6 @@ v2 (folders) issues:
 
 - [ ] Change email
 - [ ] Reset password
-  - [ ] After logging in
   - [ ] From login page based on email
 
 ### Header
@@ -110,13 +109,15 @@ v2 (folders) issues:
 
 ## Complete
 
-2026-12-31
+2026-01-02
 
-TODO:
-- [ ] Add forgot password functionality and login page button
-- [ ] Add change email functionality and profile page button
+- [x] Add demo mode
+- [x] Switch initial page to be the demo with a banner and optional login button
+- [x] Add a demo card deck to teach visiting users how the app works
+- [x] Add feature to retain data when a user signs up
 
-Done:
+2025-12-31
+
 - [x] Added change password functionality and profile page
 - [x] 3-tiered progress bar for sortable folder/deck components
 - [x] Added before/after changes to review summary when reviewing a folder
