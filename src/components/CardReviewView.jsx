@@ -11,6 +11,9 @@ import {
 	RulerDimensionLine,
 	Volume2,
 	Weight,
+	ChevronDown,
+	Plus,
+	Minus,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import SegmentedProgressBar from "./SegmentedProgressBar";
@@ -51,6 +54,16 @@ export default function CardReviewView({
 	// Track review timing - start time when card is first viewed
 	const reviewStartTimeRef = useRef(null);
 
+	// Playback speed state
+	const [playbackSpeed, setPlaybackSpeed] = useState(() => {
+		// Load from localStorage, default to 1.0
+		const saved = localStorage.getItem("readAloudPlaybackSpeed");
+		return saved ? parseFloat(saved) : 1.0;
+	});
+	const [showSpeedDropdown, setShowSpeedDropdown] = useState(false);
+	const speedDropdownRefFront = useRef(null);
+	const speedDropdownRefBack = useRef(null);
+
 	// Initialize timer on mount and reset hasBeenFlipped and start timer when card changes
 	useEffect(() => {
 		if (previousCardIndexRef.current !== currentCardIndex) {
@@ -75,6 +88,37 @@ export default function CardReviewView({
 		}
 	}, [isFlipped, hasBeenFlipped]);
 
+	// Save playback speed to localStorage when it changes
+	useEffect(() => {
+		localStorage.setItem(
+			"readAloudPlaybackSpeed",
+			playbackSpeed.toString()
+		);
+	}, [playbackSpeed]);
+
+	// Close dropdown when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			const isInsideFront = speedDropdownRefFront.current?.contains(
+				event.target
+			);
+			const isInsideBack = speedDropdownRefBack.current?.contains(
+				event.target
+			);
+
+			if (!isInsideFront && !isInsideBack) {
+				setShowSpeedDropdown(false);
+			}
+		};
+
+		if (showSpeedDropdown) {
+			document.addEventListener("mousedown", handleClickOutside);
+			return () => {
+				document.removeEventListener("mousedown", handleClickOutside);
+			};
+		}
+	}, [showSpeedDropdown]);
+
 	if (!currentCard) {
 		return null;
 	}
@@ -97,12 +141,25 @@ export default function CardReviewView({
 				URL.revokeObjectURL(audioPlayer.src);
 			}
 
-			// Set new audio and play
+			// Make sure the metadata is loaded before setting the playback rate
+			audioPlayer.onloadedmetadata = () => {
+				audioPlayer.playbackRate = playbackSpeed;
+				console.log("Set rate to:", playbackSpeed);
+			};
+
+			// Set playback speed and new audio, then play
 			audioPlayer.src = URL.createObjectURL(audioBlob);
 			audioPlayer.play();
 		} catch (error) {
 			console.error("Failed to read aloud:", error);
 		}
+	};
+
+	const adjustPlaybackSpeed = (delta) => {
+		setPlaybackSpeed((prev) => {
+			const newSpeed = Math.max(0.1, Math.min(3.0, prev + delta));
+			return Math.round(newSpeed * 10) / 10; // Round to 1 decimal place
+		});
 	};
 
 	// Handle review button click - trigger animation then record
@@ -276,18 +333,81 @@ export default function CardReviewView({
 								</div>
 							</div>
 						)}
-						{/* Read Aloud Button */}
-						<button
-							onClick={(e) => {
-								e.stopPropagation();
-								// read this side of the card aloud
-								readAloud(currentCard.front);
-							}}
-							className={`absolute top-4 right-28 p-2 rounded-lg transition-all duration-200 z-10 bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 border border-gray-200 dark:border-slate-600`}
-							title="Read aloud"
+						{/* Read Aloud Button with Speed Dropdown */}
+						<div
+							ref={speedDropdownRefFront}
+							className="absolute top-4 right-28 z-10 flex items-center"
 						>
-							<Volume2 className="h-5 w-5" />
-						</button>
+							<div className="flex items-center border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden bg-white/50 dark:bg-slate-700/50">
+								<button
+									onClick={(e) => {
+										e.stopPropagation();
+										readAloud(currentCard.front);
+									}}
+									className="p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400"
+									title="Read aloud"
+								>
+									<Volume2 className="h-5 w-5" />
+								</button>
+								<div className="h-6 w-px bg-gray-200 dark:bg-slate-600" />
+								<button
+									onClick={(e) => {
+										e.stopPropagation();
+										setShowSpeedDropdown(
+											!showSpeedDropdown
+										);
+									}}
+									className={`p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 ${
+										showSpeedDropdown
+											? "bg-white/70 dark:bg-slate-700/70 text-blue-500 dark:text-blue-400"
+											: ""
+									}`}
+									title="Playback speed"
+								>
+									<ChevronDown
+										className={`h-4 w-4 transition-transform ${
+											showSpeedDropdown
+												? "rotate-180"
+												: ""
+										}`}
+									/>
+								</button>
+							</div>
+
+							{/* Speed Dropdown Menu */}
+							{showSpeedDropdown && (
+								<div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-2 z-50">
+									<div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
+										Playback Speed
+									</div>
+									<div className="flex items-center justify-between px-3 py-2">
+										<button
+											onClick={(e) => {
+												e.stopPropagation();
+												adjustPlaybackSpeed(-0.1);
+											}}
+											className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors"
+											title="Decrease speed"
+										>
+											<Minus className="h-4 w-4" />
+										</button>
+										<span className="text-sm font-medium text-gray-900 dark:text-slate-100 min-w-12 text-center">
+											{playbackSpeed.toFixed(1)}x
+										</span>
+										<button
+											onClick={(e) => {
+												e.stopPropagation();
+												adjustPlaybackSpeed(0.1);
+											}}
+											className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors"
+											title="Increase speed"
+										>
+											<Plus className="h-4 w-4" />
+										</button>
+									</div>
+								</div>
+							)}
+						</div>
 						{/* Star Button */}
 						<button
 							onClick={(e) => {
@@ -374,18 +494,81 @@ export default function CardReviewView({
 							</div>
 						)}
 
-						{/* Read Aloud Button */}
-						<button
-							onClick={(e) => {
-								e.stopPropagation();
-								// read this side of the card aloud
-								readAloud(currentCard.back);
-							}}
-							className={`absolute top-4 right-28 p-2 rounded-lg transition-all duration-200 z-10 bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 border border-gray-200 dark:border-slate-600`}
-							title="Read aloud"
+						{/* Read Aloud Button with Speed Dropdown */}
+						<div
+							ref={speedDropdownRefBack}
+							className="absolute top-4 right-28 z-10 flex items-center"
 						>
-							<Volume2 className="h-5 w-5" />
-						</button>
+							<div className="flex items-center border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden bg-white/50 dark:bg-slate-700/50">
+								<button
+									onClick={(e) => {
+										e.stopPropagation();
+										readAloud(currentCard.back);
+									}}
+									className="p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400"
+									title="Read aloud"
+								>
+									<Volume2 className="h-5 w-5" />
+								</button>
+								<div className="h-6 w-px bg-gray-200 dark:bg-slate-600" />
+								<button
+									onClick={(e) => {
+										e.stopPropagation();
+										setShowSpeedDropdown(
+											!showSpeedDropdown
+										);
+									}}
+									className={`p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 ${
+										showSpeedDropdown
+											? "bg-white/70 dark:bg-slate-700/70 text-blue-500 dark:text-blue-400"
+											: ""
+									}`}
+									title="Playback speed"
+								>
+									<ChevronDown
+										className={`h-4 w-4 transition-transform ${
+											showSpeedDropdown
+												? "rotate-180"
+												: ""
+										}`}
+									/>
+								</button>
+							</div>
+
+							{/* Speed Dropdown Menu */}
+							{showSpeedDropdown && (
+								<div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-2 z-50">
+									<div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
+										Playback Speed
+									</div>
+									<div className="flex items-center justify-between px-3 py-2">
+										<button
+											onClick={(e) => {
+												e.stopPropagation();
+												adjustPlaybackSpeed(-0.1);
+											}}
+											className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors"
+											title="Decrease speed"
+										>
+											<Minus className="h-4 w-4" />
+										</button>
+										<span className="text-sm font-medium text-gray-900 dark:text-slate-100 min-w-12 text-center">
+											{playbackSpeed.toFixed(1)}x
+										</span>
+										<button
+											onClick={(e) => {
+												e.stopPropagation();
+												adjustPlaybackSpeed(0.1);
+											}}
+											className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors"
+											title="Increase speed"
+										>
+											<Plus className="h-4 w-4" />
+										</button>
+									</div>
+								</div>
+							)}
+						</div>
 						{/* Star Button */}
 						<button
 							onClick={(e) => {

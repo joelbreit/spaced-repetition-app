@@ -18,6 +18,7 @@ v2 (folders) issues:
 
 ## Features
 
+- [ ] **Folder reviews should show what deck the card belongs to**
 - [ ] Configurable minimum interval +1
 - [ ] Math/paper aesthetic?
 - [ ] No more emojis in text
@@ -26,12 +27,12 @@ v2 (folders) issues:
   - [ ] Delete deck dialog
 - [ ] Show count of search results
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
-  - [ ] Track partner cards that are tied to each other
-    - [ ] When deleting a card, ask if you want to delete the related card
-    - [ ] When deleting a deck with cards that are tied to partner cards
-      - [ ] Ask which cards to delete (all, some, none)
-    - [ ] When editing a card, ask if you want to edit the partner card
-    - [ ] Show partner cards in card view
+- [ ] **Track partner cards that are tied to each other**
+  - [ ] When deleting a card, ask if you want to delete the related card
+  - [ ] When deleting a deck with cards that are tied to partner cards
+    - [ ] Ask which cards to delete (all, some, none)
+  - [ ] When editing a card, ask if you want to edit the partner card
+  - [ ] Show partner cards in card view
 - [ ] Track related cards
 - [ ] **Cloze deletions**
 - [ ] Email login should not be case sensitive
@@ -83,10 +84,11 @@ v2 (folders) issues:
 - [ ] Card search functionality
 - [ ] Filter cards by flag, star, etc
 - [ ] Sort cards by due date, creation date, **review order**, num reviews, etc
-- [ ] Color selection for folders and decks
+- [ ] **Color selection for folders and decks**
 - [ ] Disable "Duplicate" when all cards in the deck already have a partner card
 - [ ] Show whether cards already have a partner card - link to it if so
 - [ ] Show how many cards in deck have a partner card
+- [ ] Make folders and decks look more distinct from each other
 
 ### Profile Page
 
@@ -103,6 +105,10 @@ v2 (folders) issues:
 - [ ] Create an AWS tag for all resources associated with this app
 
 ## Complete
+
+2026-01-04
+
+- [x] Added playback speed control to read aloud button
 
 2026-01-02
 
