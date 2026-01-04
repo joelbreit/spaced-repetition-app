@@ -6,25 +6,18 @@ import {
 	Clock,
 	Target,
 	Calendar,
-	Flag,
-	Star,
 	RulerDimensionLine,
-	Volume2,
 	Weight,
-	ChevronDown,
-	Plus,
-	Minus,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import SegmentedProgressBar from "./SegmentedProgressBar";
+import CardSide from "./CardSide";
 import {
 	calculateNextInterval,
 	getInterval,
 	calculateLearningStrength,
 	getPerDayReviewRate,
-	prettyPrintDueDateAsInterval,
 } from "../services/cardCalculations";
-import { readAloudAPI } from "../services/apiStorage";
 
 export default function CardReviewView({
 	deck,
@@ -60,9 +53,6 @@ export default function CardReviewView({
 		const saved = localStorage.getItem("readAloudPlaybackSpeed");
 		return saved ? parseFloat(saved) : 1.0;
 	});
-	const [showSpeedDropdown, setShowSpeedDropdown] = useState(false);
-	const speedDropdownRefFront = useRef(null);
-	const speedDropdownRefBack = useRef(null);
 
 	// Initialize timer on mount and reset hasBeenFlipped and start timer when card changes
 	useEffect(() => {
@@ -96,70 +86,12 @@ export default function CardReviewView({
 		);
 	}, [playbackSpeed]);
 
-	// Close dropdown when clicking outside
-	useEffect(() => {
-		const handleClickOutside = (event) => {
-			const isInsideFront = speedDropdownRefFront.current?.contains(
-				event.target
-			);
-			const isInsideBack = speedDropdownRefBack.current?.contains(
-				event.target
-			);
-
-			if (!isInsideFront && !isInsideBack) {
-				setShowSpeedDropdown(false);
-			}
-		};
-
-		if (showSpeedDropdown) {
-			document.addEventListener("mousedown", handleClickOutside);
-			return () => {
-				document.removeEventListener("mousedown", handleClickOutside);
-			};
-		}
-	}, [showSpeedDropdown]);
-
 	if (!currentCard) {
 		return null;
 	}
 
-	const readAloud = async (text) => {
-		try {
-			const audioBlob = await readAloudAPI(text);
-
-			// Get or create persistent audio element in the DOM for extensions to detect
-			let audioPlayer = document.getElementById("flashcard-audio-player");
-			if (!audioPlayer) {
-				audioPlayer = document.createElement("audio");
-				audioPlayer.id = "flashcard-audio-player";
-				audioPlayer.style.display = "none";
-				document.body.appendChild(audioPlayer);
-			}
-
-			// Clean up previous URL if exists
-			if (audioPlayer.src) {
-				URL.revokeObjectURL(audioPlayer.src);
-			}
-
-			// Make sure the metadata is loaded before setting the playback rate
-			audioPlayer.onloadedmetadata = () => {
-				audioPlayer.playbackRate = playbackSpeed;
-				console.log("Set rate to:", playbackSpeed);
-			};
-
-			// Set playback speed and new audio, then play
-			audioPlayer.src = URL.createObjectURL(audioBlob);
-			audioPlayer.play();
-		} catch (error) {
-			console.error("Failed to read aloud:", error);
-		}
-	};
-
-	const adjustPlaybackSpeed = (delta) => {
-		setPlaybackSpeed((prev) => {
-			const newSpeed = Math.max(0.1, Math.min(3.0, prev + delta));
-			return Math.round(newSpeed * 10) / 10; // Round to 1 decimal place
-		});
+	const handleSpeedChange = (newSpeed) => {
+		setPlaybackSpeed(newSpeed);
 	};
 
 	// Handle review button click - trigger animation then record
@@ -307,324 +239,38 @@ export default function CardReviewView({
 					}}
 				>
 					{/* Front Side */}
-					<div
-						className={`backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl min-h-[100px] relative overflow-hidden transition-all ${
-							animationResult ? getAnimationColor() : ""
-						}`}
-						style={{
-							backfaceVisibility: "hidden",
-							WebkitBackfaceVisibility: "hidden",
-							gridArea: "1 / 1",
-							transitionDuration: "0.6s",
-						}}
-					>
-						{/* Animation overlay with next due date */}
-						{animationResult && (
-							<div className="absolute inset-0 flex items-center justify-center z-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
-								<div className="text-center px-6">
-									<div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-										{prettyPrintDueDateAsInterval(
-											nextDueDate
-										)}
-									</div>
-									<div className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-										Next Review
-									</div>
-								</div>
-							</div>
-						)}
-						{/* Read Aloud Button with Speed Dropdown */}
-						<div
-							ref={speedDropdownRefFront}
-							className="absolute top-4 right-28 z-10 flex items-center"
-						>
-							<div className="flex items-center border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden bg-white/50 dark:bg-slate-700/50">
-								<button
-									onClick={(e) => {
-										e.stopPropagation();
-										readAloud(currentCard.front);
-									}}
-									className="p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400"
-									title="Read aloud"
-								>
-									<Volume2 className="h-5 w-5" />
-								</button>
-								<div className="h-6 w-px bg-gray-200 dark:bg-slate-600" />
-								<button
-									onClick={(e) => {
-										e.stopPropagation();
-										setShowSpeedDropdown(
-											!showSpeedDropdown
-										);
-									}}
-									className={`p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 ${
-										showSpeedDropdown
-											? "bg-white/70 dark:bg-slate-700/70 text-blue-500 dark:text-blue-400"
-											: ""
-									}`}
-									title="Playback speed"
-								>
-									<ChevronDown
-										className={`h-4 w-4 transition-transform ${
-											showSpeedDropdown
-												? "rotate-180"
-												: ""
-										}`}
-									/>
-								</button>
-							</div>
-
-							{/* Speed Dropdown Menu */}
-							{showSpeedDropdown && (
-								<div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-2 z-50">
-									<div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
-										Playback Speed
-									</div>
-									<div className="flex items-center justify-between px-3 py-2">
-										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												adjustPlaybackSpeed(-0.1);
-											}}
-											className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors"
-											title="Decrease speed"
-										>
-											<Minus className="h-4 w-4" />
-										</button>
-										<span className="text-sm font-medium text-gray-900 dark:text-slate-100 min-w-12 text-center">
-											{playbackSpeed.toFixed(1)}x
-										</span>
-										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												adjustPlaybackSpeed(0.1);
-											}}
-											className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors"
-											title="Increase speed"
-										>
-											<Plus className="h-4 w-4" />
-										</button>
-									</div>
-								</div>
-							)}
-						</div>
-						{/* Star Button */}
-						<button
-							onClick={(e) => {
-								e.stopPropagation();
-								if (onToggleStar) {
-									onToggleStar(currentCard.cardId);
-								}
-							}}
-							className={`absolute top-4 right-16 p-2 rounded-lg transition-all duration-200 z-10 ${
-								isStarred
-									? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
-									: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-yellow-500 dark:hover:text-yellow-400 border border-gray-200 dark:border-slate-600"
-							}`}
-							title={isStarred ? "Unstar card" : "Star card"}
-						>
-							<Star
-								className={`h-5 w-5 ${
-									isStarred ? "fill-current" : ""
-								}`}
-							/>
-						</button>
-						{/* Flag Button */}
-						<button
-							onClick={(e) => {
-								e.stopPropagation();
-								if (onToggleFlag) {
-									onToggleFlag(currentCard.cardId);
-								}
-							}}
-							className={`absolute top-4 right-4 p-2 rounded-lg transition-all duration-200 z-10 ${
-								isFlagged
-									? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50"
-									: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-orange-500 dark:hover:text-orange-400 border border-gray-200 dark:border-slate-600"
-							}`}
-							title={isFlagged ? "Unflag card" : "Flag card"}
-						>
-							<Flag
-								className={`h-5 w-5 ${
-									isFlagged ? "fill-current" : ""
-								}`}
-							/>
-						</button>
-						<div className="flex h-full flex-col justify-center p-6">
-							<div className="text-center">
-								<div className="mb-4 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
-									Front
-								</div>
-								<div className="text-2xl font-medium text-gray-900 dark:text-white leading-relaxed">
-									{currentCard.front}
-								</div>
-							</div>
-						</div>
-						<div className="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-							Click to flip
-						</div>
-					</div>
+					<CardSide
+						side="Front"
+						text={currentCard.front}
+						animationResult={animationResult}
+						nextDueDate={animationResult ? nextDueDate : null}
+						animationColor={getAnimationColor()}
+						playbackSpeed={playbackSpeed}
+						onSpeedChange={handleSpeedChange}
+						isStarred={isStarred}
+						isFlagged={isFlagged}
+						onToggleStar={onToggleStar}
+						onToggleFlag={onToggleFlag}
+						cardId={currentCard.cardId}
+						transform="rotateY(0deg)"
+					/>
 
 					{/* Back Side */}
-					<div
-						className={`backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl min-h-[100px] relative overflow-hidden transition-all ${
-							animationResult ? getAnimationColor() : ""
-						}`}
-						style={{
-							backfaceVisibility: "hidden",
-							WebkitBackfaceVisibility: "hidden",
-							transform: "rotateY(180deg)",
-							gridArea: "1 / 1",
-							transitionDuration: "0.6s",
-						}}
-					>
-						{/* Animation overlay with next due date */}
-						{animationResult && (
-							<div className="absolute inset-0 flex items-center justify-center z-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
-								<div className="text-center px-6">
-									<div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-										{prettyPrintDueDateAsInterval(
-											nextDueDate
-										)}
-									</div>
-									<div className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-										Next Review
-									</div>
-								</div>
-							</div>
-						)}
-
-						{/* Read Aloud Button with Speed Dropdown */}
-						<div
-							ref={speedDropdownRefBack}
-							className="absolute top-4 right-28 z-10 flex items-center"
-						>
-							<div className="flex items-center border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden bg-white/50 dark:bg-slate-700/50">
-								<button
-									onClick={(e) => {
-										e.stopPropagation();
-										readAloud(currentCard.back);
-									}}
-									className="p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400"
-									title="Read aloud"
-								>
-									<Volume2 className="h-5 w-5" />
-								</button>
-								<div className="h-6 w-px bg-gray-200 dark:bg-slate-600" />
-								<button
-									onClick={(e) => {
-										e.stopPropagation();
-										setShowSpeedDropdown(
-											!showSpeedDropdown
-										);
-									}}
-									className={`p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 ${
-										showSpeedDropdown
-											? "bg-white/70 dark:bg-slate-700/70 text-blue-500 dark:text-blue-400"
-											: ""
-									}`}
-									title="Playback speed"
-								>
-									<ChevronDown
-										className={`h-4 w-4 transition-transform ${
-											showSpeedDropdown
-												? "rotate-180"
-												: ""
-										}`}
-									/>
-								</button>
-							</div>
-
-							{/* Speed Dropdown Menu */}
-							{showSpeedDropdown && (
-								<div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-2 z-50">
-									<div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
-										Playback Speed
-									</div>
-									<div className="flex items-center justify-between px-3 py-2">
-										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												adjustPlaybackSpeed(-0.1);
-											}}
-											className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors"
-											title="Decrease speed"
-										>
-											<Minus className="h-4 w-4" />
-										</button>
-										<span className="text-sm font-medium text-gray-900 dark:text-slate-100 min-w-12 text-center">
-											{playbackSpeed.toFixed(1)}x
-										</span>
-										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												adjustPlaybackSpeed(0.1);
-											}}
-											className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors"
-											title="Increase speed"
-										>
-											<Plus className="h-4 w-4" />
-										</button>
-									</div>
-								</div>
-							)}
-						</div>
-						{/* Star Button */}
-						<button
-							onClick={(e) => {
-								e.stopPropagation();
-								if (onToggleStar) {
-									onToggleStar(currentCard.cardId);
-								}
-							}}
-							className={`absolute top-4 right-16 p-2 rounded-lg transition-all duration-200 z-10 ${
-								isStarred
-									? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
-									: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-yellow-500 dark:hover:text-yellow-400 border border-gray-200 dark:border-slate-600"
-							}`}
-							title={isStarred ? "Unstar card" : "Star card"}
-						>
-							<Star
-								className={`h-5 w-5 ${
-									isStarred ? "fill-current" : ""
-								}`}
-							/>
-						</button>
-						{/* Flag Button */}
-						<button
-							onClick={(e) => {
-								e.stopPropagation();
-								if (onToggleFlag) {
-									onToggleFlag(currentCard.cardId);
-								}
-							}}
-							className={`absolute top-4 right-4 p-2 rounded-lg transition-all duration-200 z-10 ${
-								isFlagged
-									? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50"
-									: "bg-white/50 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-orange-500 dark:hover:text-orange-400 border border-gray-200 dark:border-slate-600"
-							}`}
-							title={isFlagged ? "Unflag card" : "Flag card"}
-						>
-							<Flag
-								className={`h-5 w-5 ${
-									isFlagged ? "fill-current" : ""
-								}`}
-							/>
-						</button>
-						<div className="flex h-full flex-col justify-center p-6">
-							<div className="text-center">
-								<div className="mb-4 text-sm font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
-									Back
-								</div>
-								<div className="text-2xl font-medium text-gray-900 dark:text-white leading-relaxed">
-									{currentCard.back}
-								</div>
-							</div>
-						</div>
-						<div className="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-							Click to flip
-						</div>
-					</div>
+					<CardSide
+						side="Back"
+						text={currentCard.back}
+						animationResult={animationResult}
+						nextDueDate={animationResult ? nextDueDate : null}
+						animationColor={getAnimationColor()}
+						playbackSpeed={playbackSpeed}
+						onSpeedChange={handleSpeedChange}
+						isStarred={isStarred}
+						isFlagged={isFlagged}
+						onToggleStar={onToggleStar}
+						onToggleFlag={onToggleFlag}
+						cardId={currentCard.cardId}
+						transform="rotateY(180deg)"
+					/>
 				</div>
 			</div>
 

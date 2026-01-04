@@ -59,11 +59,12 @@ v2 (folders) issues:
 
 #### Read Aloud
 
-- [ ] Add persistent audio playback speed control
+- [x] Add persistent audio playback speed control
+- [ ] If already playing, button should stop read aloud
 - [ ] Cache audio for a side of a card after read aloud button has been used once
-- [ ] **Upgraded read aloud button** 
-  - [ ] Dropdown with
-    - [ ] Listed playback speed, +/- for 0.1 speed changes
+- [x] **Upgraded read aloud button** 
+  - [x] Dropdown with
+    - [x] Listed playback speed, +/- for 0.1 speed changes
     - [ ] Automatically play toggle
 - [ ] Hotkey for read aloud and other controls
 
@@ -108,6 +109,7 @@ v2 (folders) issues:
 
 2026-01-04
 
+- [ ] Bonus stats on profile page
 - [x] Added playback speed control to read aloud button
 
 2026-01-02
