@@ -18,6 +18,9 @@ v2 (folders) issues:
 
 ## Features
 
+- [ ] **Review should fit better on on page**
+  - [ ] Cards should stretch to fill the height allows
+  - [ ] Cards too big for that height should be scrollable
 - [ ] **Folder reviews should show what deck the card belongs to**
 - [ ] Configurable minimum interval +1
 - [ ] Math/paper aesthetic?
@@ -114,6 +117,7 @@ v2 (folders) issues:
 
 2026-01-04
 
+- [x] Added additional stats section on profile page
 - [x] Added playback speed control to read aloud button
 
 2026-01-02

@@ -8,6 +8,7 @@ import Footer from "../components/Footer";
 import NotificationContainer from "../components/NotificationContainer";
 import ActivityHeatmap from "../components/Profile/ActivityHeatmap";
 import ProgressChart from "../components/Profile/ProgressChart";
+import AdditionalStats from "../components/Profile/AdditionalStats";
 import {
 	ArrowLeft,
 	Download,
@@ -31,8 +32,6 @@ function ProfilePage() {
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [isChangingPassword, setIsChangingPassword] = useState(false);
 	const [passwordError, setPasswordError] = useState("");
-
-	console.log("showPasswordChange", showPasswordChange);
 
 	// Handle logout
 	const handleLogout = async () => {
@@ -166,6 +165,8 @@ function ProfilePage() {
 					<div className="lg:col-span-1 space-y-6">
 						{/* Progress Chart */}
 						<ProgressChart appData={appData} />
+						{/* Additional Statistics */}
+						<AdditionalStats appData={appData} />
 						{/* Change Password Card */}
 						<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
 							<button
