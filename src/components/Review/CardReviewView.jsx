@@ -10,14 +10,14 @@ import {
 	Weight,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import SegmentedProgressBar from "./SegmentedProgressBar";
+import SegmentedProgressBar from "../SegmentedProgressBar";
 import CardSide from "./CardSide";
 import {
 	calculateNextInterval,
 	getInterval,
 	calculateLearningStrength,
 	getPerDayReviewRate,
-} from "../services/cardCalculations";
+} from "../../services/cardCalculations";
 
 export default function CardReviewView({
 	deck,

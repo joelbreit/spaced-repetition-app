@@ -96,6 +96,11 @@ v2 (folders) issues:
 - [ ] Columns / rows on larger screens
 - [ ] ~~Progress chart doesn't seem to track all cards~~ Progress chart can't track historical "total cards" until creation dates are added
 - [ ] Study progress should have stacked new, struggling, learning, and mastered cards
+- [ ] Bonus stats on profile page
+  - [ ] Total reviews (moved from study statistics)?
+  - [ ] Cards that have been timed
+  - [ ] Cards that have not been timed
+  - [ ] Average review duration (w/ clipping at 60 seconds)
 
 #### Heatmap
 
@@ -109,7 +114,6 @@ v2 (folders) issues:
 
 2026-01-04
 
-- [ ] Bonus stats on profile page
 - [x] Added playback speed control to read aloud button
 
 2026-01-02

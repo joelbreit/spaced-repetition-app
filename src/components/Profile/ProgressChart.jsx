@@ -9,7 +9,7 @@ import {
 	Legend,
 	ResponsiveContainer,
 } from "recharts";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 /**
  * ProgressChart Component
@@ -41,7 +41,9 @@ export default function ProgressChart({ appData }) {
 			const week = getWeekNumber(date);
 			return `${year}-W${week}`;
 		} else if (period === "month") {
-			return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+			return `${date.getFullYear()}-${String(
+				date.getMonth() + 1
+			).padStart(2, "0")}`;
 		}
 		return date.toISOString().split("T")[0];
 	};
@@ -79,9 +81,16 @@ export default function ProgressChart({ appData }) {
 			}
 			deck.cards.forEach((card) => {
 				// Track when card was first created (first review or current time if no reviews)
-				if (card.reviews && Array.isArray(card.reviews) && card.reviews.length > 0) {
-					const firstReview = card.reviews.reduce((earliest, review) =>
-						review.timestamp < earliest.timestamp ? review : earliest
+				if (
+					card.reviews &&
+					Array.isArray(card.reviews) &&
+					card.reviews.length > 0
+				) {
+					const firstReview = card.reviews.reduce(
+						(earliest, review) =>
+							review.timestamp < earliest.timestamp
+								? review
+								: earliest
 					);
 					cardCreationDates.push(firstReview.timestamp);
 				} else {
@@ -105,10 +114,9 @@ export default function ProgressChart({ appData }) {
 		}
 
 		// Find the earliest date
-		const allDates = [
-			...reviewTimestamps,
-			...cardCreationDates,
-		].filter(Boolean);
+		const allDates = [...reviewTimestamps, ...cardCreationDates].filter(
+			Boolean
+		);
 		if (allDates.length === 0) return [];
 
 		const earliestDate = Math.min(...allDates);
@@ -119,19 +127,17 @@ export default function ProgressChart({ appData }) {
 		today.setHours(23, 59, 59, 999);
 
 		// Determine time period based on data range
-		const daysDiff = Math.ceil(
-			(today - startDate) / (1000 * 60 * 60 * 24)
-		);
+		// const daysDiff = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
 		let period = "day";
-		let periodMs = 1000 * 60 * 60 * 24;
+		// let periodMs = 1000 * 60 * 60 * 24;
 
-		if (daysDiff > 365) {
-			period = "month";
-			periodMs = 1000 * 60 * 60 * 24 * 30;
-		} else if (daysDiff > 90) {
-			period = "week";
-			periodMs = 1000 * 60 * 60 * 24 * 7;
-		}
+		// if (daysDiff > 365) {
+		// 	period = "month";
+		// 	periodMs = 1000 * 60 * 60 * 24 * 30;
+		// } else if (daysDiff > 90) {
+		// 	period = "week";
+		// 	periodMs = 1000 * 60 * 60 * 24 * 7;
+		// }
 
 		// Group data by time period
 		const dataMap = new Map();
@@ -187,9 +193,16 @@ export default function ProgressChart({ appData }) {
 				return;
 			}
 			deck.cards.forEach((card) => {
-				if (card.reviews && Array.isArray(card.reviews) && card.reviews.length > 0) {
-					const firstReview = card.reviews.reduce((earliest, review) =>
-						review.timestamp < earliest.timestamp ? review : earliest
+				if (
+					card.reviews &&
+					Array.isArray(card.reviews) &&
+					card.reviews.length > 0
+				) {
+					const firstReview = card.reviews.reduce(
+						(earliest, review) =>
+							review.timestamp < earliest.timestamp
+								? review
+								: earliest
 					);
 					const date = new Date(firstReview.timestamp);
 					const key = getPeriodKey(date, period);
@@ -291,7 +304,9 @@ export default function ProgressChart({ appData }) {
 												<p
 													key={index}
 													className="text-sm"
-													style={{ color: entry.color }}
+													style={{
+														color: entry.color,
+													}}
 												>
 													{entry.name}:{" "}
 													<span className="font-semibold">
@@ -339,11 +354,10 @@ export default function ProgressChart({ appData }) {
 			</div>
 			<div className="mt-4 text-sm text-gray-600 dark:text-slate-400">
 				<p>
-					Track your learning journey: total cards created, cards you've
-					studied, and reviews completed over time.
+					Track your learning journey: total cards created, cards
+					you've studied, and reviews completed over time.
 				</p>
 			</div>
 		</div>
 	);
 }
-

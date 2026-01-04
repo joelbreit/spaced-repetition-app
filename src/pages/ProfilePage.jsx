@@ -6,8 +6,8 @@ import { useAppData } from "../contexts/AppDataContext";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NotificationContainer from "../components/NotificationContainer";
-import ActivityHeatmap from "../components/ActivityHeatmap";
-import ProgressChart from "../components/ProgressChart";
+import ActivityHeatmap from "../components/Profile/ActivityHeatmap";
+import ProgressChart from "../components/Profile/ProgressChart";
 import {
 	ArrowLeft,
 	Download,
@@ -31,6 +31,8 @@ function ProfilePage() {
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [isChangingPassword, setIsChangingPassword] = useState(false);
 	const [passwordError, setPasswordError] = useState("");
+
+	console.log("showPasswordChange", showPasswordChange);
 
 	// Handle logout
 	const handleLogout = async () => {
@@ -176,7 +178,9 @@ function ProfilePage() {
 										setConfirmPassword("");
 									}
 								}}
-								className="w-full flex items-center justify-between mb-4"
+								className={`w-full flex items-center justify-between${
+									showPasswordChange ? " mb-4" : ""
+								}`}
 							>
 								<div className="flex items-center gap-3">
 									<div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg">

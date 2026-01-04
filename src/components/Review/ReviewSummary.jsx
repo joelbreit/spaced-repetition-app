@@ -13,7 +13,7 @@ import {
 import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
-} from "../services/cardCalculations";
+} from "../../services/cardCalculations";
 
 export default function ReviewSummary({
 	sessionReviews,

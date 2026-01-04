@@ -1,6 +1,6 @@
 import { Volume2, ChevronDown, Plus, Minus } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { readAloudAPI } from "../services/apiStorage";
+import { readAloudAPI } from "../../services/apiStorage";
 
 export default function ReadAloudButton({
 	text,

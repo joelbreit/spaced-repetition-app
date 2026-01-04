@@ -119,7 +119,6 @@ export async function checkAPIHealth() {
 
 export async function readAloudAPI(text) {
 	try {
-		console.log('Reading aloud:', text);
 		const response = await fetch(`${API_ENDPOINT}/read-aloud`, {
 			method: 'POST',
 			headers: {
