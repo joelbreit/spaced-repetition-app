@@ -115,6 +115,7 @@ v2 (folders) issues:
 
 2026-01-05
 
+- [x] Added sync functionality to Sync Status Indicator
 - [x] Added token refresh functionality
 - [x] Added deck of origin for cards on review page when reviewing a folder
 - [x] Added scroll to top functionality

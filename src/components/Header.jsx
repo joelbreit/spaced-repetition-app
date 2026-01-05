@@ -11,12 +11,16 @@ import {
 } from "lucide-react";
 import { useAppData } from "../contexts/AppDataContext";
 import { useAuth } from "../contexts/AuthContext";
+import { loadFromAPI } from "../services/apiStorage";
+import { useNotification } from "../hooks/useNotification";
 
 function Header({ user, isSaving, isOnline, onSignInClick }) {
-	const { isAuthenticated } = useAuth();
+	const { isAuthenticated, authToken, refreshToken } = useAuth();
 	const [showUserMenu, setShowUserMenu] = useState(false);
+	const [isSyncing, setIsSyncing] = useState(false);
 	const navigate = useNavigate();
-	const { appData } = useAppData();
+	const { appData, setAppData } = useAppData();
+	const { showSuccess, showError } = useNotification();
 
 	// Format date as YYYY-MM-DD in local timezone
 	const formatDateKey = (date) => {
@@ -74,6 +78,38 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 		return { streak, reviewsToday };
 	}, [appData]);
 
+	const handleSync = async () => {
+		if (!isAuthenticated || !authToken) {
+			return;
+		}
+
+		setIsSyncing(true);
+		try {
+			// Refresh the auth token first
+			const newToken = await refreshToken();
+			const tokenToUse = newToken || authToken;
+
+			// Load data from API
+			const cloudData = await loadFromAPI(tokenToUse, refreshToken);
+
+			if (cloudData) {
+				// Update appData with the loaded data
+				setAppData(cloudData);
+				// Also update localStorage
+				localStorage.setItem(
+					"spacedRepData",
+					JSON.stringify(cloudData)
+				);
+				showSuccess("Data synced from cloud successfully");
+			}
+		} catch (error) {
+			console.error("Failed to sync from API:", error);
+			showError("Failed to sync from cloud. Please try again.");
+		} finally {
+			setIsSyncing(false);
+		}
+	};
+
 	return (
 		<header className="relative z-30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -128,20 +164,30 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 						</div>
 
 						{/* Sync Status Indicator */}
-						<div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 dark:bg-slate-700">
+						<button
+							onClick={handleSync}
+							disabled={!isAuthenticated || isSyncing || isSaving}
+							className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							title={
+								!isAuthenticated
+									? "Local storage"
+									: isSyncing || isSaving
+									? "Syncing..."
+									: isOnline
+									? "Click to sync"
+									: "Click to sync"
+							}
+						>
 							{!isAuthenticated ? (
-								<Cloud
-									className="h-3 w-3 text-gray-500"
-									title="Local storage"
-								/>
-							) : isSaving ? (
+								<Cloud className="h-3 w-3 text-gray-500" />
+							) : isSyncing || isSaving ? (
 								<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
 							) : isOnline ? (
 								<Cloud className="h-3 w-3 text-green-500" />
 							) : (
 								<CloudOff className="h-3 w-3 text-orange-500" />
 							)}
-						</div>
+						</button>
 					</div>
 
 					{/* Desktop: Show all items */}
@@ -182,7 +228,20 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 						</div>
 
 						{/* Sync Status Indicator */}
-						<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700">
+						<button
+							onClick={handleSync}
+							disabled={!isAuthenticated || isSyncing || isSaving}
+							className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							title={
+								!isAuthenticated
+									? "Local storage"
+									: isSyncing || isSaving
+									? "Syncing..."
+									: isOnline
+									? "Click to sync"
+									: "Click to sync"
+							}
+						>
 							{!isAuthenticated ? (
 								<>
 									<Cloud className="h-3 w-3 text-gray-500" />
@@ -190,11 +249,11 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 										Local
 									</span>
 								</>
-							) : isSaving ? (
+							) : isSyncing || isSaving ? (
 								<>
 									<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
 									<span className="text-xs text-gray-600 dark:text-slate-400">
-										Saving...
+										Syncing...
 									</span>
 								</>
 							) : isOnline ? (
@@ -212,7 +271,7 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 									</span>
 								</>
 							)}
-						</div>
+						</button>
 
 						{/* Profile or Sign In Button */}
 						{isAuthenticated ? (
