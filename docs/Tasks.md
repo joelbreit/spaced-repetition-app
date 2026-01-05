@@ -2,7 +2,6 @@
 
 ## Issues
 
-- [ ] Scroll to top of new pages/views
 - [ ] Disconnecting:
   - Error: "Failed to save to cloud. Data saved locally"
   - Offline
@@ -10,7 +9,6 @@
   - Error: "Unauthorized - please log in again"
 - [ ] I should be able to edit cards from the review screen
 - [ ] Should show an error if a folder or deck is orphaned (parentFolderId is not null and can't be found)
-- [ ] Navigate to top of page when clicking on a folder or deck
 - [ ] In Firefox, the back of cards shows up dimmly when flipped
 
 v2 (folders) issues:
@@ -18,7 +16,7 @@ v2 (folders) issues:
 
 ## Features
 
-- [ ] **Review should fit better on on page**
+- [ ] **Review should fit better on page**
   - [ ] Cards should stretch to fill the height allows
   - [ ] Cards too big for that height should be scrollable
 - [ ] **Folder reviews should show what deck the card belongs to**
@@ -114,6 +112,10 @@ v2 (folders) issues:
 - [ ] Create an AWS tag for all resources associated with this app
 
 ## Complete
+
+2026-01-05
+
+- [x] Added scroll to top functionality
 
 2026-01-04
 

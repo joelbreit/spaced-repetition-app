@@ -6,6 +6,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { AppDataProvider } from "./contexts/AppDataContext";
 import ProfilePage from "./pages/ProfilePage";
 import OverviewPage from "./pages/OverviewPage";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
 	return (
@@ -14,6 +15,7 @@ function App() {
 				<NotificationProvider>
 					<AppDataProvider>
 						<Router>
+							<ScrollToTop />
 							<Routes>
 								<Route path="/*" element={<OverviewPage />} />
 								<Route
