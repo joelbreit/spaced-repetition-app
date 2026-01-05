@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import {
 	signIn,
 	signOut,
@@ -15,10 +15,31 @@ export function AuthProvider({ children }) {
 	const [user, setUser] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [authToken, setAuthToken] = useState(null);
+	const refreshIntervalRef = useRef(null);
 
 	// Check if user is already logged in
 	useEffect(() => {
 		checkUser();
+	}, []);
+
+	const refreshToken = useCallback(async () => {
+		try {
+			// fetchAuthSession automatically refreshes the token if it's expired
+			// and a valid refresh token is available
+			const session = await fetchAuthSession({ forceRefresh: true });
+			const token = session.tokens?.accessToken?.toString();
+			if (token) {
+				setAuthToken(token);
+				return token;
+			}
+			return null;
+		} catch (error) {
+			console.error("Failed to refresh token:", error);
+			// If refresh fails, user might need to log in again
+			setUser(null);
+			setAuthToken(null);
+			return null;
+		}
 	}, []);
 
 	async function checkUser() {
@@ -38,6 +59,31 @@ export function AuthProvider({ children }) {
 			setIsLoading(false);
 		}
 	}
+
+	// Set up periodic token refresh (every 45 minutes to refresh before 1 hour expiration)
+	useEffect(() => {
+		if (!user) {
+			// Clear interval if user logs out
+			if (refreshIntervalRef.current) {
+				clearInterval(refreshIntervalRef.current);
+				refreshIntervalRef.current = null;
+			}
+			return;
+		}
+
+		// Refresh token every 45 minutes (2700000 ms)
+		// This ensures we refresh before the 1-hour expiration
+		refreshIntervalRef.current = setInterval(() => {
+			refreshToken();
+		}, 45 * 60 * 1000);
+
+		return () => {
+			if (refreshIntervalRef.current) {
+				clearInterval(refreshIntervalRef.current);
+				refreshIntervalRef.current = null;
+			}
+		};
+	}, [user, refreshToken]);
 
 	async function login(email, password) {
 		try {
@@ -133,6 +179,7 @@ export function AuthProvider({ children }) {
 		confirmRegistration,
 		checkUser,
 		changePassword,
+		refreshToken,
 	};
 
 	return (

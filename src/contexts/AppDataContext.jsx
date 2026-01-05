@@ -107,8 +107,8 @@ const initialData = {
 };
 
 export function AppDataProvider({ children }) {
-	const { authToken, isAuthenticated } = useAuth();
-	const { showSuccess, showError, showWarning } = useNotification();
+	const { authToken, isAuthenticated, refreshToken } = useAuth();
+	const { showSuccess, showError } = useNotification();
 
 	const [appData, setAppData] = useState(demoData);
 	const [isLoading, setIsLoading] = useState(true);
@@ -179,7 +179,7 @@ export function AppDataProvider({ children }) {
 
 			// Authenticated mode: load from API
 			try {
-				const cloudData = await loadFromAPI(authToken);
+				const cloudData = await loadFromAPI(authToken, refreshToken);
 
 				let finalData;
 				const pendingUpload = localStorage.getItem(
@@ -195,7 +195,7 @@ export function AppDataProvider({ children }) {
 					if (localData) {
 						const parsed = JSON.parse(localData);
 						setAppData(parsed);
-						await saveToAPI(parsed, authToken);
+						await saveToAPI(parsed, authToken, refreshToken);
 						lastSaveTime.current = Date.now();
 						if (pendingUpload) {
 							showSuccess(
@@ -251,7 +251,11 @@ export function AppDataProvider({ children }) {
 							};
 
 							setAppData(mergedData);
-							await saveToAPI(mergedData, authToken);
+							await saveToAPI(
+								mergedData,
+								authToken,
+								refreshToken
+							);
 							lastSaveTime.current = Date.now();
 							showSuccess(
 								"Your local data has been saved to the cloud!"
@@ -484,10 +488,10 @@ export function AppDataProvider({ children }) {
 
 				if (patchData) {
 					// Use PATCH for incremental update
-					await patchToAPI(patchData, currentAuthToken);
+					await patchToAPI(patchData, currentAuthToken, refreshToken);
 				} else {
 					// Fall back to POST for full save
-					await saveToAPI(dataToSave, currentAuthToken);
+					await saveToAPI(dataToSave, currentAuthToken, refreshToken);
 				}
 
 				// Update local storage
@@ -540,7 +544,7 @@ export function AppDataProvider({ children }) {
 			const localData = localStorage.getItem("spacedRepData");
 			if (localData) {
 				const parsed = JSON.parse(localData);
-				await saveToAPI(parsed, token);
+				await saveToAPI(parsed, token, refreshToken);
 				showSuccess("Your local data has been saved to the cloud!");
 				return true;
 			}

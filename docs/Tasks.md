@@ -16,6 +16,7 @@ v2 (folders) issues:
 
 ## Features
 
+- [ ] Check for update timestamp before starting a review session; if we are out of date, update the data, show an info message, then continue as normal
 - [ ] **Review should fit better on page**
   - [ ] Cards should stretch to fill the height allows
   - [ ] Cards too big for that height should be scrollable
@@ -114,6 +115,7 @@ v2 (folders) issues:
 
 2026-01-05
 
+- [x] Added token refresh functionality
 - [x] Added deck of origin for cards on review page when reviewing a folder
 - [x] Added scroll to top functionality
 

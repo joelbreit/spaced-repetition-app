@@ -7,9 +7,10 @@ if (!API_ENDPOINT) {
 /**
  * Load flashcard data from the API (with authentication)
  * @param {string} authToken - JWT token from Cognito
+ * @param {Function} [refreshToken] - Optional function to refresh the token if it expires
  * @returns {Promise<Object>} The flashcard data
  */
-export async function loadFromAPI(authToken) {
+export async function loadFromAPI(authToken, refreshToken = null) {
 	try {
 		const response = await fetch(`${API_ENDPOINT}/data`, {
 			method: 'GET',
@@ -20,6 +21,26 @@ export async function loadFromAPI(authToken) {
 		});
 
 		if (!response.ok) {
+			if (response.status === 401 && refreshToken) {
+				// Token expired, try refreshing and retry once
+				console.log('Token expired, refreshing...');
+				const newToken = await refreshToken();
+				if (newToken) {
+					// Retry with new token
+					const retryResponse = await fetch(`${API_ENDPOINT}/data`, {
+						method: 'GET',
+						headers: {
+							'Content-Type': 'application/json',
+							'Authorization': `Bearer ${newToken}`,
+						},
+					});
+					if (!retryResponse.ok) {
+						throw new Error(`HTTP error! status: ${retryResponse.status}`);
+					}
+					const data = await retryResponse.json();
+					return data;
+				}
+			}
 			if (response.status === 401) {
 				throw new Error('Unauthorized - please log in again');
 			}
@@ -38,9 +59,10 @@ export async function loadFromAPI(authToken) {
  * Save flashcard data to the API (with authentication)
  * @param {Object} data - The flashcard data to save
  * @param {string} authToken - JWT token from Cognito
+ * @param {Function} [refreshToken] - Optional function to refresh the token if it expires
  * @returns {Promise<Object>} Response from the API
  */
-export async function saveToAPI(data, authToken) {
+export async function saveToAPI(data, authToken, refreshToken = null) {
 	try {
 		const response = await fetch(`${API_ENDPOINT}/data`, {
 			method: 'POST',
@@ -52,6 +74,27 @@ export async function saveToAPI(data, authToken) {
 		});
 
 		if (!response.ok) {
+			if (response.status === 401 && refreshToken) {
+				// Token expired, try refreshing and retry once
+				console.log('Token expired, refreshing...');
+				const newToken = await refreshToken();
+				if (newToken) {
+					// Retry with new token
+					const retryResponse = await fetch(`${API_ENDPOINT}/data`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'Authorization': `Bearer ${newToken}`,
+						},
+						body: JSON.stringify(data),
+					});
+					if (!retryResponse.ok) {
+						throw new Error(`HTTP error! status: ${retryResponse.status}`);
+					}
+					const result = await retryResponse.json();
+					return result;
+				}
+			}
 			if (response.status === 401) {
 				throw new Error('Unauthorized - please log in again');
 			}
@@ -73,9 +116,10 @@ export async function saveToAPI(data, authToken) {
  *   - Card patch: { type: 'card', deckId: string, card: CardObject }
  *   - Deck patch: { type: 'deck', deck: DeckObject }
  * @param {string} authToken - JWT token from Cognito
+ * @param {Function} [refreshToken] - Optional function to refresh the token if it expires
  * @returns {Promise<Object>} Response from the API
  */
-export async function patchToAPI(patchData, authToken) {
+export async function patchToAPI(patchData, authToken, refreshToken = null) {
 	try {
 		const response = await fetch(`${API_ENDPOINT}/data`, {
 			method: 'PATCH',
@@ -87,6 +131,27 @@ export async function patchToAPI(patchData, authToken) {
 		});
 
 		if (!response.ok) {
+			if (response.status === 401 && refreshToken) {
+				// Token expired, try refreshing and retry once
+				console.log('Token expired, refreshing...');
+				const newToken = await refreshToken();
+				if (newToken) {
+					// Retry with new token
+					const retryResponse = await fetch(`${API_ENDPOINT}/data`, {
+						method: 'PATCH',
+						headers: {
+							'Content-Type': 'application/json',
+							'Authorization': `Bearer ${newToken}`,
+						},
+						body: JSON.stringify(patchData),
+					});
+					if (!retryResponse.ok) {
+						throw new Error(`HTTP error! status: ${retryResponse.status}`);
+					}
+					const result = await retryResponse.json();
+					return result;
+				}
+			}
 			if (response.status === 401) {
 				throw new Error('Unauthorized - please log in again');
 			}
