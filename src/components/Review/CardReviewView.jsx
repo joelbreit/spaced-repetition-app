@@ -8,6 +8,7 @@ import {
 	Calendar,
 	RulerDimensionLine,
 	Weight,
+	BookOpen,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import SegmentedProgressBar from "../SegmentedProgressBar";
@@ -18,6 +19,7 @@ import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
 } from "../../services/cardCalculations";
+import { useAppData } from "../../contexts/AppDataContext";
 
 export default function CardReviewView({
 	deck,
@@ -31,10 +33,17 @@ export default function CardReviewView({
 	onToggleFlag,
 	onToggleStar,
 }) {
+	const { appData } = useAppData();
 	const currentCard = deck.cards[currentCardIndex];
 	const totalCards = deck.cards.length;
 	const isFlagged = currentCard?.isFlagged || false;
 	const isStarred = currentCard?.isStarred || false;
+
+	// Get source deck name if this is a folder review
+	const sourceDeckName = currentCard?.sourceDeckId
+		? appData.decks?.find((d) => d.deckId === currentCard.sourceDeckId)
+				?.deckName
+		: null;
 
 	// Animation state for review result
 	const [animationResult, setAnimationResult] = useState(null);
@@ -220,6 +229,19 @@ export default function CardReviewView({
 				currentCardIndex={currentCardIndex}
 				totalCards={totalCards}
 			/>
+
+			{/* Source Deck Name (for folder reviews) */}
+			{sourceDeckName && (
+				<div className="mb-4 flex justify-center">
+					<div className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 rounded-lg text-sm text-gray-700 dark:text-gray-300">
+						<BookOpen className="h-4 w-4 text-teal-500" />
+						<span className="font-medium">From:</span>
+						<span className="text-teal-600 dark:text-teal-400">
+							{sourceDeckName}
+						</span>
+					</div>
+				</div>
+			)}
 
 			{/* Card */}
 			<div className="mb-8" style={{ perspective: "1000px" }}>

@@ -19,7 +19,6 @@ v2 (folders) issues:
 - [ ] **Review should fit better on page**
   - [ ] Cards should stretch to fill the height allows
   - [ ] Cards too big for that height should be scrollable
-- [ ] **Folder reviews should show what deck the card belongs to**
 - [ ] Configurable minimum interval +1
 - [ ] Math/paper aesthetic?
 - [ ] No more emojis in text
@@ -115,6 +114,7 @@ v2 (folders) issues:
 
 2026-01-05
 
+- [x] Added deck of origin for cards on review page when reviewing a folder
 - [x] Added scroll to top functionality
 
 2026-01-04
