@@ -1,7 +1,7 @@
 import { useAppData } from "../contexts/AppDataContext";
 
 export function useDeckOperations() {
-	const { appData, setAppData } = useAppData();
+	const { setAppData } = useAppData();
 
 	const addDeck = (deckName, deckSymbol = "📚", parentFolderId = null) => {
 		const newDeck = {
@@ -9,6 +9,7 @@ export function useDeckOperations() {
 			deckName,
 			deckSymbol,
 			parentFolderId,
+			createdAt: Date.now(),
 			cards: [],
 		};
 		setAppData((prev) => ({
@@ -67,6 +68,7 @@ export function useDeckOperations() {
 			back,
 			reviews: [],
 			whenDue: Date.now(),
+			createdAt: Date.now(),
 		};
 		setAppData((prev) => ({
 			...prev,
@@ -182,6 +184,7 @@ export function useDeckOperations() {
 					reviews: [],
 					whenDue: now,
 					partnerCardId: card.cardId,
+					createdAt: now,
 				};
 			});
 

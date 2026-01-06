@@ -122,6 +122,7 @@ v2 (folders) issues:
 
 2026-01-06
 
+- [x] Added missing createdAt values to data
 - [x] Added Missing Values section to Additional Stats
 
 2026-01-05

@@ -1,19 +1,40 @@
 import { useState } from "react";
-import { BarChart3, RefreshCw, Calculator } from "lucide-react";
+import { BarChart3, RefreshCw, Calculator, Wrench } from "lucide-react";
+import { useAppData } from "../../contexts/AppDataContext";
+import { useNotification } from "../../hooks/useNotification";
+import { repairCreatedAtValues } from "../../services/repairCreatedAt";
 
 export default function AdditionalStats({ appData }) {
+	const { setAppData } = useAppData();
+	const { showSuccess, showError } = useNotification();
 	const [stats, setStats] = useState(null);
 	const [isCalculating, setIsCalculating] = useState(false);
+	const [isRepairing, setIsRepairing] = useState(false);
 
-	const calculateStats = () => {
+	const calculateStats = (dataToUse = null) => {
 		setIsCalculating(true);
 
 		// Use setTimeout to allow UI to update before heavy calculation
 		setTimeout(() => {
 			try {
+				// Ignore event objects (from onClick handlers)
+				let data = dataToUse;
+				if (
+					dataToUse &&
+					typeof dataToUse === "object" &&
+					"target" in dataToUse &&
+					"type" in dataToUse
+				) {
+					// This looks like a SyntheticEvent, ignore it
+					data = null;
+				}
+
+				// Use provided data or fall back to appData prop
+				data = data || appData;
+
 				// Get all folders and decks
-				const allFolders = appData?.folders || [];
-				const allDecks = appData?.decks || [];
+				const allFolders = data?.folders || [];
+				const allDecks = data?.decks || [];
 
 				// Calculate folder statistics
 				const totalFolders = allFolders.length;
@@ -238,6 +259,27 @@ export default function AdditionalStats({ appData }) {
 		}, 0);
 	};
 
+	const handleRepair = async () => {
+		setIsRepairing(true);
+		try {
+			// Repair the createdAt values
+			const repairedData = repairCreatedAtValues(appData);
+
+			// Update app data
+			setAppData(repairedData);
+
+			// Recalculate stats using the repaired data
+			calculateStats(repairedData);
+
+			showSuccess("Missing createdAt values have been repaired");
+		} catch (error) {
+			console.error("Error repairing createdAt values:", error);
+			showError("Failed to repair createdAt values");
+		} finally {
+			setIsRepairing(false);
+		}
+	};
+
 	return (
 		<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
 			<div className="flex items-center justify-between mb-4">
@@ -251,7 +293,7 @@ export default function AdditionalStats({ appData }) {
 				</div>
 				{stats ? (
 					<button
-						onClick={calculateStats}
+						onClick={() => calculateStats()}
 						disabled={isCalculating}
 						className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 font-medium rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
@@ -264,7 +306,7 @@ export default function AdditionalStats({ appData }) {
 					</button>
 				) : (
 					<button
-						onClick={calculateStats}
+						onClick={() => calculateStats()}
 						disabled={isCalculating}
 						className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
@@ -506,15 +548,27 @@ export default function AdditionalStats({ appData }) {
 							</div>
 						)}
 
-					{/* Missing createdAt Values */}
+					{/* Missing Values */}
 					{(stats.foldersWithoutCreatedAt > 0 ||
 						stats.decksWithoutCreatedAt > 0 ||
 						stats.cardsWithoutCreatedAt > 0) && (
 						<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
-							<div className="mb-3">
+							<div className="flex items-center justify-between mb-3">
 								<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
 									Missing Values
 								</span>
+								<button
+									onClick={handleRepair}
+									disabled={isRepairing}
+									className="flex items-center gap-2 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+								>
+									<Wrench
+										className={`h-3.5 w-3.5 ${
+											isRepairing ? "animate-spin" : ""
+										}`}
+									/>
+									{isRepairing ? "Repairing..." : "Repair"}
+								</button>
 							</div>
 							<div className="space-y-2">
 								{stats.totalFolders > 0 && (
@@ -523,7 +577,9 @@ export default function AdditionalStats({ appData }) {
 											Folders without createdAt
 										</span>
 										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-											{stats.foldersWithoutCreatedAt.toLocaleString()}
+											{stats.foldersWithoutCreatedAt.toLocaleString()}{" "}
+											/{" "}
+											{stats.totalFolders.toLocaleString()}
 										</span>
 									</div>
 								)}
@@ -533,7 +589,9 @@ export default function AdditionalStats({ appData }) {
 											Decks without createdAt
 										</span>
 										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-											{stats.decksWithoutCreatedAt.toLocaleString()}
+											{stats.decksWithoutCreatedAt.toLocaleString()}{" "}
+											/{" "}
+											{stats.totalDecks.toLocaleString()}
 										</span>
 									</div>
 								)}
@@ -543,7 +601,9 @@ export default function AdditionalStats({ appData }) {
 											Cards without createdAt
 										</span>
 										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-											{stats.cardsWithoutCreatedAt.toLocaleString()}
+											{stats.cardsWithoutCreatedAt.toLocaleString()}{" "}
+											/{" "}
+											{stats.totalCards.toLocaleString()}
 										</span>
 									</div>
 								)}
