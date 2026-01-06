@@ -80,22 +80,28 @@ export default function ProgressChart({ appData }) {
 				return;
 			}
 			deck.cards.forEach((card) => {
-				// Track when card was first created (first review or current time if no reviews)
-				if (
-					card.reviews &&
-					Array.isArray(card.reviews) &&
-					card.reviews.length > 0
-				) {
-					const firstReview = card.reviews.reduce(
-						(earliest, review) =>
-							review.timestamp < earliest.timestamp
-								? review
-								: earliest
-					);
-					cardCreationDates.push(firstReview.timestamp);
+				// Track when card was first created
+				// Use createdAt value if available
+				if (card.createdAt) {
+					cardCreationDates.push(card.createdAt);
 				} else {
-					// If no reviews, use a default date (could be improved with card creation date)
-					cardCreationDates.push(Date.now());
+					// Fallback to first review or current time if no reviews
+					if (
+						card.reviews &&
+						Array.isArray(card.reviews) &&
+						card.reviews.length > 0
+					) {
+						const firstReview = card.reviews.reduce(
+							(earliest, review) =>
+								review.timestamp < earliest.timestamp
+									? review
+									: earliest
+						);
+						cardCreationDates.push(firstReview.timestamp);
+					} else {
+						// If no reviews, use a default date (could be improved with card creation date)
+						cardCreationDates.push(Date.now());
+					}
 				}
 
 				// Collect all review timestamps

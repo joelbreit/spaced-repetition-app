@@ -91,7 +91,6 @@
 ### Profile Page
 
 - [ ] Columns / rows on larger screens
-- [ ] ~~Progress chart doesn't seem to track all cards~~ Progress chart can't track historical "total cards" until creation dates are added
 - [ ] Study progress should have stacked new, struggling, learning, and mastered cards
 - [ ] Additional stats: add reviews/day rate
 
@@ -109,6 +108,7 @@
 
 2026-01-06
 
+- [x] Progress chart can now track historical "total cards" using createdAt values
 - [x] Added Study button to sortable folder components in folder browser view
 - [x] Added best day label to heatmap
 - [x] Added first day and averages to heatmap
