@@ -33,6 +33,7 @@ export default function SortableContainerItem({
 	handleUpdate,
 	handleDelete,
 	onStartReview,
+	onStartFolderReview,
 	isDraggable,
 	appData, // Needed to count folder contents
 }) {
@@ -215,6 +216,13 @@ export default function SortableContainerItem({
 		e.stopPropagation();
 		if (onStartReview && isDeck) {
 			onStartReview(item.id);
+		}
+	};
+
+	const handleStartFolderReview = (e) => {
+		e.stopPropagation();
+		if (onStartFolderReview && isFolder) {
+			onStartFolderReview(item.id);
 		}
 	};
 
@@ -571,7 +579,27 @@ export default function SortableContainerItem({
 								<span className="hidden sm:inline">Study</span>
 							</button>
 						)}
-						{!isDeck && onStartReview && <div className="flex-1" />}
+						{isFolder &&
+							onStartFolderReview &&
+							folderStats &&
+							folderStats.deckCount > 0 && (
+								<button
+									onClick={handleStartFolderReview}
+									className="flex-1 px-2 sm:px-3 py-2 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base flex items-center justify-center gap-1.5"
+								>
+									<Play className="h-4 w-4 sm:hidden" />
+									<span className="hidden sm:inline">
+										Study
+									</span>
+								</button>
+							)}
+						{((isDeck && !onStartReview) ||
+							(isFolder &&
+								(!onStartFolderReview ||
+									!folderStats ||
+									folderStats.deckCount === 0))) && (
+							<div className="flex-1" />
+						)}
 						<button
 							onClick={(e) => {
 								e.stopPropagation();

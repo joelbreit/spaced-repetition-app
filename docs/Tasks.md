@@ -10,9 +10,6 @@
 - [ ] Should show an error if a folder or deck is orphaned (parentFolderId is not null and can't be found)
 - [ ] In Firefox, the back of cards shows up dimmly when flipped
 
-v2 (folders) issues:
-- [ ] Sortable folder components should have a Study button
-
 ## Features
 
 - [ ] Check for update timestamp before starting a review session; if we are out of date, update the data, show an info message, then continue as normal
@@ -51,6 +48,8 @@ v2 (folders) issues:
 ### Header
 
 - [ ] Reconnect by clicking "Offline"
+- [ ] View streak (start, reviews in recent days, longest streak) when clicking on streak icon
+- [ ] View reviews today (which decks, etc) when clicking on reviews today icon
 
 ### Footer
 
@@ -110,6 +109,7 @@ v2 (folders) issues:
 
 2026-01-06
 
+- [x] Added Study button to sortable folder components in folder browser view
 - [x] Added best day label to heatmap
 - [x] Added first day and averages to heatmap
 - [x] Moved month labels above top row of days on heatmap

@@ -382,6 +382,7 @@ export default function FolderBrowserView({
 										handleDelete(id, item.type)
 									}
 									onStartReview={onStartReview}
+									onStartFolderReview={onStartFolderReview}
 									isDraggable={!searchTerm}
 									appData={appData}
 								/>
