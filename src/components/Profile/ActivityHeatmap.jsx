@@ -218,6 +218,44 @@ export default function ActivityHeatmap({ appData }) {
 		return streak;
 	})();
 
+	// Calculate total days from first review to today
+	const totalDays = firstReviewDate
+		? Math.ceil((new Date() - firstReviewDate) / (1000 * 60 * 60 * 24)) + 1
+		: 0;
+
+	// Calculate averages
+	const avgReviewsPerDay = totalDays > 0 ? totalReviews / totalDays : 0;
+	const avgReviewsPerActiveDay =
+		activeDays > 0 ? totalReviews / activeDays : 0;
+
+	// Format first day for display
+	const formatFirstDay = (date) => {
+		if (!date) return "N/A";
+		return date.toLocaleDateString("en-US", {
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+		});
+	};
+
+	// Find the day with the most reviews
+	const getMaxReviewDay = () => {
+		if (activityMap.size === 0) return null;
+		let maxCount = 0;
+		let maxDateStr = null;
+
+		activityMap.forEach((count, dateStr) => {
+			if (count > maxCount) {
+				maxCount = count;
+				maxDateStr = dateStr;
+			}
+		});
+
+		return maxDateStr;
+	};
+
+	const maxReviewDay = getMaxReviewDay();
+
 	return (
 		<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
 			<div className="mb-4">
@@ -250,6 +288,30 @@ export default function ActivityHeatmap({ appData }) {
 							{currentStreak === 1 ? "day" : "days"}
 						</span>
 					</div>
+					<div>
+						<span className="text-gray-600 dark:text-slate-400">
+							First day:{" "}
+						</span>
+						<span className="font-semibold text-gray-900 dark:text-slate-100">
+							{formatFirstDay(firstReviewDate)}
+						</span>
+					</div>
+					<div>
+						<span className="text-gray-600 dark:text-slate-400">
+							Avg reviews/day:{" "}
+						</span>
+						<span className="font-semibold text-gray-900 dark:text-slate-100">
+							{avgReviewsPerDay.toFixed(1)}
+						</span>
+					</div>
+					<div>
+						<span className="text-gray-600 dark:text-slate-400">
+							Avg reviews/active day:{" "}
+						</span>
+						<span className="font-semibold text-gray-900 dark:text-slate-100">
+							{avgReviewsPerActiveDay.toFixed(1)}
+						</span>
+					</div>
 				</div>
 			</div>
 
@@ -258,8 +320,8 @@ export default function ActivityHeatmap({ appData }) {
 				<div className="inline-block min-w-full">
 					{/* Month Labels */}
 					<div
-						className="flex mb-1 relative"
-						style={{ paddingLeft: "28px" }}
+						className="flex mb-2 relative"
+						style={{ paddingLeft: "28px", height: "16px" }}
 					>
 						{monthLabels.map((label, index) => (
 							<div
@@ -322,13 +384,19 @@ export default function ActivityHeatmap({ appData }) {
 										const dateStr = formatDateKey(day);
 										const count =
 											activityMap.get(dateStr) || 0;
+										const isMaxDay =
+											dateStr === maxReviewDay;
 
 										return (
 											<div
 												key={dayOfWeek}
 												className={`w-3 h-3 rounded-sm ${getColorClass(
 													level
-												)} hover:ring-2 hover:ring-gray-400 dark:hover:ring-slate-500 transition-all duration-200 cursor-pointer`}
+												)} ${
+													isMaxDay
+														? "ring-2 ring-yellow-400 dark:ring-yellow-500 shadow-sm"
+														: "hover:ring-2 hover:ring-gray-400 dark:hover:ring-slate-500"
+												} transition-all duration-200 cursor-pointer`}
 												onMouseEnter={(e) => {
 													setHoveredDay({
 														date: day,
@@ -348,7 +416,11 @@ export default function ActivityHeatmap({ appData }) {
 												}
 												title={`${formatDate(
 													day
-												)}: ${count} reviews`}
+												)}: ${count} reviews${
+													isMaxDay
+														? " (Most reviews)"
+														: ""
+												}`}
 											/>
 										);
 									})}

@@ -96,11 +96,6 @@ v2 (folders) issues:
 - [ ] Study progress should have stacked new, struggling, learning, and mastered cards
 - [ ] Additional stats: add reviews/day rate
 
-#### Heatmap
-
-- [ ] Label best day ever/per year
-- [ ] Move month labels above top row of days
-
 ## Data
 
 - [ ] Update folder/deck updatedAt value when updates are made
@@ -115,6 +110,9 @@ v2 (folders) issues:
 
 2026-01-06
 
+- [x] Added best day label to heatmap
+- [x] Added first day and averages to heatmap
+- [x] Moved month labels above top row of days on heatmap
 - [x] Improved edit card modal and allowed for card editing from the review screen
 - [x] Added missing createdAt values to data
 - [x] Added Missing Values section to Additional Stats
