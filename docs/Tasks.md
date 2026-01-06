@@ -7,7 +7,6 @@
   - Offline
   - 401
   - Error: "Unauthorized - please log in again"
-- [ ] I should be able to edit cards from the review screen
 - [ ] Should show an error if a folder or deck is orphaned (parentFolderId is not null and can't be found)
 - [ ] In Firefox, the back of cards shows up dimmly when flipped
 
@@ -71,14 +70,8 @@ v2 (folders) issues:
 
 ### Card View
 
-- [ ] Add card view
-- [ ] View review history
 - [ ] View all stats/info
 - [ ] Show card edit history?
-
-### Edit Card View
-
-- [ ] Add flag/star to edit card view
 
 ### Deck View
 
@@ -122,6 +115,7 @@ v2 (folders) issues:
 
 2026-01-06
 
+- [x] Improved edit card modal and allowed for card editing from the review screen
 - [x] Added missing createdAt values to data
 - [x] Added Missing Values section to Additional Stats
 

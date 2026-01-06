@@ -32,6 +32,7 @@ function OverviewPage() {
 
 	// View state for edit/review overlays
 	const [currentView, setCurrentView] = useState(null); // null, "edit", "review", "summary"
+	const [previousView, setPreviousView] = useState(null); // Track view before opening edit
 
 	const { updateCard, addCard, toggleCardFlag, toggleCardStar } =
 		useDeckOperations();
@@ -248,6 +249,8 @@ function OverviewPage() {
 	};
 
 	const handleEditCard = (deckId, cardId) => {
+		// Save the current view so we can restore it after editing
+		setPreviousView(currentView);
 		setEditingDeckId(deckId);
 		setSelectedCardId(cardId);
 		setCurrentView("edit");
@@ -256,16 +259,33 @@ function OverviewPage() {
 	const handleSaveCard = (deckId, cardId, front, back) => {
 		if (cardId) {
 			updateCard(deckId, cardId, front, back);
+			
+			// If we're in a review session, update the currentDeckForReview to reflect the changes
+			if (previousView === "review" && currentDeckForReview) {
+				const updatedCards = currentDeckForReview.cards.map((c) =>
+					c.cardId === cardId
+						? { ...c, front, back }
+						: c
+				);
+				setCurrentDeckForReview({
+					...currentDeckForReview,
+					cards: updatedCards,
+				});
+			}
 		} else {
 			addCard(deckId, front, back);
 		}
-		setCurrentView(null);
+		// Restore the previous view (e.g., "review" if editing during review)
+		setCurrentView(previousView);
+		setPreviousView(null);
 		setSelectedCardId(null);
 		setEditingDeckId(null);
 	};
 
 	const handleCancelEdit = () => {
-		setCurrentView(null);
+		// Restore the previous view (e.g., "review" if editing during review)
+		setCurrentView(previousView);
+		setPreviousView(null);
 		setSelectedCardId(null);
 		setEditingDeckId(null);
 	};
@@ -360,6 +380,8 @@ function OverviewPage() {
 						cardId={selectedCardId}
 						onSave={handleSaveCard}
 						onCancel={handleCancelEdit}
+						onToggleStar={toggleCardStar}
+						onToggleFlag={toggleCardFlag}
 					/>
 				)}
 
