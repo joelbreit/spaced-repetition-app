@@ -92,26 +92,37 @@ v2 (folders) issues:
 - [ ] Show how many cards in deck have a partner card
 - [ ] Make folders and decks look more distinct from each other
 
+### Study Statistics
+
+- [ ] Remove Reviews
+
 ### Profile Page
 
 - [ ] Columns / rows on larger screens
 - [ ] ~~Progress chart doesn't seem to track all cards~~ Progress chart can't track historical "total cards" until creation dates are added
 - [ ] Study progress should have stacked new, struggling, learning, and mastered cards
-- [ ] Bonus stats on profile page
-  - [ ] Total reviews (moved from study statistics)?
-  - [ ] Cards that have been timed
-  - [ ] Cards that have not been timed
-  - [ ] Average review duration (w/ clipping at 60 seconds)
+- [ ] Additional stats: add reviews/day rate
 
 #### Heatmap
 
 - [ ] Label best day ever/per year
+- [ ] Move month labels above top row of days
+
+## Data
+
+- [ ] Update folder/deck updatedAt value when updates are made
+- [ ] Add more partial update options
 
 ## Infrastructure
 
 - [ ] Create an AWS tag for all resources associated with this app
+- [ ] Remove version tracking from S3 bucket
 
 ## Complete
+
+2026-01-06
+
+- [x] Added Missing Values section to Additional Stats
 
 2026-01-05
 

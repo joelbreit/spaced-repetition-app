@@ -84,13 +84,13 @@ export function useDeckOperations() {
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? {
-							...deck,
-							cards: deck.cards.map((card) =>
-								card.cardId === cardId
-									? { ...card, front, back }
-									: card
-							),
-					  }
+						...deck,
+						cards: deck.cards.map((card) =>
+							card.cardId === cardId
+								? { ...card, front, back }
+								: card
+						),
+					}
 					: deck
 			),
 		}));
@@ -102,11 +102,11 @@ export function useDeckOperations() {
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? {
-							...deck,
-							cards: deck.cards.filter(
-								(card) => card.cardId !== cardId
-							),
-					  }
+						...deck,
+						cards: deck.cards.filter(
+							(card) => card.cardId !== cardId
+						),
+					}
 					: deck
 			),
 		}));
@@ -118,18 +118,18 @@ export function useDeckOperations() {
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? {
-							...deck,
-							cards: deck.cards.map((card) =>
-								card.cardId === cardId
-									? {
-											...card,
-											isFlagged: !(
-												card.isFlagged || false
-											),
-									  }
-									: card
-							),
-					  }
+						...deck,
+						cards: deck.cards.map((card) =>
+							card.cardId === cardId
+								? {
+									...card,
+									isFlagged: !(
+										card.isFlagged || false
+									),
+								}
+								: card
+						),
+					}
 					: deck
 			),
 		}));
@@ -141,18 +141,18 @@ export function useDeckOperations() {
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? {
-							...deck,
-							cards: deck.cards.map((card) =>
-								card.cardId === cardId
-									? {
-											...card,
-											isStarred: !(
-												card.isStarred || false
-											),
-									  }
-									: card
-							),
-					  }
+						...deck,
+						cards: deck.cards.map((card) =>
+							card.cardId === cardId
+								? {
+									...card,
+									isStarred: !(
+										card.isStarred || false
+									),
+								}
+								: card
+						),
+					}
 					: deck
 			),
 		}));

@@ -11,8 +11,21 @@ export default function AdditionalStats({ appData }) {
 		// Use setTimeout to allow UI to update before heavy calculation
 		setTimeout(() => {
 			try {
-				// Get all decks
+				// Get all folders and decks
+				const allFolders = appData?.folders || [];
 				const allDecks = appData?.decks || [];
+
+				// Calculate folder statistics
+				const totalFolders = allFolders.length;
+				const foldersWithoutCreatedAt = allFolders.filter(
+					(folder) => !folder.createdAt
+				).length;
+
+				// Calculate deck statistics
+				const totalDecks = allDecks.length;
+				const decksWithoutCreatedAt = allDecks.filter(
+					(deck) => !deck.createdAt
+				).length;
 
 				// Collect all cards from all decks
 				const allCards = [];
@@ -24,6 +37,11 @@ export default function AdditionalStats({ appData }) {
 
 				// Calculate total cards
 				const totalCards = allCards.length;
+
+				// Calculate cards without createdAt
+				const cardsWithoutCreatedAt = allCards.filter(
+					(card) => !card.createdAt
+				).length;
 
 				// Calculate total reviews
 				const totalReviews = allCards.reduce(
@@ -188,7 +206,12 @@ export default function AdditionalStats({ appData }) {
 				});
 
 				setStats({
+					totalFolders,
+					foldersWithoutCreatedAt,
+					totalDecks,
+					decksWithoutCreatedAt,
 					totalCards,
+					cardsWithoutCreatedAt,
 					totalReviews,
 					cardsWithDurationCount,
 					cardsWithoutDurationCount,
@@ -253,6 +276,30 @@ export default function AdditionalStats({ appData }) {
 
 			{stats ? (
 				<div className="space-y-4">
+					{/* Total Folders */}
+					<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+						<div className="flex items-center justify-between">
+							<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+								Total Folders
+							</span>
+							<span className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+								{stats.totalFolders.toLocaleString()}
+							</span>
+						</div>
+					</div>
+
+					{/* Total Decks */}
+					<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+						<div className="flex items-center justify-between">
+							<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+								Total Decks
+							</span>
+							<span className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+								{stats.totalDecks.toLocaleString()}
+							</span>
+						</div>
+					</div>
+
 					{/* Total Reviews */}
 					<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
 						<div className="flex items-center justify-between">
@@ -458,6 +505,51 @@ export default function AdditionalStats({ appData }) {
 								</p>
 							</div>
 						)}
+
+					{/* Missing createdAt Values */}
+					{(stats.foldersWithoutCreatedAt > 0 ||
+						stats.decksWithoutCreatedAt > 0 ||
+						stats.cardsWithoutCreatedAt > 0) && (
+						<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+							<div className="mb-3">
+								<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+									Missing Values
+								</span>
+							</div>
+							<div className="space-y-2">
+								{stats.totalFolders > 0 && (
+									<div className="flex items-center justify-between">
+										<span className="text-xs text-gray-600 dark:text-slate-400">
+											Folders without createdAt
+										</span>
+										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+											{stats.foldersWithoutCreatedAt.toLocaleString()}
+										</span>
+									</div>
+								)}
+								{stats.totalDecks > 0 && (
+									<div className="flex items-center justify-between">
+										<span className="text-xs text-gray-600 dark:text-slate-400">
+											Decks without createdAt
+										</span>
+										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+											{stats.decksWithoutCreatedAt.toLocaleString()}
+										</span>
+									</div>
+								)}
+								{stats.totalCards > 0 && (
+									<div className="flex items-center justify-between">
+										<span className="text-xs text-gray-600 dark:text-slate-400">
+											Cards without createdAt
+										</span>
+										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+											{stats.cardsWithoutCreatedAt.toLocaleString()}
+										</span>
+									</div>
+								)}
+							</div>
+						</div>
+					)}
 				</div>
 			) : (
 				<div className="text-center py-8 text-gray-500 dark:text-slate-400">

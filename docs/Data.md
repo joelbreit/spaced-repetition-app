@@ -5,6 +5,7 @@
 ```json
 {
 	"version": "2",
+	"updatedAt": 1234567890, // not fully implemented yet
 	// Folders added in v2
 	"folders": [
 		{
@@ -15,7 +16,7 @@
 			"folderSymbol": "📁",
 			"parentFolderId": null, // null or missing = root level, otherwise references another folderId
 			"createdAt": 1234567890,
-			"updatedAt": 1234567890
+			"updatedAt": 1234567890 // not fully implemented yet
 		},
 	],
 	"decks": [
@@ -25,7 +26,7 @@
 		"deckSymbol": "📚", // optional, defaults to "📚"
 		"parentFolderId": null, // v2, null or missing = root level, otherwise references another folderId
 		"createdAt": 1234567890, // added later, may be missing
-		"updatedAt": 1234567890, // v2
+		"updatedAt": 1234567890, // not fully implemented yet
 		"cards": [
 		{
 			"cardId": "unique-id",
