@@ -49,6 +49,7 @@ export default function CardReviewView({
 	// Animation state for review result
 	const [animationResult, setAnimationResult] = useState(null);
 	const [nextDueDate, setNextDueDate] = useState(null);
+	const [selectedReview, setSelectedReview] = useState(null);
 
 	// Track if the current card has been flipped at least once
 	const [hasBeenFlipped, setHasBeenFlipped] = useState(false);
@@ -68,6 +69,7 @@ export default function CardReviewView({
 	useEffect(() => {
 		if (previousCardIndexRef.current !== currentCardIndex) {
 			setHasBeenFlipped(false);
+			setSelectedReview(null);
 			previousCardIndexRef.current = currentCardIndex;
 			// Start timing when card is first shown
 			reviewStartTimeRef.current = Date.now();
@@ -116,6 +118,7 @@ export default function CardReviewView({
 
 			setAnimationResult(result);
 			setNextDueDate(nextDue);
+			setSelectedReview(result);
 
 			// After animation completes, record the review with the same timestamp and duration
 			setTimeout(() => {
@@ -126,6 +129,7 @@ export default function CardReviewView({
 				setTimeout(() => {
 					setAnimationResult(null);
 					setNextDueDate(null);
+					setSelectedReview(null);
 				}, 300);
 			}, 600);
 		},
@@ -493,7 +497,11 @@ export default function CardReviewView({
 							<button
 								onClick={() => handleReview("again")}
 								disabled={!!animationResult}
-								className="px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+								className={`px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+									selectedReview === "again"
+										? "ring-4 ring-red-300 dark:ring-red-400 scale-105 shadow-2xl"
+										: ""
+								}`}
 							>
 								<div className="text-lg font-semibold">
 									Again
@@ -503,7 +511,11 @@ export default function CardReviewView({
 							<button
 								onClick={() => handleReview("hard")}
 								disabled={!!animationResult}
-								className="px-6 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+								className={`px-6 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+									selectedReview === "hard"
+										? "ring-4 ring-orange-300 dark:ring-orange-400 scale-105 shadow-2xl"
+										: ""
+								}`}
 							>
 								<div className="text-lg font-semibold">
 									Hard
@@ -515,7 +527,11 @@ export default function CardReviewView({
 							<button
 								onClick={() => handleReview("good")}
 								disabled={!!animationResult}
-								className="px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+								className={`px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+									selectedReview === "good"
+										? "ring-4 ring-green-300 dark:ring-green-400 scale-105 shadow-2xl"
+										: ""
+								}`}
 							>
 								<div className="text-lg font-semibold">
 									Good
@@ -527,7 +543,11 @@ export default function CardReviewView({
 							<button
 								onClick={() => handleReview("easy")}
 								disabled={!!animationResult}
-								className="px-6 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+								className={`px-6 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+									selectedReview === "easy"
+										? "ring-4 ring-teal-300 dark:ring-teal-400 scale-105 shadow-2xl"
+										: ""
+								}`}
 							>
 								<div className="text-lg font-semibold">
 									Easy
