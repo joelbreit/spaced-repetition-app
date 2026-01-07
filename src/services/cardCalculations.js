@@ -41,7 +41,7 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	const timeSinceLastReview =
 		reviews.length > 0
 			? timestamp - reviews[reviews.length - 1].timestamp
-			: timestamp - card.createdAt || MIN_INTERVAL;
+			: timestamp - MIN_INTERVAL;
 
 	// const previousInterval = reviews.length > 0 && reviews[reviews.length - 1].interval ? reviews[reviews.length - 1].interval : timeSinceLastReview;
 	const previousInterval = getInterval(card);
@@ -96,7 +96,7 @@ export function getInterval(card) {
 		const reviews = card.reviews || [];
 
 		if (reviews.length === 0) {
-			interval = Date.now() - card.createdAt || MIN_INTERVAL;
+			interval = MIN_INTERVAL;
 		} else {
 			interval = Date.now() - reviews[reviews.length - 1].timestamp;
 		}

@@ -2,11 +2,6 @@
 
 ## Issues
 
-- [ ] Disconnecting:
-  - Error: "Failed to save to cloud. Data saved locally"
-  - Offline
-  - 401
-  - Error: "Unauthorized - please log in again"
 - [ ] Should show an error if a folder or deck is orphaned (parentFolderId is not null and can't be found)
 - [ ] In Firefox, the back of cards shows up dimmly when flipped
 
