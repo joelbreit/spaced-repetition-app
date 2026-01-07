@@ -10,7 +10,7 @@ import {
 	Weight,
 	BookOpen,
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import SegmentedProgressBar from "../SegmentedProgressBar";
 import CardSide from "./CardSide";
 import {
@@ -20,6 +20,7 @@ import {
 	getPerDayReviewRate,
 } from "../../services/cardCalculations";
 import { useAppData } from "../../contexts/AppDataContext";
+import { readAloudAPI } from "../../services/apiStorage";
 
 export default function CardReviewView({
 	deck,
@@ -95,39 +96,152 @@ export default function CardReviewView({
 		);
 	}, [playbackSpeed]);
 
+	// Handle review button click - trigger animation then record
+	const handleReview = useCallback(
+		(result) => {
+			if (!currentCard) return;
+
+			const timestamp = Date.now(); // Capture timestamp at button click
+			const interval = calculateNextInterval(
+				result,
+				currentCard,
+				timestamp
+			);
+			const nextDue = timestamp + interval;
+
+			// Calculate review duration (time from card view to review button click)
+			const reviewDuration = reviewStartTimeRef.current
+				? timestamp - reviewStartTimeRef.current
+				: 0;
+
+			setAnimationResult(result);
+			setNextDueDate(nextDue);
+
+			// After animation completes, record the review with the same timestamp and duration
+			setTimeout(() => {
+				onReview(result, timestamp, reviewDuration);
+
+				// Keep the animation result visible for a bit longer while it flips back
+				// This matches the 300ms delay in OverviewPage.jsx
+				setTimeout(() => {
+					setAnimationResult(null);
+					setNextDueDate(null);
+				}, 300);
+			}, 600);
+		},
+		[currentCard, onReview]
+	);
+
+	// Function to play audio for current side
+	const playCurrentSideAudio = useCallback(async () => {
+		if (!currentCard) return;
+
+		const textToRead = isFlipped ? currentCard.back : currentCard.front;
+
+		try {
+			const audioBlob = await readAloudAPI(textToRead);
+
+			// Get or create persistent audio element in the DOM for extensions to detect
+			let audioPlayer = document.getElementById("flashcard-audio-player");
+			if (!audioPlayer) {
+				audioPlayer = document.createElement("audio");
+				audioPlayer.id = "flashcard-audio-player";
+				audioPlayer.style.display = "none";
+				document.body.appendChild(audioPlayer);
+			}
+
+			// Clean up previous URL if exists
+			if (audioPlayer.src) {
+				URL.revokeObjectURL(audioPlayer.src);
+			}
+
+			// Make sure the metadata is loaded before setting the playback rate
+			audioPlayer.onloadedmetadata = () => {
+				audioPlayer.playbackRate = playbackSpeed;
+			};
+
+			// Set playback speed and new audio, then play
+			audioPlayer.src = URL.createObjectURL(audioBlob);
+			audioPlayer.play();
+		} catch (error) {
+			console.error("Failed to read aloud:", error);
+		}
+	}, [currentCard, isFlipped, playbackSpeed]);
+
+	// Keyboard shortcuts
+	useEffect(() => {
+		const handleKeyDown = (event) => {
+			// Don't trigger shortcuts if user is typing in an input/textarea
+			if (
+				event.target.tagName === "INPUT" ||
+				event.target.tagName === "TEXTAREA" ||
+				event.target.isContentEditable
+			) {
+				return;
+			}
+
+			// Space: play audio
+			if (event.key === " " || event.code === "Space") {
+				event.preventDefault();
+				if (!animationResult) {
+					playCurrentSideAudio();
+				}
+				return;
+			}
+
+			// Enter: flip card
+			if (event.key === "Enter") {
+				event.preventDefault();
+				if (!animationResult) {
+					onFlip();
+				}
+				return;
+			}
+
+			// Arrow keys: review actions (only when card is flipped)
+			if (!hasBeenFlipped || animationResult) {
+				return;
+			}
+
+			switch (event.key) {
+				case "ArrowLeft":
+					event.preventDefault();
+					handleReview("again");
+					break;
+				case "ArrowDown":
+					event.preventDefault();
+					handleReview("hard");
+					break;
+				case "ArrowRight":
+					event.preventDefault();
+					handleReview("good");
+					break;
+				case "ArrowUp":
+					event.preventDefault();
+					handleReview("easy");
+					break;
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [
+		isFlipped,
+		hasBeenFlipped,
+		animationResult,
+		playCurrentSideAudio,
+		handleReview,
+		onFlip,
+	]);
+
 	if (!currentCard) {
 		return null;
 	}
 
 	const handleSpeedChange = (newSpeed) => {
 		setPlaybackSpeed(newSpeed);
-	};
-
-	// Handle review button click - trigger animation then record
-	const handleReview = (result) => {
-		const timestamp = Date.now(); // Capture timestamp at button click
-		const interval = calculateNextInterval(result, currentCard, timestamp);
-		const nextDue = timestamp + interval;
-
-		// Calculate review duration (time from card view to review button click)
-		const reviewDuration = reviewStartTimeRef.current
-			? timestamp - reviewStartTimeRef.current
-			: 0;
-
-		setAnimationResult(result);
-		setNextDueDate(nextDue);
-
-		// After animation completes, record the review with the same timestamp and duration
-		setTimeout(() => {
-			onReview(result, timestamp, reviewDuration);
-
-			// Keep the animation result visible for a bit longer while it flips back
-			// This matches the 300ms delay in OverviewPage.jsx
-			setTimeout(() => {
-				setAnimationResult(null);
-				setNextDueDate(null);
-			}, 300);
-		}, 600);
 	};
 
 	// Get animation color based on result
