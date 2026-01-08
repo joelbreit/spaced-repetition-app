@@ -60,7 +60,7 @@
   - [x] Dropdown with
     - [x] Listed playback speed, +/- for 0.1 speed changes
     - [ ] Automatically play toggle
-- [ ] Hotkey for read aloud and other controls
+- [x] Hotkey for read aloud and other controls
 
 ### Card View
 
@@ -100,6 +100,15 @@
 - [ ] Remove version tracking from S3 bucket
 
 ## Complete
+
+2026-01-08
+
+- [x] Upgraded read aloud API to use generative engine
+
+2026-01-07
+
+- [x] Added visual indicator of selected review result
+- [x] Added keyboard shortcuts
 
 2026-01-06
 

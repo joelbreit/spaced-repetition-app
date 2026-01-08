@@ -5,8 +5,14 @@ const polly = new PollyClient({ region: process.env.AWS_REGION || 'us-east-1' })
 export const handler = async (event) => {
   try {
     // Parse request body
-    const { text } = JSON.parse(event.body);
-    
+    const {
+      text,
+      OutputFormat = 'mp3',
+      VoiceId = 'Joanna', // US female voice - can be customized
+      Engine = 'neural', // Higher quality voice
+      TextType = 'text'
+    } = JSON.parse(event.body);
+
     if (!text) {
       return {
         statusCode: 400,
@@ -21,10 +27,10 @@ export const handler = async (event) => {
     // Call Polly to synthesize speech
     const command = new SynthesizeSpeechCommand({
       Text: text,
-      OutputFormat: 'mp3',
-      VoiceId: 'Joanna', // US female voice - can be customized
-      Engine: 'neural', // Higher quality voice
-      TextType: 'text'
+      OutputFormat,
+      VoiceId,
+      Engine,
+      TextType
     });
 
     const response = await polly.send(command);
@@ -52,16 +58,16 @@ export const handler = async (event) => {
 
   } catch (error) {
     console.error('Error synthesizing speech:', error);
-    
+
     return {
       statusCode: 500,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: 'Failed to synthesize speech',
-        message: error.message 
+        message: error.message
       })
     };
   }

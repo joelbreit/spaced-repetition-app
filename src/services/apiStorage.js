@@ -189,8 +189,17 @@ export async function readAloudAPI(text) {
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ text }),
+			body: JSON.stringify({
+				text,
+				VoiceId: 'Ruth',
+				Engine: 'generative'
+			}),
 		});
+
+		// Estimated cost (Generative voices are priced at $30 per 1 million characters)
+		// console.log('Estimated cost:', response.headers.get('x-amz-estimated-cost'));
+		const dollars = text.length / 1000000 * 30;
+		console.log('Estimated cost: $', dollars.toFixed(4));
 
 		if (!response.ok) {
 			let errorMessage = `HTTP error! status: ${response.status}`;
