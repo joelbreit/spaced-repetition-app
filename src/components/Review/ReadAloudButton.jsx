@@ -17,7 +17,7 @@ import {
 import { readAloudAPI } from "../../services/apiStorage";
 
 const ReadAloudButton = forwardRef(function ReadAloudButton(
-	{ text, playbackSpeed, onSpeedChange },
+	{ text, playbackSpeed, onSpeedChange, voiceId = null, engine = null },
 	ref
 ) {
 	const [showSpeedDropdown, setShowSpeedDropdown] = useState(false);
@@ -148,7 +148,11 @@ const ReadAloudButton = forwardRef(function ReadAloudButton(
 			setIsLoading(true);
 
 			try {
-				const audioBlob = await readAloudAPI(textToRead);
+				const audioBlob = await readAloudAPI(
+					textToRead,
+					voiceId,
+					engine
+				);
 				const loadTime = Date.now() - loadStartTime;
 				console.log(`Audio loaded in ${loadTime}ms`);
 
@@ -183,7 +187,7 @@ const ReadAloudButton = forwardRef(function ReadAloudButton(
 				currentAudioTextRef.current = null;
 			}
 		},
-		[playbackSpeed, isPlaying, handlePause, handleResume]
+		[playbackSpeed, isPlaying, handlePause, handleResume, voiceId, engine]
 	);
 
 	// Expose play/pause method to parent via ref

@@ -9,10 +9,12 @@ import {
 	RulerDimensionLine,
 	Weight,
 	BookOpen,
+	Settings,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import SegmentedProgressBar from "../SegmentedProgressBar";
 import CardSide from "./CardSide";
+import ReadAloudSettingsModal from "./ReadAloudSettingsModal";
 import {
 	calculateNextInterval,
 	getInterval,
@@ -68,6 +70,27 @@ export default function CardReviewView({
 		return saved ? parseFloat(saved) : 1.0;
 	});
 
+	// Read aloud settings state
+	const [readAloudSettings, setReadAloudSettings] = useState(() => {
+		// Load from localStorage, default to Ruth/generative
+		try {
+			const saved = localStorage.getItem("readAloudSettings");
+			if (saved) {
+				const settings = JSON.parse(saved);
+				return {
+					voiceId: settings.voiceId || "Ruth",
+					engine: settings.engine || "generative",
+				};
+			}
+		} catch (error) {
+			console.error("Error loading readAloud settings:", error);
+		}
+		return { voiceId: "Ruth", engine: "generative" };
+	});
+
+	// Settings modal state
+	const [showSettingsModal, setShowSettingsModal] = useState(false);
+
 	// Initialize timer on mount and reset hasBeenFlipped and start timer when card changes
 	useEffect(() => {
 		if (previousCardIndexRef.current !== currentCardIndex) {
@@ -100,6 +123,13 @@ export default function CardReviewView({
 			playbackSpeed.toString()
 		);
 	}, [playbackSpeed]);
+
+	// Handle settings save
+	const handleSaveSettings = (voiceId, engine) => {
+		const newSettings = { voiceId, engine };
+		setReadAloudSettings(newSettings);
+		localStorage.setItem("readAloudSettings", JSON.stringify(newSettings));
+	};
 
 	// Handle review button click - trigger animation then record
 	const handleReview = useCallback(
@@ -365,6 +395,8 @@ export default function CardReviewView({
 						animationColor={getAnimationColor()}
 						playbackSpeed={playbackSpeed}
 						onSpeedChange={handleSpeedChange}
+						voiceId={readAloudSettings.voiceId}
+						engine={readAloudSettings.engine}
 						isStarred={isStarred}
 						isFlagged={isFlagged}
 						onToggleStar={onToggleStar}
@@ -383,6 +415,8 @@ export default function CardReviewView({
 						animationColor={getAnimationColor()}
 						playbackSpeed={playbackSpeed}
 						onSpeedChange={handleSpeedChange}
+						voiceId={readAloudSettings.voiceId}
+						engine={readAloudSettings.engine}
 						isStarred={isStarred}
 						isFlagged={isFlagged}
 						onToggleStar={onToggleStar}
@@ -557,6 +591,13 @@ export default function CardReviewView({
 						Edit Card
 					</button>
 					<button
+						onClick={() => setShowSettingsModal(true)}
+						className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+					>
+						<Settings className="h-5 w-5" />
+						Settings
+					</button>
+					<button
 						onClick={onEndReview}
 						className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
 					>
@@ -565,6 +606,15 @@ export default function CardReviewView({
 					</button>
 				</div>
 			</div>
+
+			{/* Settings Modal */}
+			<ReadAloudSettingsModal
+				isOpen={showSettingsModal}
+				onClose={() => setShowSettingsModal(false)}
+				onSave={handleSaveSettings}
+				currentVoiceId={readAloudSettings.voiceId}
+				currentEngine={readAloudSettings.engine}
+			/>
 		</div>
 	);
 }

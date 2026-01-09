@@ -12,6 +12,8 @@ const CardSide = forwardRef(function CardSide(
 		animationColor,
 		playbackSpeed,
 		onSpeedChange,
+		voiceId,
+		engine,
 		isStarred,
 		isFlagged,
 		onToggleStar,
@@ -41,6 +43,8 @@ const CardSide = forwardRef(function CardSide(
 				text={text}
 				playbackSpeed={playbackSpeed}
 				onSpeedChange={onSpeedChange}
+				voiceId={voiceId}
+				engine={engine}
 			/>
 
 			<CardActionButtons

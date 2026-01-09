@@ -182,7 +182,36 @@ export async function checkAPIHealth() {
 	}
 }
 
-export async function readAloudAPI(text) {
+/**
+ * Read text aloud using AWS Polly text-to-speech
+ * @param {string} text - The text to convert to speech
+ * @param {string} [voiceId] - Optional voice ID (defaults to saved setting or 'Ruth')
+ * @param {string} [engine] - Optional engine type (defaults to saved setting or 'generative')
+ * @returns {Promise<Blob>} Audio blob
+ */
+export async function readAloudAPI(text, voiceId = null, engine = null) {
+	// Load settings from localStorage or use defaults
+	let finalVoiceId = voiceId;
+	let finalEngine = engine;
+
+	if (!finalVoiceId || !finalEngine) {
+		try {
+			const savedSettings = localStorage.getItem('readAloudSettings');
+			if (savedSettings) {
+				const settings = JSON.parse(savedSettings);
+				finalVoiceId = finalVoiceId || settings.voiceId || 'Ruth';
+				finalEngine = finalEngine || settings.engine || 'generative';
+			} else {
+				finalVoiceId = finalVoiceId || 'Ruth';
+				finalEngine = finalEngine || 'generative';
+			}
+		} catch (error) {
+			console.error('Error loading readAloud settings:', error);
+			finalVoiceId = finalVoiceId || 'Ruth';
+			finalEngine = finalEngine || 'generative';
+		}
+	}
+
 	try {
 		const response = await fetch(`${API_ENDPOINT}/read-aloud`, {
 			method: 'POST',
@@ -191,15 +220,23 @@ export async function readAloudAPI(text) {
 			},
 			body: JSON.stringify({
 				text,
-				VoiceId: 'Ruth',
-				Engine: 'generative'
+				VoiceId: finalVoiceId,
+				Engine: finalEngine
 			}),
 		});
 
-		// Estimated cost (Generative voices are priced at $30 per 1 million characters)
-		// console.log('Estimated cost:', response.headers.get('x-amz-estimated-cost'));
-		const dollars = text.length / 1000000 * 30;
-		console.log('Estimated cost: $', dollars.toFixed(4));
+		// Estimated cost calculation based on engine
+		// Generative: $30 per 1M characters
+		// Neural: $16 per 1M characters
+		// Standard: $4 per 1M characters
+		let costPerMillion = 30; // generative default
+		if (finalEngine === 'neural') {
+			costPerMillion = 16;
+		} else if (finalEngine === 'standard') {
+			costPerMillion = 4;
+		}
+		const dollars = text.length / 1000000 * costPerMillion;
+		console.log(`Estimated cost (${finalEngine}): $${dollars.toFixed(4)}`);
 
 		if (!response.ok) {
 			let errorMessage = `HTTP error! status: ${response.status}`;

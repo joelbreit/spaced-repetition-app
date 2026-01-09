@@ -99,6 +99,7 @@
 
 2026-01-09
 
+- [x] Added options modal to read aloud button
 - [x] Added pause functionality to read aloud button
 - [x] Added spinner to read aloud button while loading
 
