@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
 	Star,
 	Flag,
@@ -8,6 +8,7 @@ import {
 	ChevronUp,
 	Link2,
 } from "lucide-react";
+import { useAppData } from "../contexts/AppDataContext";
 
 export default function CardEditView({
 	appData,
@@ -18,6 +19,7 @@ export default function CardEditView({
 	onToggleStar,
 	onToggleFlag,
 }) {
+	const { setAppData } = useAppData();
 	const [front, setFront] = useState("");
 	const [back, setBack] = useState("");
 	const [isStarred, setIsStarred] = useState(false);
@@ -25,6 +27,8 @@ export default function CardEditView({
 	const [partnerCardId, setPartnerCardId] = useState(null);
 	const [reviews, setReviews] = useState([]);
 	const [showReviews, setShowReviews] = useState(false);
+	const [updatePartnerCard, setUpdatePartnerCard] = useState(false);
+	const [originalCard, setOriginalCard] = useState(null); // Store original card data for comparison
 
 	useEffect(() => {
 		if (cardId && deckId) {
@@ -32,28 +36,74 @@ export default function CardEditView({
 			if (deck) {
 				const card = deck.cards.find((c) => c.cardId === cardId);
 				if (card) {
+					// Store original card data for comparison
+					setOriginalCard({ front: card.front, back: card.back });
 					setFront(card.front);
 					setBack(card.back);
 					setIsStarred(card.isStarred || false);
 					setIsFlagged(card.isFlagged || false);
 					setPartnerCardId(card.partnerCardId || null);
 					setReviews(card.reviews || []);
+
+					// Check if partner card exists and cards match, then set checkbox default
+					const partner = card.partnerCardId
+						? deck.cards.find(
+								(c) => c.cardId === card.partnerCardId
+						  )
+						: null;
+					if (partner) {
+						const match =
+							card.front.trim() === partner.back.trim() &&
+							card.back.trim() === partner.front.trim();
+						setUpdatePartnerCard(match);
+					} else {
+						setUpdatePartnerCard(false);
+					}
 				}
 			}
 		} else {
 			// Reset for new card
+			setOriginalCard(null);
 			setFront("");
 			setBack("");
 			setIsStarred(false);
 			setIsFlagged(false);
 			setPartnerCardId(null);
 			setReviews([]);
+			setUpdatePartnerCard(false);
 		}
 	}, [cardId, deckId, appData]);
 
 	const handleSave = () => {
 		if (front.trim() && back.trim()) {
-			onSave(deckId, cardId, front.trim(), back.trim());
+			const trimmedFront = front.trim();
+			const trimmedBack = back.trim();
+
+			// Update the current card
+			onSave(deckId, cardId, trimmedFront, trimmedBack);
+
+			// If checkbox is checked and partner card exists, update partner card (swap front/back)
+			if (updatePartnerCard && partnerCard && partnerCardId) {
+				setAppData((prev) => ({
+					...prev,
+					decks: (prev.decks || []).map((deck) =>
+						deck.deckId === deckId
+							? {
+									...deck,
+									cards: deck.cards.map((card) =>
+										card.cardId === partnerCardId
+											? {
+													...card,
+													front: trimmedBack,
+													back: trimmedFront,
+											  }
+											: card
+									),
+							  }
+							: deck
+					),
+				}));
+			}
 		}
 	};
 
@@ -116,6 +166,25 @@ export default function CardEditView({
 	};
 
 	const partnerCard = getPartnerCard();
+
+	// Check if cards match based on original saved state (not current edited state)
+	// This card's original front == partner's back, this card's original back == partner's front
+	const cardsMatch = useMemo(() => {
+		if (!partnerCard || !cardId || !originalCard) return false;
+		const originalFront = originalCard.front.trim();
+		const originalBack = originalCard.back.trim();
+		return (
+			originalFront === partnerCard.back.trim() &&
+			originalBack === partnerCard.front.trim()
+		);
+	}, [partnerCard, originalCard, cardId]);
+
+	// Force uncheck if cards don't match (but allow manual toggle when they do match)
+	useEffect(() => {
+		if (cardId && partnerCard && !cardsMatch) {
+			setUpdatePartnerCard(false);
+		}
+	}, [cardsMatch, cardId, partnerCard]);
 
 	return (
 		<div
@@ -309,6 +378,47 @@ export default function CardEditView({
 
 				{/* Footer with Buttons */}
 				<div className="p-6 border-t border-gray-200 dark:border-slate-700">
+					{/* Partner Card Update Checkbox - only show when editing and partner exists */}
+					{cardId && partnerCard && (
+						<div className="mb-4">
+							<label
+								className={`flex items-start gap-3 ${
+									cardsMatch
+										? "cursor-pointer"
+										: "cursor-not-allowed"
+								}`}
+							>
+								<input
+									type="checkbox"
+									checked={updatePartnerCard}
+									onChange={(e) =>
+										setUpdatePartnerCard(e.target.checked)
+									}
+									disabled={!cardsMatch}
+									className="mt-1 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed"
+								/>
+								<div className="flex-1">
+									<span
+										className={`text-sm font-medium ${
+											cardsMatch
+												? "text-gray-700 dark:text-slate-200"
+												: "text-gray-400 dark:text-slate-500"
+										}`}
+									>
+										Also update partner card (front/back
+										reversed)
+									</span>
+									{!cardsMatch && (
+										<p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+											Disabled: Cards don't match (this
+											card's front should equal partner's
+											back, and vice versa)
+										</p>
+									)}
+								</div>
+							</label>
+						</div>
+					)}
 					<div className="flex gap-4">
 						<button
 							onClick={onCancel}

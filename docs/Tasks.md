@@ -23,8 +23,9 @@
   - [ ] When deleting a card, ask if you want to delete the related card
   - [ ] When deleting a deck with cards that are tied to partner cards
     - [ ] Ask which cards to delete (all, some, none)
-  - [ ] When editing a card, ask if you want to edit the partner card
-  - [ ] Show partner cards in card view
+  - [x] When editing a card, ask if you want to edit the partner card
+  - [x] Show partner cards in card view
+  - [ ] Link to partner card in edit card modal
 - [ ] Track related cards
 - [ ] **Cloze deletions**
 - [ ] Email login should not be case sensitive
@@ -54,9 +55,9 @@
 #### Read Aloud
 
 - [ ] Cache audio for a side of a card after read aloud button has been used once
-- [ ] **Options modal**
+- [x] **Options modal**
   - [ ] Automatically play toggle
-  - [ ] Voice / engine selection
+  - [x] Voice / engine selection
 
 ### Card View
 
@@ -99,6 +100,7 @@
 
 2026-01-09
 
+- [x] Added edit partner card functionality to edit card modal
 - [x] Added options modal to read aloud button
 - [x] Added pause functionality to read aloud button
 - [x] Added spinner to read aloud button while loading
