@@ -20,7 +20,6 @@ import {
 	getPerDayReviewRate,
 } from "../../services/cardCalculations";
 import { useAppData } from "../../contexts/AppDataContext";
-import { readAloudAPI } from "../../services/apiStorage";
 
 export default function CardReviewView({
 	deck,
@@ -57,6 +56,10 @@ export default function CardReviewView({
 
 	// Track review timing - start time when card is first viewed
 	const reviewStartTimeRef = useRef(null);
+
+	// Refs for read aloud buttons
+	const frontReadAloudRef = useRef(null);
+	const backReadAloudRef = useRef(null);
 
 	// Playback speed state
 	const [playbackSpeed, setPlaybackSpeed] = useState(() => {
@@ -136,41 +139,15 @@ export default function CardReviewView({
 		[currentCard, onReview]
 	);
 
-	// Function to play audio for current side
-	const playCurrentSideAudio = useCallback(async () => {
-		if (!currentCard) return;
-
-		const textToRead = isFlipped ? currentCard.back : currentCard.front;
-
-		try {
-			const audioBlob = await readAloudAPI(textToRead);
-
-			// Get or create persistent audio element in the DOM for extensions to detect
-			let audioPlayer = document.getElementById("flashcard-audio-player");
-			if (!audioPlayer) {
-				audioPlayer = document.createElement("audio");
-				audioPlayer.id = "flashcard-audio-player";
-				audioPlayer.style.display = "none";
-				document.body.appendChild(audioPlayer);
-			}
-
-			// Clean up previous URL if exists
-			if (audioPlayer.src) {
-				URL.revokeObjectURL(audioPlayer.src);
-			}
-
-			// Make sure the metadata is loaded before setting the playback rate
-			audioPlayer.onloadedmetadata = () => {
-				audioPlayer.playbackRate = playbackSpeed;
-			};
-
-			// Set playback speed and new audio, then play
-			audioPlayer.src = URL.createObjectURL(audioBlob);
-			audioPlayer.play();
-		} catch (error) {
-			console.error("Failed to read aloud:", error);
+	// Function to toggle play/pause for current side
+	const toggleCurrentSideAudio = useCallback(() => {
+		const currentReadAloudRef = isFlipped
+			? backReadAloudRef
+			: frontReadAloudRef;
+		if (currentReadAloudRef.current) {
+			currentReadAloudRef.current.togglePlayPause();
 		}
-	}, [currentCard, isFlipped, playbackSpeed]);
+	}, [isFlipped]);
 
 	// Keyboard shortcuts
 	useEffect(() => {
@@ -184,11 +161,11 @@ export default function CardReviewView({
 				return;
 			}
 
-			// Space: play audio
+			// Space: play/pause audio
 			if (event.key === " " || event.code === "Space") {
 				event.preventDefault();
 				if (!animationResult) {
-					playCurrentSideAudio();
+					toggleCurrentSideAudio();
 				}
 				return;
 			}
@@ -235,7 +212,7 @@ export default function CardReviewView({
 		isFlipped,
 		hasBeenFlipped,
 		animationResult,
-		playCurrentSideAudio,
+		toggleCurrentSideAudio,
 		handleReview,
 		onFlip,
 	]);
@@ -380,6 +357,7 @@ export default function CardReviewView({
 				>
 					{/* Front Side */}
 					<CardSide
+						ref={frontReadAloudRef}
 						side="Front"
 						text={currentCard.front}
 						animationResult={animationResult}
@@ -397,6 +375,7 @@ export default function CardReviewView({
 
 					{/* Back Side */}
 					<CardSide
+						ref={backReadAloudRef}
 						side="Back"
 						text={currentCard.back}
 						animationResult={animationResult}

@@ -1,8 +1,9 @@
+import { forwardRef } from "react";
 import ReadAloudButton from "./ReadAloudButton";
 import CardActionButtons from "./CardActionButtons";
 import AnimationOverlay from "./AnimationOverlay";
 
-export default function CardSide({
+const CardSide = forwardRef(function CardSide({
 	side,
 	text,
 	animationResult,
@@ -16,7 +17,7 @@ export default function CardSide({
 	onToggleFlag,
 	cardId,
 	transform,
-}) {
+}, ref) {
 	return (
 		<div
 			className={`backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl min-h-[100px] relative overflow-hidden transition-all ${
@@ -33,6 +34,7 @@ export default function CardSide({
 			<AnimationOverlay nextDueDate={nextDueDate} />
 
 			<ReadAloudButton
+				ref={ref}
 				text={text}
 				playbackSpeed={playbackSpeed}
 				onSpeedChange={onSpeedChange}
@@ -61,4 +63,6 @@ export default function CardSide({
 			</div>
 		</div>
 	);
-}
+});
+
+export default CardSide;

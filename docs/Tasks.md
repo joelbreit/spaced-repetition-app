@@ -53,14 +53,10 @@
 
 #### Read Aloud
 
-- [x] Add persistent audio playback speed control
-- [ ] If already playing, button should stop read aloud
 - [ ] Cache audio for a side of a card after read aloud button has been used once
-- [x] **Upgraded read aloud button** 
-  - [x] Dropdown with
-    - [x] Listed playback speed, +/- for 0.1 speed changes
-    - [ ] Automatically play toggle
-- [x] Hotkey for read aloud and other controls
+- [ ] **Options modal**
+  - [ ] Automatically play toggle
+  - [ ] Voice / engine selection
 
 ### Card View
 
@@ -100,6 +96,11 @@
 - [ ] Remove version tracking from S3 bucket
 
 ## Complete
+
+2026-01-09
+
+- [x] Added pause functionality to read aloud button
+- [x] Added spinner to read aloud button while loading
 
 2026-01-08
 
