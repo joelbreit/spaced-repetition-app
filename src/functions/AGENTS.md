@@ -11,12 +11,12 @@ This directory contains the source code for AWS Lambda functions. These are depl
 Main data API for CRUD operations on flashcard data.
 
 **Endpoints**:
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/data` | Load user's flashcard data |
-| POST | `/data` | Save full dataset (overwrites) |
-| PATCH | `/data` | Incremental update (card or deck) |
-| OPTIONS | `/data` | CORS preflight |
+| Method  | Path    | Description                       |
+| ------- | ------- | --------------------------------- |
+| GET     | `/data` | Load user's flashcard data        |
+| POST    | `/data` | Save full dataset (overwrites)    |
+| PATCH   | `/data` | Incremental update (card or deck) |
+| OPTIONS | `/data` | CORS preflight                    |
 
 **Authentication**: All requests (except OPTIONS) require a valid Cognito JWT in the `Authorization: Bearer <token>` header.
 
@@ -53,9 +53,9 @@ Main data API for CRUD operations on flashcard data.
 Text-to-speech API using AWS Polly.
 
 **Endpoint**:
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/read-aloud` | Convert text to speech |
+| Method | Path          | Description            |
+| ------ | ------------- | ---------------------- |
+| POST   | `/read-aloud` | Convert text to speech |
 
 **Request Format**:
 ```json

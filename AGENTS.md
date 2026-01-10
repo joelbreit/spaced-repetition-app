@@ -36,17 +36,17 @@ User (Browser)
 
 ## Important Files & Directories
 
-| Path | Purpose |
-|------|---------|
-| `src/App.jsx` | Root component, context providers, routing |
-| `src/contexts/AppDataContext.jsx` | Central data state, save/load logic, PATCH optimization |
-| `src/contexts/AuthContext.jsx` | Cognito auth, token refresh, user state |
-| `src/services/apiStorage.js` | API client (GET/POST/PATCH/read-aloud) |
-| `src/services/cardCalculations.js` | Spaced repetition algorithm |
-| `src/functions/flashcards-api/index.mjs` | Lambda: CRUD for flashcard data |
-| `src/functions/flashcards-read-aloud/index.mjs` | Lambda: AWS Polly text-to-speech |
-| `docs/Data.md` | Data schema documentation |
-| `docs/Design.md` | UI/UX design system (colors, components, animations) |
+| Path                                            | Purpose                                                 |
+| ----------------------------------------------- | ------------------------------------------------------- |
+| `src/App.jsx`                                   | Root component, context providers, routing              |
+| `src/contexts/AppDataContext.jsx`               | Central data state, save/load logic, PATCH optimization |
+| `src/contexts/AuthContext.jsx`                  | Cognito auth, token refresh, user state                 |
+| `src/services/apiStorage.js`                    | API client (GET/POST/PATCH/read-aloud)                  |
+| `src/services/cardCalculations.js`              | Spaced repetition algorithm                             |
+| `src/functions/flashcards-api/index.mjs`        | Lambda: CRUD for flashcard data                         |
+| `src/functions/flashcards-read-aloud/index.mjs` | Lambda: AWS Polly text-to-speech                        |
+| `docs/Data.md`                                  | Data schema documentation                               |
+| `docs/Design.md`                                | UI/UX design system (colors, components, animations)    |
 
 ## Data Structure
 

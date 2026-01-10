@@ -62,40 +62,40 @@ The app wraps contexts in this order (outermost to innermost):
 ## Component Organization
 
 ### Pages (`pages/`)
-| Component | Route | Purpose |
-|-----------|-------|---------|
-| `OverviewPage.jsx` | `/*` | Main app shell, folder/deck browser, review mode |
-| `ProfilePage.jsx` | `/profile` | User stats, settings, change password |
+| Component          | Route      | Purpose                                          |
+| ------------------ | ---------- | ------------------------------------------------ |
+| `OverviewPage.jsx` | `/*`       | Main app shell, folder/deck browser, review mode |
+| `ProfilePage.jsx`  | `/profile` | User stats, settings, change password            |
 
 ### Core Components (`components/`)
-| Component | Purpose |
-|-----------|---------|
-| `Header.jsx` | App header with nav, streak, sync status |
-| `Footer.jsx` | Links and app info |
-| `FolderBrowserView.jsx` | Navigate folders, view decks |
-| `DeckCardsView.jsx` | View/manage cards in a deck |
-| `CardEditView.jsx` | Modal for creating/editing cards |
+| Component                   | Purpose                                   |
+| --------------------------- | ----------------------------------------- |
+| `Header.jsx`                | App header with nav, streak, sync status  |
+| `Footer.jsx`                | Links and app info                        |
+| `FolderBrowserView.jsx`     | Navigate folders, view decks              |
+| `DeckCardsView.jsx`         | View/manage cards in a deck               |
+| `CardEditView.jsx`          | Modal for creating/editing cards          |
 | `SortableContainerItem.jsx` | Draggable folder/deck item (uses dnd-kit) |
-| `StudyStatistics.jsx` | Stats display (due/new/learned, mastery) |
-| `AuthView.jsx` | Login/signup forms |
-| `DemoBanner.jsx` | Banner for guest mode |
+| `StudyStatistics.jsx`       | Stats display (due/new/learned, mastery)  |
+| `AuthView.jsx`              | Login/signup forms                        |
+| `DemoBanner.jsx`            | Banner for guest mode                     |
 
 ### Review Components (`components/Review/`)
-| Component | Purpose |
-|-----------|---------|
-| `CardReviewView.jsx` | Main review interface, card flip logic |
-| `CardSide.jsx` | Renders front or back of card |
-| `CardActionButtons.jsx` | Again/Hard/Good/Easy buttons |
-| `ReviewSummary.jsx` | Session results after review ends |
-| `ReadAloudButton.jsx` | Text-to-speech via AWS Polly |
-| `AnimationOverlay.jsx` | Confetti and visual feedback |
+| Component               | Purpose                                |
+| ----------------------- | -------------------------------------- |
+| `CardReviewView.jsx`    | Main review interface, card flip logic |
+| `CardSide.jsx`          | Renders front or back of card          |
+| `CardActionButtons.jsx` | Again/Hard/Good/Easy buttons           |
+| `ReviewSummary.jsx`     | Session results after review ends      |
+| `ReadAloudButton.jsx`   | Text-to-speech via AWS Polly           |
+| `AnimationOverlay.jsx`  | Confetti and visual feedback           |
 
 ### Profile Components (`components/Profile/`)
-| Component | Purpose |
-|-----------|---------|
-| `ActivityHeatmap.jsx` | GitHub-style review activity grid |
-| `ProgressChart.jsx` | Line chart of card progress over time |
-| `AdditionalStats.jsx` | Detailed statistics |
+| Component             | Purpose                               |
+| --------------------- | ------------------------------------- |
+| `ActivityHeatmap.jsx` | GitHub-style review activity grid     |
+| `ProgressChart.jsx`   | Line chart of card progress over time |
+| `AdditionalStats.jsx` | Detailed statistics                   |
 
 ## Services (`services/`)
 

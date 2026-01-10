@@ -588,21 +588,21 @@ export default function CardReviewView({
 						className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 					>
 						<Edit className="h-5 w-5" />
-						Edit Card
+						<span className="hidden sm:inline">Edit</span>
 					</button>
 					<button
 						onClick={() => setShowSettingsModal(true)}
 						className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 					>
 						<Settings className="h-5 w-5" />
-						Settings
+						<span className="hidden sm:inline">Settings</span>
 					</button>
 					<button
 						onClick={onEndReview}
 						className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
 					>
 						<X className="h-5 w-5" />
-						End Review
+						<span className="hidden sm:inline">End</span>
 					</button>
 				</div>
 			</div>
