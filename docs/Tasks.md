@@ -98,6 +98,10 @@
 
 ## Complete
 
+2026-01-10
+
+- [x] Added average time per card to review summary
+
 2026-01-09
 
 - [x] Added edit partner card functionality to edit card modal

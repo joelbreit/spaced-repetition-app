@@ -36,6 +36,10 @@ export default function ReviewSummary({
 		0
 	);
 
+	// Calculate average time per card
+	const avgTimePerCard =
+		totalReviewed > 0 ? totalReviewTime / totalReviewed : 0;
+
 	// Format review time as minutes:seconds
 	const formatReviewTime = (ms) => {
 		if (!ms || ms === 0) return "0:00";
@@ -184,14 +188,31 @@ export default function ReviewSummary({
 					</div>
 					{totalReviewed > 0 && totalReviewTime > 0 && (
 						<div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
-							<div className="flex items-center justify-center gap-2">
-								<Clock className="h-5 w-5 text-teal-500" />
-								<div className="text-2xl font-semibold text-gray-900 dark:text-white">
-									{formatReviewTime(totalReviewTime)}
+							<div className="grid grid-cols-2 gap-4">
+								{/* Total Review Time */}
+								<div className="text-center">
+									<div className="flex items-center justify-center gap-2 mb-1">
+										<Clock className="h-5 w-5 text-teal-500" />
+										<div className="text-2xl font-semibold text-gray-900 dark:text-white">
+											{formatReviewTime(totalReviewTime)}
+										</div>
+									</div>
+									<div className="text-sm text-gray-500 dark:text-gray-400">
+										Total review time
+									</div>
 								</div>
-							</div>
-							<div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-								Total review time
+								{/* Average Time Per Card */}
+								<div className="text-center">
+									<div className="flex items-center justify-center gap-2 mb-1">
+										<Clock className="h-5 w-5 text-cyan-500" />
+										<div className="text-2xl font-semibold text-gray-900 dark:text-white">
+											{formatReviewTime(avgTimePerCard)}
+										</div>
+									</div>
+									<div className="text-sm text-gray-500 dark:text-gray-400">
+										Avg time per card
+									</div>
+								</div>
 							</div>
 						</div>
 					)}
