@@ -206,3 +206,6 @@ Update CORS headers if new methods are added.
 4. Add to deployment scripts
 5. Configure API Gateway route (via AWS console or scripts)
 
+
+
+

@@ -36,6 +36,17 @@ export function useDeckOperations() {
 		}));
 	};
 
+	const toggleArchiveDeck = (deckId) => {
+		setAppData((prev) => ({
+			...prev,
+			decks: (prev.decks || []).map((deck) =>
+				deck.deckId === deckId
+					? { ...deck, isArchived: !(deck.isArchived || false) }
+					: deck
+			),
+		}));
+	};
+
 	const moveDeck = (deckId, newParentFolderId) => {
 		setAppData((prev) => ({
 			...prev,
@@ -293,6 +304,7 @@ export function useDeckOperations() {
 		updateFolder,
 		deleteFolder,
 		reorderContainers,
+		toggleArchiveDeck,
 	};
 }
 

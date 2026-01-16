@@ -88,14 +88,40 @@ function OverviewPage() {
 	};
 
 	const startFolderReview = (folderId) => {
-		// Get all decks in the folder (folderId can be null for root)
-		let folderDecks = (appData.decks || []).filter(
-			(d) => d.parentFolderId === folderId
-		);
+		// Helper function to recursively get all decks in a folder and its subfolders
+		// Excludes archived decks
+		const getAllDecksInFolder = (targetFolderId) => {
+			// Root level folder - filter out archived decks
+			if (!targetFolderId) {
+				return (appData.decks || []).filter(
+					(d) => !(d.isArchived || false)
+				);
+			}
 
-		if (folderId === null) {
-			folderDecks = appData.decks || [];
-		}
+			const allDecks = [];
+
+			// Get direct decks in this folder (excluding archived)
+			const directDecks = (appData.decks || []).filter(
+				(d) => d.parentFolderId === targetFolderId && !(d.isArchived || false)
+			);
+			allDecks.push(...directDecks);
+
+			// Get subfolders
+			const subfolders = (appData.folders || []).filter(
+				(f) => f.parentFolderId === targetFolderId
+			);
+
+			// Recursively get decks from subfolders
+			subfolders.forEach((subfolder) => {
+				const subfolderDecks = getAllDecksInFolder(subfolder.folderId);
+				allDecks.push(...subfolderDecks);
+			});
+
+			return allDecks;
+		};
+
+		// Get all decks in the folder (recursively, excluding archived)
+		const folderDecks = getAllDecksInFolder(folderId);
 
 		if (folderDecks.length === 0) {
 			return; // No decks in folder

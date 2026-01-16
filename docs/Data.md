@@ -25,6 +25,7 @@
 		"deckName": "Deck Name",
 		"deckSymbol": "📚", // optional, defaults to "📚"
 		"parentFolderId": null, // v2, null or missing = root level, otherwise references another folderId
+		"isArchived": false, // optional, defaults to false. Archived decks are excluded from folder stats and Study All, but still viewable and studyable directly
 		"createdAt": 1234567890, // added later, may be missing
 		"updatedAt": 1234567890, // not fully implemented yet
 		"cards": [

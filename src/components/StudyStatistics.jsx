@@ -5,17 +5,20 @@ import {
 
 export default function StudyStatistics({ appData, folderId = null }) {
 	// Helper function to recursively get all decks in a folder and its subfolders
+	// Excludes archived decks for folder statistics
 	const getAllDecksInFolder = (targetFolderId) => {
-		// Root level folder
+		// Root level folder - filter out archived decks
 		if (!targetFolderId) {
-			return appData.decks;
+			return (appData.decks || []).filter(
+				(d) => !(d.isArchived || false)
+			);
 		}
 
 		const allDecks = [];
 
-		// Get direct decks in this folder
+		// Get direct decks in this folder (excluding archived)
 		const directDecks = (appData.decks || []).filter(
-			(d) => d.parentFolderId === targetFolderId
+			(d) => d.parentFolderId === targetFolderId && !(d.isArchived || false)
 		);
 		allDecks.push(...directDecks);
 

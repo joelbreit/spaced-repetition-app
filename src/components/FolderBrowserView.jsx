@@ -34,6 +34,7 @@ export default function FolderBrowserView({
 		updateFolder,
 		deleteFolder,
 		reorderContainers,
+		toggleArchiveDeck,
 	} = useDeckOperations();
 	const { showConfirmation } = useNotification();
 
@@ -67,6 +68,40 @@ export default function FolderBrowserView({
 			(d.parentFolderId === null && !folderId) ||
 			d.parentFolderId === folderId
 	);
+
+	// Helper function to recursively get all non-archived decks in a folder and its subfolders
+	const getAllNonArchivedDecksInFolder = (targetFolderId) => {
+		// Root level folder - filter out archived decks
+		if (!targetFolderId) {
+			return (appData.decks || []).filter(
+				(d) => !(d.isArchived || false)
+			);
+		}
+
+		const allDecks = [];
+
+		// Get direct decks in this folder (excluding archived)
+		const directDecks = (appData.decks || []).filter(
+			(d) => d.parentFolderId === targetFolderId && !(d.isArchived || false)
+		);
+		allDecks.push(...directDecks);
+
+		// Get subfolders
+		const subfolders = (appData.folders || []).filter(
+			(f) => f.parentFolderId === targetFolderId
+		);
+
+		// Recursively get decks from subfolders
+		subfolders.forEach((subfolder) => {
+			const subfolderDecks = getAllNonArchivedDecksInFolder(subfolder.folderId);
+			allDecks.push(...subfolderDecks);
+		});
+
+		return allDecks;
+	};
+
+	// Check if there are any non-archived decks for Study All button
+	const hasNonArchivedDecks = getAllNonArchivedDecksInFolder(folderId || null).length > 0;
 
 	// Combine into items array for sorting/filtering
 	const allItems = [
@@ -215,7 +250,7 @@ export default function FolderBrowserView({
 						className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 					/>
 				</div>
-				{onStartFolderReview && decks.length > 0 && (
+				{onStartFolderReview && hasNonArchivedDecks && (
 					<button
 						onClick={() => onStartFolderReview(folderId || null)}
 						className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 whitespace-nowrap"
@@ -383,6 +418,7 @@ export default function FolderBrowserView({
 									}
 									onStartReview={onStartReview}
 									onStartFolderReview={onStartFolderReview}
+									onToggleArchive={item.type === "deck" ? toggleArchiveDeck : undefined}
 									isDraggable={!searchTerm}
 									appData={appData}
 								/>

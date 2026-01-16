@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Edit, Trash2, Play, Eye, GripVertical, Folder } from "lucide-react";
+import { Edit, Trash2, Play, Eye, GripVertical, Folder, Archive } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -34,6 +34,7 @@ export default function SortableContainerItem({
 	handleDelete,
 	onStartReview,
 	onStartFolderReview,
+	onToggleArchive,
 	isDraggable,
 	appData, // Needed to count folder contents
 }) {
@@ -41,6 +42,7 @@ export default function SortableContainerItem({
 	const isFolder = type === "folder";
 	const isDeck = type === "deck";
 	const isEditing = editingId === item.id;
+	const isArchived = isDeck && (item.isArchived || false);
 
 	const {
 		attributes,
@@ -108,12 +110,13 @@ export default function SortableContainerItem({
 			: null;
 
 	// Helper function to recursively get all decks in a folder and its subfolders
+	// Excludes archived decks for folder statistics
 	const getAllDecksInFolder = (folderId) => {
 		const allDecks = [];
 
-		// Get direct decks in this folder
+		// Get direct decks in this folder (excluding archived)
 		const directDecks = (appData.decks || []).filter(
-			(d) => d.parentFolderId === folderId
+			(d) => d.parentFolderId === folderId && !(d.isArchived || false)
 		);
 		allDecks.push(...directDecks);
 
@@ -230,7 +233,9 @@ export default function SortableContainerItem({
 		<div
 			ref={setNodeRef}
 			style={style}
-			className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 dark:border-slate-700 p-6 transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group animate-slide-up"
+			className={`bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 dark:border-slate-700 p-6 transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group animate-slide-up ${
+				isArchived ? "opacity-60" : ""
+			}`}
 		>
 			{isEditing ? (
 				<div>
@@ -297,12 +302,19 @@ export default function SortableContainerItem({
 									: item.symbol || "📚"}
 							</span>
 							<div className="flex-1">
-								<h3
-									className="text-xl font-bold text-gray-900 dark:text-slate-100 cursor-pointer hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
-									onClick={handleClick}
-								>
-									{item.name}
-								</h3>
+								<div className="flex items-center gap-2">
+									<h3
+										className="text-xl font-bold text-gray-900 dark:text-slate-100 cursor-pointer hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
+										onClick={handleClick}
+									>
+										{item.name}
+									</h3>
+									{isArchived && (
+										<span className="px-2 py-0.5 text-xs font-medium bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-400 rounded-full">
+											Archived
+										</span>
+									)}
+								</div>
 								<p className="text-sm text-gray-600 dark:text-slate-400">
 									{isFolder
 										? folderStats.totalCards > 0
@@ -615,6 +627,22 @@ export default function SortableContainerItem({
 						>
 							<Edit className="h-4 w-4" />
 						</button>
+						{isDeck && onToggleArchive && (
+							<button
+								onClick={(e) => {
+									e.stopPropagation();
+									onToggleArchive(item.id);
+								}}
+								className={`p-2 rounded-lg transition-colors duration-200 ${
+									isArchived
+										? "text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20"
+										: "text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700"
+								}`}
+								title={isArchived ? "Unarchive deck" : "Archive deck"}
+							>
+								<Archive className="h-4 w-4" />
+							</button>
+						)}
 						<button
 							onClick={(e) => {
 								e.stopPropagation();

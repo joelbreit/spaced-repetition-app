@@ -31,7 +31,6 @@
 - [ ] Email login should not be case sensitive
 - [ ] User should be able to delete account
 - [ ] Documentation of pages, components, algorithms, data structure
-- [ ] Ability to archive decks 
 - [ ] Log how much things are probably costing
 - [ ] Markdown support
 
@@ -97,6 +96,10 @@
 - [ ] Remove version tracking from S3 bucket
 
 ## Complete
+
+2026-01-16
+
+- [x] Added archive functionality for decks
 
 2026-01-10
 
