@@ -87,12 +87,6 @@ export default function StudyStatistics({ appData, folderId = null }) {
 		0
 	);
 
-	// Calculate total reviews
-	const totalReviews = allCards.reduce(
-		(sum, card) => sum + (card.reviews?.length || 0),
-		0
-	);
-
 	function getMasteryBadgeColors(mastery) {
 		if (mastery < 25) return "text-red-700 dark:text-red-400";
 		if (mastery < 50) return "text-orange-700 dark:text-orange-400";
@@ -129,11 +123,6 @@ export default function StudyStatistics({ appData, folderId = null }) {
 		{
 			label: "Burden/Day",
 			value: allCards.length > 0 ? burdenPerDay.toFixed(1) : "—",
-			customStyle: "text-gray-900 dark:text-gray-100",
-		},
-		{
-			label: "Reviews",
-			value: totalReviews,
 			customStyle: "text-gray-900 dark:text-gray-100",
 		},
 	];

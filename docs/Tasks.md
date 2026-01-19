@@ -42,7 +42,6 @@
 
 ### Header
 
-- [ ] Reconnect by clicking "Offline"
 - [ ] View streak (start, reviews in recent days, longest streak) when clicking on streak icon
 - [ ] View reviews today (which decks, etc) when clicking on reviews today icon
 
@@ -75,10 +74,6 @@
 - [ ] Show how many cards in deck have a partner card
 - [ ] Make folders and decks look more distinct from each other
 
-### Study Statistics
-
-- [ ] Remove Reviews
-
 ### Profile Page
 
 - [ ] Columns / rows on larger screens
@@ -96,6 +91,11 @@
 - [ ] Remove version tracking from S3 bucket
 
 ## Complete
+
+2026-01-19
+
+- [x] Added most reviewed card front and deck to additional stats
+- [x] Removed total reviews from folder stats
 
 2026-01-16
 

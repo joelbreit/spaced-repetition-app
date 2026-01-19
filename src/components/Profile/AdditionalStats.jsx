@@ -214,14 +214,17 @@ export default function AdditionalStats({ appData }) {
 						maxReviews = reviewCount;
 						mostReviewedCard = {
 							reviewCount,
-							deckName:
-								allDecks.find(
-									(deck) =>
-										deck.cards &&
-										deck.cards.some(
-											(c) => c.cardId === card.cardId
-										)
-								)?.deckName || "Unknown",
+							front: card.front,
+							deckName: allDecks.find(
+								(deck) =>
+									deck.cards &&
+									deck.cards.some((c) => c.cardId === card.cardId)
+							)?.deckName || "Unknown",
+							deckId: allDecks.find(
+								(deck) =>
+									deck.cards &&
+									deck.cards.some((c) => c.cardId === card.cardId)
+							)?.deckId || "Unknown",
 						};
 					}
 				});
@@ -543,7 +546,7 @@ export default function AdditionalStats({ appData }) {
 									</span>
 								</div>
 								<p className="text-xs text-gray-500 dark:text-slate-500 mt-2">
-									Highest number of reviews for a single card
+									{stats.mostReviewedCard.front} ({stats.mostReviewedCard.deckName})
 								</p>
 							</div>
 						)}

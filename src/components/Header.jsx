@@ -110,6 +110,23 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 		}
 	};
 
+	const getSyncTitle = () => {
+		if (!isAuthenticated) return "Local storage";
+		if (isSyncing || isSaving) return "Syncing...";
+		return "Click to sync";
+	};
+
+	const isStreakActive = reviewsToday > 0;
+	const streakClasses = isStreakActive
+		? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800"
+		: "bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600";
+	const flameIconClasses = isStreakActive
+		? "text-orange-500"
+		: "text-gray-400 dark:text-slate-500";
+	const streakTextClasses = isStreakActive
+		? "text-orange-700 dark:text-orange-300"
+		: "text-gray-500 dark:text-slate-400";
+
 	return (
 		<header className="relative z-30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -127,39 +144,30 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 						</h1>
 					</div>
 
-					{/* Mobile: Show icons only (no text) */}
-					<div className="sm:hidden flex items-center space-x-2 shrink-0 mr-2">
+					{/* Stats and Actions - Responsive */}
+					<div className="flex items-center gap-1 sm:gap-3 shrink-0 sm:mr-0 mr-2">
 						{/* Streak */}
 						<div
-							className={`flex items-center gap-1 px-2 py-1 rounded-full border ${
-								reviewsToday > 0
-									? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800"
-									: "bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600"
-							}`}
+							className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full border ${streakClasses}`}
 						>
-							<Flame
-								className={`h-4 w-4 ${
-									reviewsToday > 0
-										? "text-orange-500"
-										: "text-gray-400 dark:text-slate-500"
-								}`}
-							/>
-							<span
-								className={`text-xs font-medium ${
-									reviewsToday > 0
-										? "text-orange-700 dark:text-orange-300"
-										: "text-gray-500 dark:text-slate-400"
-								}`}
-							>
-								{streak}
+							<Flame className={`h-4 w-4 ${flameIconClasses}`} />
+							<span className={`text-xs font-medium ${streakTextClasses}`}>
+								<span className="sm:hidden">{streak}</span>
+								<span className="hidden sm:inline">
+									{streak} {streak === 1 ? "day" : "days"}
+								</span>
 							</span>
 						</div>
 
 						{/* Reviews Today */}
-						<div className="flex items-center gap-1 px-2 py-1 rounded-full bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800">
+						<div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800">
 							<BookOpen className="h-4 w-4 text-teal-500" />
 							<span className="text-xs font-medium text-teal-700 dark:text-teal-300">
-								{reviewsToday}
+								<span className="sm:hidden">{reviewsToday}</span>
+								<span className="hidden sm:inline">
+									{reviewsToday}{" "}
+									{reviewsToday === 1 ? "review" : "reviews"}
+								</span>
 							</span>
 						</div>
 
@@ -167,117 +175,45 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 						<button
 							onClick={handleSync}
 							disabled={!isAuthenticated || isSyncing || isSaving}
-							className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-							title={
-								!isAuthenticated
-									? "Local storage"
-									: isSyncing || isSaving
-									? "Syncing..."
-									: isOnline
-									? "Click to sync"
-									: "Click to sync"
-							}
-						>
-							{!isAuthenticated ? (
-								<Cloud className="h-3 w-3 text-gray-500" />
-							) : isSyncing || isSaving ? (
-								<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
-							) : isOnline ? (
-								<Cloud className="h-3 w-3 text-green-500" />
-							) : (
-								<CloudOff className="h-3 w-3 text-orange-500" />
-							)}
-						</button>
-					</div>
-
-					{/* Desktop: Show all items */}
-					<div className="hidden sm:flex items-center space-x-3 shrink-0">
-						{/* Streak */}
-						<div
-							className={`flex items-center gap-2 px-3 py-1 rounded-full border ${
-								reviewsToday > 0
-									? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800"
-									: "bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600"
-							}`}
-						>
-							<Flame
-								className={`h-4 w-4 ${
-									reviewsToday > 0
-										? "text-orange-500"
-										: "text-gray-400 dark:text-slate-500"
-								}`}
-							/>
-							<span
-								className={`text-xs font-medium ${
-									reviewsToday > 0
-										? "text-orange-700 dark:text-orange-300"
-										: "text-gray-500 dark:text-slate-400"
-								}`}
-							>
-								{streak} {streak === 1 ? "day" : "days"}
-							</span>
-						</div>
-
-						{/* Reviews Today */}
-						<div className="flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800">
-							<BookOpen className="h-4 w-4 text-teal-500" />
-							<span className="text-xs font-medium text-teal-700 dark:text-teal-300">
-								{reviewsToday}{" "}
-								{reviewsToday === 1 ? "review" : "reviews"}
-							</span>
-						</div>
-
-						{/* Sync Status Indicator */}
-						<button
-							onClick={handleSync}
-							disabled={!isAuthenticated || isSyncing || isSaving}
-							className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-							title={
-								!isAuthenticated
-									? "Local storage"
-									: isSyncing || isSaving
-									? "Syncing..."
-									: isOnline
-									? "Click to sync"
-									: "Click to sync"
-							}
+							className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2 w-7 h-7 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1 rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							title={getSyncTitle()}
 						>
 							{!isAuthenticated ? (
 								<>
 									<Cloud className="h-3 w-3 text-gray-500" />
-									<span className="text-xs text-gray-600 dark:text-slate-400">
+									<span className="hidden sm:inline text-xs text-gray-600 dark:text-slate-400">
 										Local
 									</span>
 								</>
 							) : isSyncing || isSaving ? (
 								<>
 									<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
-									<span className="text-xs text-gray-600 dark:text-slate-400">
+									<span className="hidden sm:inline text-xs text-gray-600 dark:text-slate-400">
 										Syncing...
 									</span>
 								</>
 							) : isOnline ? (
 								<>
 									<Cloud className="h-3 w-3 text-green-500" />
-									<span className="text-xs text-gray-600 dark:text-slate-400">
+									<span className="hidden sm:inline text-xs text-gray-600 dark:text-slate-400">
 										Synced
 									</span>
 								</>
 							) : (
 								<>
 									<CloudOff className="h-3 w-3 text-orange-500" />
-									<span className="text-xs text-gray-600 dark:text-slate-400">
+									<span className="hidden sm:inline text-xs text-gray-600 dark:text-slate-400">
 										Offline
 									</span>
 								</>
 							)}
 						</button>
 
-						{/* Profile or Sign In Button */}
+						{/* Profile or Sign In Button - Desktop only */}
 						{isAuthenticated ? (
 							<button
 								onClick={() => navigate("/profile")}
-								className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
+								className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
 								title="View Profile"
 							>
 								<UserIcon className="h-4 w-4" />
@@ -286,7 +222,7 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 						) : (
 							<button
 								onClick={onSignInClick}
-								className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition-colors duration-200"
+								className="hidden sm:flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition-colors duration-200"
 								title="Sign In"
 							>
 								<LogIn className="h-4 w-4" />
