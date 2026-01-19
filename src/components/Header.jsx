@@ -118,12 +118,12 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 					<div className="flex items-center min-w-0 flex-1">
 						<h1
 							onClick={() => navigate("/")}
-							className="text-lg md:text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate cursor-pointer hover:opacity-80 transition-opacity"
+							className="text-lg sm:text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate cursor-pointer hover:opacity-80 transition-opacity"
 						>
-							<span className="hidden md:inline">
+							<span className="hidden lg:inline">
 								Spaced Repetition Flashcards
 							</span>
-							<span className="md:hidden">Flashcards</span>
+							<span className="lg:hidden">Flashcards</span>
 						</h1>
 					</div>
 

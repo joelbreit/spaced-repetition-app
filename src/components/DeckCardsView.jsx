@@ -7,7 +7,6 @@ import {
 	Search,
 	BookOpen,
 	Copy,
-	Upload,
 	Target,
 	BarChart3,
 	ArrowUpDown,
@@ -17,6 +16,7 @@ import {
 	X,
 	FolderPlus,
 	Folder,
+	FileUp,
 } from "lucide-react";
 import { useNotification } from "../hooks/useNotification";
 import { useAppData } from "../contexts/AppDataContext";
@@ -391,8 +391,8 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 							className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
 							title="Import cards from a TSV file (2 columns: front and back)"
 						>
-							<Upload className="h-5 w-5" />
-							<span className="hidden sm:inline">
+							<FileUp className="h-5 w-5" />
+							<span className="hidden lg:inline">
 								Import Cards
 							</span>
 						</label>
@@ -402,7 +402,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 							title="Move this deck to a different folder"
 						>
 							<FolderPlus className="h-5 w-5" />
-							<span className="hidden sm:inline">
+							<span className="hidden lg:inline">
 								Move to Folder
 							</span>
 						</button>
@@ -413,7 +413,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 								title="Duplicate all cards with reversed front/back"
 							>
 								<Copy className="h-5 w-5" />
-								<span className="hidden sm:inline">
+								<span className="hidden lg:inline">
 									Duplicate Reversed
 								</span>
 							</button>
@@ -424,7 +424,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 								className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 							>
 								<Play className="h-5 w-5" />
-								<span className="hidden sm:inline">
+								<span className="hidden lg:inline">
 									Study Now
 								</span>
 							</button>
