@@ -56,6 +56,9 @@
 - [x] **Options modal**
   - [ ] Automatically play toggle
   - [x] Voice / engine selection
+- [ ] Retreive neural voices
+- [ ] Exclude generative voices
+- [ ] Default to neural, Ruth voice
 
 ### Card View
 
@@ -91,6 +94,10 @@
 - [ ] Remove version tracking from S3 bucket
 
 ## Complete
+
+2026-01-28
+
+- [x] Review summary layout improvements
 
 2026-01-19
 
