@@ -23,21 +23,32 @@ const ENGINE_LABELS = {
 	generative: "Generative (Premium)",
 };
 
+const AUTO_READ_OPTIONS = [
+	{ value: "off", label: "Off" },
+	{ value: "both", label: "Both sides" },
+	{ value: "front", label: "Front only" },
+	{ value: "back", label: "Back only" },
+	{ value: "longer", label: "Longer side only" },
+];
+
 export default function ReadAloudSettingsModal({
 	isOpen,
 	onClose,
 	onSave,
 	currentVoiceId = "Ruth",
 	currentEngine = "generative",
+	currentAutoRead = "off",
 }) {
 	const [selectedVoiceId, setSelectedVoiceId] = useState(currentVoiceId);
 	const [selectedEngine, setSelectedEngine] = useState(currentEngine);
+	const [selectedAutoRead, setSelectedAutoRead] = useState(currentAutoRead);
 
 	// Update local state when props change
 	useEffect(() => {
 		setSelectedVoiceId(currentVoiceId);
 		setSelectedEngine(currentEngine);
-	}, [currentVoiceId, currentEngine]);
+		setSelectedAutoRead(currentAutoRead);
+	}, [currentVoiceId, currentEngine, currentAutoRead]);
 
 	// Get available engines for selected voice
 	const availableEngines = VOICE_ENGINES[selectedVoiceId] || ["neural"];
@@ -56,7 +67,7 @@ export default function ReadAloudSettingsModal({
 	};
 
 	const handleSave = () => {
-		onSave(selectedVoiceId, selectedEngine);
+		onSave(selectedVoiceId, selectedEngine, selectedAutoRead);
 		onClose();
 	};
 
@@ -64,6 +75,7 @@ export default function ReadAloudSettingsModal({
 		// Reset to original values
 		setSelectedVoiceId(currentVoiceId);
 		setSelectedEngine(currentEngine);
+		setSelectedAutoRead(currentAutoRead);
 		onClose();
 	};
 
@@ -138,6 +150,27 @@ export default function ReadAloudSettingsModal({
 								"Neural engine provides high-quality, natural-sounding speech."}
 							{selectedEngine === "standard" &&
 								"Standard engine is cost-effective with good quality."}
+						</p>
+					</div>
+
+					{/* Auto-read when side is shown */}
+					<div>
+						<label className="mb-3 block text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
+							Auto-read when side is shown
+						</label>
+						<select
+							value={selectedAutoRead}
+							onChange={(e) => setSelectedAutoRead(e.target.value)}
+							className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+						>
+							{AUTO_READ_OPTIONS.map((opt) => (
+								<option key={opt.value} value={opt.value}>
+									{opt.label}
+								</option>
+							))}
+						</select>
+						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+							Automatically read the selected side when it is displayed
 						</p>
 					</div>
 				</div>

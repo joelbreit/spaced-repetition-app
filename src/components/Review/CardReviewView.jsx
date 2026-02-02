@@ -72,7 +72,7 @@ export default function CardReviewView({
 
 	// Read aloud settings state
 	const [readAloudSettings, setReadAloudSettings] = useState(() => {
-		// Load from localStorage, default to Ruth/generative
+		// Load from localStorage, default to Ruth/generative/off
 		try {
 			const saved = localStorage.getItem("readAloudSettings");
 			if (saved) {
@@ -80,12 +80,13 @@ export default function CardReviewView({
 				return {
 					voiceId: settings.voiceId || "Ruth",
 					engine: settings.engine || "generative",
+					autoRead: settings.autoRead || "off",
 				};
 			}
 		} catch (error) {
 			console.error("Error loading readAloud settings:", error);
 		}
-		return { voiceId: "Ruth", engine: "generative" };
+		return { voiceId: "Ruth", engine: "generative", autoRead: "off" };
 	});
 
 	// Settings modal state
@@ -124,9 +125,52 @@ export default function CardReviewView({
 		);
 	}, [playbackSpeed]);
 
+	// Auto-read when side is shown (after flip animation)
+	useEffect(() => {
+		const autoRead = readAloudSettings.autoRead;
+		if (
+			autoRead === "off" ||
+			!currentCard ||
+			animationResult
+		) {
+			return;
+		}
+		const timeoutId = setTimeout(() => {
+			const frontLen = (currentCard.front || "").length;
+			const backLen = (currentCard.back || "").length;
+			let shouldReadFront = false;
+			let shouldReadBack = false;
+			if (autoRead === "both") {
+				shouldReadFront = !isFlipped;
+				shouldReadBack = isFlipped;
+			} else if (autoRead === "front") {
+				shouldReadFront = !isFlipped;
+			} else if (autoRead === "back") {
+				shouldReadBack = isFlipped;
+			} else if (autoRead === "longer") {
+				if (!isFlipped && frontLen >= backLen) shouldReadFront = true;
+				if (isFlipped && backLen >= frontLen) shouldReadBack = true;
+			}
+			if (shouldReadFront && (currentCard.front || "").trim()) {
+				frontReadAloudRef.current?.togglePlayPause();
+			}
+			if (shouldReadBack && (currentCard.back || "").trim()) {
+				backReadAloudRef.current?.togglePlayPause();
+			}
+		}, 650);
+		return () => clearTimeout(timeoutId);
+	}, [
+		isFlipped,
+		currentCardIndex,
+		currentCard?.cardId,
+		readAloudSettings.autoRead,
+		animationResult,
+		currentCard,
+	]);
+
 	// Handle settings save
-	const handleSaveSettings = (voiceId, engine) => {
-		const newSettings = { voiceId, engine };
+	const handleSaveSettings = (voiceId, engine, autoRead = "off") => {
+		const newSettings = { voiceId, engine, autoRead };
 		setReadAloudSettings(newSettings);
 		localStorage.setItem("readAloudSettings", JSON.stringify(newSettings));
 	};
@@ -614,6 +658,7 @@ export default function CardReviewView({
 				onSave={handleSaveSettings}
 				currentVoiceId={readAloudSettings.voiceId}
 				currentEngine={readAloudSettings.engine}
+				currentAutoRead={readAloudSettings.autoRead}
 			/>
 		</div>
 	);

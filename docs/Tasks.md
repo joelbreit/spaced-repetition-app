@@ -7,18 +7,13 @@
 
 ## Features
 
-- [ ] Check for update timestamp before starting a review session; if we are out of date, update the data, show an info message, then continue as normal
+- [ ] **Search and filtering in all group views**
+- [ ] **Cloze deletions**
 - [ ] **Review should fit better on page**
-  - [ ] Cards should stretch to fill the height allows
+- [ ] **Esc key to end review session**
+- [ ] Show keyboard shortcuts somehow
+  - [ ] Cards should stretch to fill the height allowed
   - [ ] Cards too big for that height should be scrollable
-- [ ] Configurable minimum interval +1
-- [ ] Math/paper aesthetic?
-- [ ] No more emojis in text
-- [ ] Replace `alert("Account confirmed! Please log in.");`
-- [ ] Allow confirmation of prompts / form submissions with 'Enter'
-  - [ ] Delete deck dialog
-- [ ] Show count of search results
-- [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
 - [ ] **Track partner cards that are tied to each other**
   - [ ] When deleting a card, ask if you want to delete the related card
   - [ ] When deleting a deck with cards that are tied to partner cards
@@ -26,13 +21,22 @@
   - [x] When editing a card, ask if you want to edit the partner card
   - [x] Show partner cards in card view
   - [ ] Link to partner card in edit card modal
+- [ ] cf. support for vocab
+- [ ] Add notes to card sides
+- [ ] Configurable minimum interval +1
+- [ ] Replace `alert("Account confirmed! Please log in.");`
+- [ ] Allow confirmation of prompts / form submissions with 'Enter'
+  - [ ] Delete deck dialog
+- [ ] Show count of search results
+- [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
 - [ ] Track related cards
-- [ ] **Cloze deletions**
 - [ ] Email login should not be case sensitive
 - [ ] User should be able to delete account
 - [ ] Documentation of pages, components, algorithms, data structure
 - [ ] Log how much things are probably costing
 - [ ] Markdown support
+- [ ] Weekly leagues - other users are my other weeks from the past
+- [ ] Select lucid icons instead of emojis for folders/decks
 
 ### Account Management
 
@@ -53,12 +57,8 @@
 #### Read Aloud
 
 - [ ] Cache audio for a side of a card after read aloud button has been used once
-- [x] **Options modal**
-  - [ ] Automatically play toggle
-  - [x] Voice / engine selection
 - [ ] Retreive neural voices
 - [ ] Exclude generative voices
-- [ ] Default to neural, Ruth voice
 
 ### Card View
 
@@ -76,6 +76,7 @@
 - [ ] Show whether cards already have a partner card - link to it if so
 - [ ] Show how many cards in deck have a partner card
 - [ ] Make folders and decks look more distinct from each other
+- [ ] Ability to duplicate just cards that have already been reviewed
 
 ### Profile Page
 
@@ -93,7 +94,25 @@
 - [ ] Create an AWS tag for all resources associated with this app
 - [ ] Remove version tracking from S3 bucket
 
+## Clean Up
+
+- [ ] SAM deployment
+  - [ ] Tag resources with app name
+- [ ] Remove old AWS resources
+- [ ] Remove old scripts
+- [ ] `apiStorage.js` -> `apiCalls.js` or something
+- [ ] Update AWS documentation
+- [ ] Move Lambda functions (currently in `src/functions`)
+- [ ] API Documentation
+- [ ] Data rehydration on front-end
+- [ ] Object-orientation
+- [ ] Consistent calculations
+
 ## Complete
+
+2026-02-02
+
+- [x] Added auto-read functionality to options modal
 
 2026-01-28
 
