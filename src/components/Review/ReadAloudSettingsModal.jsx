@@ -55,10 +55,11 @@ export default function ReadAloudSettingsModal({
 
 	// If current engine is not available for selected voice, reset to first available
 	useEffect(() => {
-		if (!availableEngines.includes(selectedEngine)) {
-			setSelectedEngine(availableEngines[0]);
+		const engines = VOICE_ENGINES[selectedVoiceId] || ['neural'];
+		if (!engines.includes(selectedEngine)) {
+			setSelectedEngine(engines[0]);
 		}
-	}, [selectedVoiceId, availableEngines]);
+	}, [selectedVoiceId, selectedEngine]);
 
 	const handleBackdropClick = (e) => {
 		if (e.target === e.currentTarget) {

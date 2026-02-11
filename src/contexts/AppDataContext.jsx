@@ -309,7 +309,7 @@ export function AppDataProvider({ children }) {
 			}
 		}
 		loadData();
-	}, [isAuthenticated, authToken, showError, showSuccess]);
+	}, [isAuthenticated, authToken, refreshToken, showError, showSuccess]);
 
 	// Keep appDataRef in sync with appData
 	useEffect(() => {
@@ -536,7 +536,14 @@ export function AppDataProvider({ children }) {
 				saveTimeoutRef.current = null;
 			}
 		};
-	}, [appData, isLoading, isAuthenticated, authToken, showError]);
+	}, [
+		appData,
+		isLoading,
+		isAuthenticated,
+		authToken,
+		refreshToken,
+		showError,
+	]);
 
 	// Function to upload local data to cloud (used after signup)
 	const uploadLocalDataToCloud = async (token) => {
@@ -583,6 +590,7 @@ export function AppDataProvider({ children }) {
 	);
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppData() {
 	const context = useContext(AppDataContext);
 	if (context === undefined) {

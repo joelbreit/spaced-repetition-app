@@ -5,10 +5,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Quick Reference
 
 ```bash
-npm run dev      # Start dev server at localhost:5173
-npm run build    # Production build
-npm run lint     # Run ESLint
-npm run preview  # Preview production build
+npm run dev          # Start dev server at localhost:5173
+npm run build        # Production build
+npm run lint         # Run ESLint
+npm run format       # Format all files with Prettier
+npm run format:check # Check formatting without writing
+npm run preview      # Preview production build
 ```
 
 ## Tech Stack

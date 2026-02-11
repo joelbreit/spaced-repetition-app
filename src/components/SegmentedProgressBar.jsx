@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react';
-
 /**
  * Segmented Progress Bar for spaced repetition review sessions
  * Shows up to 3 progress bars (Due, New, Learned) with the active one expanded
@@ -25,25 +23,6 @@ export default function SegmentedProgressBar({
 	};
 
 	const activeSectionIndex = getCurrentSection();
-
-	// Calculate progress within the current section
-	const getProgressInSection = () => {
-		let cumulative = 0;
-		for (let i = 0; i < activeSectionIndex; i++) {
-			cumulative += activeSections[i].total;
-		}
-		const indexInSection = currentCardIndex - cumulative;
-		const section = activeSections[activeSectionIndex];
-		return {
-			current: indexInSection + 1,
-			total: section?.total || 0,
-			percentage: section
-				? Math.round(((indexInSection + 1) / section.total) * 100)
-				: 0,
-		};
-	};
-
-	const progress = getProgressInSection();
 
 	// Check if all sections are complete
 	const isComplete = currentCardIndex >= totalCards;

@@ -11,6 +11,50 @@ import {
 } from 'recharts';
 import { useTheme } from '../../contexts/ThemeContext';
 
+// Helper functions - defined outside component since they don't depend on component state
+const getWeekNumber = (date) => {
+	const d = new Date(
+		Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+	);
+	const dayNum = d.getUTCDay() || 7;
+	d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+	const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+	return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+};
+
+const getPeriodKey = (date, period) => {
+	if (period === 'day') {
+		return date.toISOString().split('T')[0];
+	} else if (period === 'week') {
+		const year = date.getFullYear();
+		const week = getWeekNumber(date);
+		return `${year}-W${week}`;
+	} else if (period === 'month') {
+		return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+			2,
+			'0'
+		)}`;
+	}
+	return date.toISOString().split('T')[0];
+};
+
+const formatPeriodLabel = (date, period) => {
+	if (period === 'day') {
+		return date.toLocaleDateString('en-US', {
+			month: 'short',
+			day: 'numeric',
+		});
+	} else if (period === 'week') {
+		return `Week ${getWeekNumber(date)}, ${date.getFullYear()}`;
+	} else if (period === 'month') {
+		return date.toLocaleDateString('en-US', {
+			month: 'short',
+			year: 'numeric',
+		});
+	}
+	return date.toLocaleDateString('en-US');
+};
+
 /**
  * ProgressChart Component
  *
@@ -21,49 +65,6 @@ import { useTheme } from '../../contexts/ThemeContext';
  */
 export default function ProgressChart({ appData }) {
 	const { isDark } = useTheme();
-
-	// Helper functions - defined before useMemo to avoid temporal dead zone
-	const getWeekNumber = (date) => {
-		const d = new Date(
-			Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-		);
-		const dayNum = d.getUTCDay() || 7;
-		d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-		const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-		return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-	};
-
-	const getPeriodKey = (date, period) => {
-		if (period === 'day') {
-			return date.toISOString().split('T')[0];
-		} else if (period === 'week') {
-			const year = date.getFullYear();
-			const week = getWeekNumber(date);
-			return `${year}-W${week}`;
-		} else if (period === 'month') {
-			return `${date.getFullYear()}-${String(
-				date.getMonth() + 1
-			).padStart(2, '0')}`;
-		}
-		return date.toISOString().split('T')[0];
-	};
-
-	const formatPeriodLabel = (date, period) => {
-		if (period === 'day') {
-			return date.toLocaleDateString('en-US', {
-				month: 'short',
-				day: 'numeric',
-			});
-		} else if (period === 'week') {
-			return `Week ${getWeekNumber(date)}, ${date.getFullYear()}`;
-		} else if (period === 'month') {
-			return date.toLocaleDateString('en-US', {
-				month: 'short',
-				year: 'numeric',
-			});
-		}
-		return date.toLocaleDateString('en-US');
-	};
 
 	const chartData = useMemo(() => {
 		// Safety check for appData
