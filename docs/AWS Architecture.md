@@ -3,49 +3,49 @@
 ### Core Infrastructure (from `scripts/setup-lambda-api.sh`)
 
 1. **S3 Bucket**
-   - Name: `spaced-rep-flashcards-data`
-   - Region: `us-east-1`
-   - Versioning: Enabled
-   - Stores user flashcard data (user-specific paths: `users/{userId}/data.json`)
+    - Name: `spaced-rep-flashcards-data`
+    - Region: `us-east-1`
+    - Versioning: Enabled
+    - Stores user flashcard data (user-specific paths: `users/{userId}/data.json`)
 
 2. **Lambda Function**
-   - Name: `flashcards-api`
-   - Runtime: Node.js 20.x
-   - Handles GET/POST requests for flashcard data
-   - Authenticated with Cognito JWT verification
-   - Environment variables: `S3_BUCKET`, `USER_POOL_ID`, `CLIENT_ID`
+    - Name: `flashcards-api`
+    - Runtime: Node.js 20.x
+    - Handles GET/POST requests for flashcard data
+    - Authenticated with Cognito JWT verification
+    - Environment variables: `S3_BUCKET`, `USER_POOL_ID`, `CLIENT_ID`
 
 3. **API Gateway (HTTP API)**
-   - Name: `flashcards-api`
-   - Stage: `prod`
-   - Endpoint: `/data`
-   - Methods: GET, POST, OPTIONS (CORS)
-   - Integrated with Lambda
+    - Name: `flashcards-api`
+    - Stage: `prod`
+    - Endpoint: `/data`
+    - Methods: GET, POST, OPTIONS (CORS)
+    - Integrated with Lambda
 
 4. **IAM Role**
-   - Name: `flashcards-lambda-role`
-   - Trusted service: Lambda
-   - Attached policies:
-     - `AWSLambdaBasicExecutionRole` (CloudWatch Logs)
-     - Custom `flashcards-s3-access` policy (S3 access)
+    - Name: `flashcards-lambda-role`
+    - Trusted service: Lambda
+    - Attached policies:
+        - `AWSLambdaBasicExecutionRole` (CloudWatch Logs)
+        - Custom `flashcards-s3-access` policy (S3 access)
 
 5. **IAM Policy**
-   - Name: `flashcards-s3-access`
-   - Permissions: GetObject, PutObject, DeleteObject, ListBucket on the S3 bucket
+    - Name: `flashcards-s3-access`
+    - Permissions: GetObject, PutObject, DeleteObject, ListBucket on the S3 bucket
 
 ### Authentication (from `scripts/setup-cognito.sh`)
 
 6. **Cognito User Pool**
-   - Name: `flashcards-users`
-   - Authentication: Email-based
-   - Password policy: 8+ chars, lowercase + numbers required
-   - Email verification: Enabled
-   - MFA: Disabled
+    - Name: `flashcards-users`
+    - Authentication: Email-based
+    - Password policy: 8+ chars, lowercase + numbers required
+    - Email verification: Enabled
+    - MFA: Disabled
 
 7. **Cognito User Pool Client**
-   - Name: `flashcards-web-client`
-   - Auth flows: USER_PASSWORD_AUTH, REFRESH_TOKEN_AUTH, USER_SRP_AUTH
-   - Used by the frontend application
+    - Name: `flashcards-web-client`
+    - Auth flows: USER_PASSWORD_AUTH, REFRESH_TOKEN_AUTH, USER_SRP_AUTH
+    - Used by the frontend application
 
 ### Additional Resources
 
@@ -59,6 +59,7 @@
 ### Estimated Monthly Cost
 
 According to the cleanup script comments:
+
 - Lambda: $0.00 - $0.20 (first million requests free)
 - API Gateway: $0.00 - $1.00 (first million requests free)
 - S3: $0.02 - $0.05 (storage + requests)

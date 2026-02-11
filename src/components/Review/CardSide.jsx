@@ -1,7 +1,7 @@
-import { forwardRef } from "react";
-import ReadAloudButton from "./ReadAloudButton";
-import CardActionButtons from "./CardActionButtons";
-import AnimationOverlay from "./AnimationOverlay";
+import { forwardRef } from 'react';
+import ReadAloudButton from './ReadAloudButton';
+import CardActionButtons from './CardActionButtons';
+import AnimationOverlay from './AnimationOverlay';
 
 const CardSide = forwardRef(function CardSide(
 	{
@@ -26,14 +26,14 @@ const CardSide = forwardRef(function CardSide(
 	return (
 		<div
 			className={`backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl min-h-[100px] relative overflow-hidden transition-all ${
-				animationResult ? animationColor : ""
+				animationResult ? animationColor : ''
 			}`}
 			style={{
-				backfaceVisibility: "hidden",
-				WebkitBackfaceVisibility: "hidden",
+				backfaceVisibility: 'hidden',
+				WebkitBackfaceVisibility: 'hidden',
 				transform: transform,
-				gridArea: "1 / 1",
-				transitionDuration: "0.6s",
+				gridArea: '1 / 1',
+				transitionDuration: '0.6s',
 			}}
 		>
 			<AnimationOverlay nextDueDate={nextDueDate} />

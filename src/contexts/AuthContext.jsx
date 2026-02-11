@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import {
+	createContext,
+	useContext,
+	useState,
+	useEffect,
+	useRef,
+	useCallback,
+} from 'react';
 import {
 	signIn,
 	signOut,
@@ -7,7 +14,7 @@ import {
 	getCurrentUser,
 	fetchAuthSession,
 	updatePassword,
-} from "aws-amplify/auth";
+} from 'aws-amplify/auth';
 
 const AuthContext = createContext();
 
@@ -34,7 +41,7 @@ export function AuthProvider({ children }) {
 			}
 			return null;
 		} catch (error) {
-			console.error("Failed to refresh token:", error);
+			console.error('Failed to refresh token:', error);
 			// If refresh fails, user might need to log in again
 			setUser(null);
 			setAuthToken(null);
@@ -52,7 +59,7 @@ export function AuthProvider({ children }) {
 			const token = session.tokens?.accessToken?.toString();
 			setAuthToken(token);
 		} catch (error) {
-			console.log("No user logged in", error);
+			console.log('No user logged in', error);
 			setUser(null);
 			setAuthToken(null);
 		} finally {
@@ -73,9 +80,12 @@ export function AuthProvider({ children }) {
 
 		// Refresh token every 45 minutes (2700000 ms)
 		// This ensures we refresh before the 1-hour expiration
-		refreshIntervalRef.current = setInterval(() => {
-			refreshToken();
-		}, 45 * 60 * 1000);
+		refreshIntervalRef.current = setInterval(
+			() => {
+				refreshToken();
+			},
+			45 * 60 * 1000
+		);
 
 		return () => {
 			if (refreshIntervalRef.current) {
@@ -97,9 +107,9 @@ export function AuthProvider({ children }) {
 				return { success: true };
 			}
 
-			return { success: false, error: "Login incomplete", nextStep };
+			return { success: false, error: 'Login incomplete', nextStep };
 		} catch (error) {
-			console.error("Login error:", error);
+			console.error('Login error:', error);
 			return { success: false, error: error.message };
 		}
 	}
@@ -124,7 +134,7 @@ export function AuthProvider({ children }) {
 				nextStep,
 			};
 		} catch (error) {
-			console.error("Registration error:", error);
+			console.error('Registration error:', error);
 			return { success: false, error: error.message };
 		}
 	}
@@ -138,7 +148,7 @@ export function AuthProvider({ children }) {
 
 			return { success: true, isSignUpComplete, nextStep };
 		} catch (error) {
-			console.error("Confirmation error:", error);
+			console.error('Confirmation error:', error);
 			return { success: false, error: error.message };
 		}
 	}
@@ -150,7 +160,7 @@ export function AuthProvider({ children }) {
 			setAuthToken(null);
 			return { success: true };
 		} catch (error) {
-			console.error("Logout error:", error);
+			console.error('Logout error:', error);
 			return { success: false, error: error.message };
 		}
 	}
@@ -163,7 +173,7 @@ export function AuthProvider({ children }) {
 			});
 			return { success: true };
 		} catch (error) {
-			console.error("Password change error:", error);
+			console.error('Password change error:', error);
 			return { success: false, error: error.message };
 		}
 	}
@@ -190,7 +200,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
 	const context = useContext(AuthContext);
 	if (context === undefined) {
-		throw new Error("useAuth must be used within an AuthProvider");
+		throw new Error('useAuth must be used within an AuthProvider');
 	}
 	return context;
 }

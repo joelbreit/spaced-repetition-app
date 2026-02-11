@@ -1,4 +1,4 @@
-import { X, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle } from 'lucide-react';
 
 const ConfirmationDialog = ({
 	isOpen,
@@ -6,9 +6,9 @@ const ConfirmationDialog = ({
 	onConfirm,
 	title,
 	message,
-	confirmText = "Confirm",
-	cancelText = "Cancel",
-	type = "warning",
+	confirmText = 'Confirm',
+	cancelText = 'Cancel',
+	type = 'warning',
 }) => {
 	if (!isOpen) return null;
 
@@ -20,9 +20,9 @@ const ConfirmationDialog = ({
 
 	const getIcon = () => {
 		switch (type) {
-			case "danger":
+			case 'danger':
 				return <AlertTriangle className="w-6 h-6 text-red-500" />;
-			case "warning":
+			case 'warning':
 			default:
 				return <AlertTriangle className="w-6 h-6 text-yellow-500" />;
 		}
@@ -30,11 +30,11 @@ const ConfirmationDialog = ({
 
 	const getConfirmButtonStyle = () => {
 		switch (type) {
-			case "danger":
-				return "bg-red-600 hover:bg-red-700 focus:ring-red-500";
-			case "warning":
+			case 'danger':
+				return 'bg-red-600 hover:bg-red-700 focus:ring-red-500';
+			case 'warning':
 			default:
-				return "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500";
+				return 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500';
 		}
 	};
 

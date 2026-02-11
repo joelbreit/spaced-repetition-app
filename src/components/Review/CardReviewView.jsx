@@ -10,18 +10,18 @@ import {
 	Weight,
 	BookOpen,
 	Settings,
-} from "lucide-react";
-import { useState, useEffect, useRef, useCallback } from "react";
-import SegmentedProgressBar from "../SegmentedProgressBar";
-import CardSide from "./CardSide";
-import ReadAloudSettingsModal from "./ReadAloudSettingsModal";
+} from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import SegmentedProgressBar from '../SegmentedProgressBar';
+import CardSide from './CardSide';
+import ReadAloudSettingsModal from './ReadAloudSettingsModal';
 import {
 	calculateNextInterval,
 	getInterval,
 	calculateLearningStrength,
 	getPerDayReviewRate,
-} from "../../services/cardCalculations";
-import { useAppData } from "../../contexts/AppDataContext";
+} from '../../services/cardCalculations';
+import { useAppData } from '../../contexts/AppDataContext';
 
 export default function CardReviewView({
 	deck,
@@ -66,7 +66,7 @@ export default function CardReviewView({
 	// Playback speed state
 	const [playbackSpeed, setPlaybackSpeed] = useState(() => {
 		// Load from localStorage, default to 1.0
-		const saved = localStorage.getItem("readAloudPlaybackSpeed");
+		const saved = localStorage.getItem('readAloudPlaybackSpeed');
 		return saved ? parseFloat(saved) : 1.0;
 	});
 
@@ -74,19 +74,19 @@ export default function CardReviewView({
 	const [readAloudSettings, setReadAloudSettings] = useState(() => {
 		// Load from localStorage, default to Ruth/generative/off
 		try {
-			const saved = localStorage.getItem("readAloudSettings");
+			const saved = localStorage.getItem('readAloudSettings');
 			if (saved) {
 				const settings = JSON.parse(saved);
 				return {
-					voiceId: settings.voiceId || "Ruth",
-					engine: settings.engine || "generative",
-					autoRead: settings.autoRead || "off",
+					voiceId: settings.voiceId || 'Ruth',
+					engine: settings.engine || 'generative',
+					autoRead: settings.autoRead || 'off',
 				};
 			}
 		} catch (error) {
-			console.error("Error loading readAloud settings:", error);
+			console.error('Error loading readAloud settings:', error);
 		}
-		return { voiceId: "Ruth", engine: "generative", autoRead: "off" };
+		return { voiceId: 'Ruth', engine: 'generative', autoRead: 'off' };
 	});
 
 	// Settings modal state
@@ -120,7 +120,7 @@ export default function CardReviewView({
 	// Save playback speed to localStorage when it changes
 	useEffect(() => {
 		localStorage.setItem(
-			"readAloudPlaybackSpeed",
+			'readAloudPlaybackSpeed',
 			playbackSpeed.toString()
 		);
 	}, [playbackSpeed]);
@@ -128,33 +128,29 @@ export default function CardReviewView({
 	// Auto-read when side is shown (after flip animation)
 	useEffect(() => {
 		const autoRead = readAloudSettings.autoRead;
-		if (
-			autoRead === "off" ||
-			!currentCard ||
-			animationResult
-		) {
+		if (autoRead === 'off' || !currentCard || animationResult) {
 			return;
 		}
 		const timeoutId = setTimeout(() => {
-			const frontLen = (currentCard.front || "").length;
-			const backLen = (currentCard.back || "").length;
+			const frontLen = (currentCard.front || '').length;
+			const backLen = (currentCard.back || '').length;
 			let shouldReadFront = false;
 			let shouldReadBack = false;
-			if (autoRead === "both") {
+			if (autoRead === 'both') {
 				shouldReadFront = !isFlipped;
 				shouldReadBack = isFlipped;
-			} else if (autoRead === "front") {
+			} else if (autoRead === 'front') {
 				shouldReadFront = !isFlipped;
-			} else if (autoRead === "back") {
+			} else if (autoRead === 'back') {
 				shouldReadBack = isFlipped;
-			} else if (autoRead === "longer") {
+			} else if (autoRead === 'longer') {
 				if (!isFlipped && frontLen >= backLen) shouldReadFront = true;
 				if (isFlipped && backLen >= frontLen) shouldReadBack = true;
 			}
-			if (shouldReadFront && (currentCard.front || "").trim()) {
+			if (shouldReadFront && (currentCard.front || '').trim()) {
 				frontReadAloudRef.current?.togglePlayPause();
 			}
-			if (shouldReadBack && (currentCard.back || "").trim()) {
+			if (shouldReadBack && (currentCard.back || '').trim()) {
 				backReadAloudRef.current?.togglePlayPause();
 			}
 		}, 650);
@@ -169,10 +165,10 @@ export default function CardReviewView({
 	]);
 
 	// Handle settings save
-	const handleSaveSettings = (voiceId, engine, autoRead = "off") => {
+	const handleSaveSettings = (voiceId, engine, autoRead = 'off') => {
 		const newSettings = { voiceId, engine, autoRead };
 		setReadAloudSettings(newSettings);
-		localStorage.setItem("readAloudSettings", JSON.stringify(newSettings));
+		localStorage.setItem('readAloudSettings', JSON.stringify(newSettings));
 	};
 
 	// Handle review button click - trigger animation then record
@@ -228,15 +224,15 @@ export default function CardReviewView({
 		const handleKeyDown = (event) => {
 			// Don't trigger shortcuts if user is typing in an input/textarea
 			if (
-				event.target.tagName === "INPUT" ||
-				event.target.tagName === "TEXTAREA" ||
+				event.target.tagName === 'INPUT' ||
+				event.target.tagName === 'TEXTAREA' ||
 				event.target.isContentEditable
 			) {
 				return;
 			}
 
 			// Space: play/pause audio
-			if (event.key === " " || event.code === "Space") {
+			if (event.key === ' ' || event.code === 'Space') {
 				event.preventDefault();
 				if (!animationResult) {
 					toggleCurrentSideAudio();
@@ -245,7 +241,7 @@ export default function CardReviewView({
 			}
 
 			// Enter: flip card
-			if (event.key === "Enter") {
+			if (event.key === 'Enter') {
 				event.preventDefault();
 				if (!animationResult) {
 					onFlip();
@@ -259,28 +255,28 @@ export default function CardReviewView({
 			}
 
 			switch (event.key) {
-				case "ArrowLeft":
+				case 'ArrowLeft':
 					event.preventDefault();
-					handleReview("again");
+					handleReview('again');
 					break;
-				case "ArrowDown":
+				case 'ArrowDown':
 					event.preventDefault();
-					handleReview("hard");
+					handleReview('hard');
 					break;
-				case "ArrowRight":
+				case 'ArrowRight':
 					event.preventDefault();
-					handleReview("good");
+					handleReview('good');
 					break;
-				case "ArrowUp":
+				case 'ArrowUp':
 					event.preventDefault();
-					handleReview("easy");
+					handleReview('easy');
 					break;
 			}
 		};
 
-		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener('keydown', handleKeyDown);
 		return () => {
-			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener('keydown', handleKeyDown);
 		};
 	}, [
 		isFlipped,
@@ -304,10 +300,10 @@ export default function CardReviewView({
 		if (!animationResult) return null;
 
 		const colors = {
-			again: "bg-red-500/20 dark:bg-red-500/30 border-red-500/50",
-			hard: "bg-orange-500/20 dark:bg-orange-500/30 border-orange-500/50",
-			good: "bg-green-500/20 dark:bg-green-500/30 border-green-500/50",
-			easy: "bg-teal-500/20 dark:bg-teal-500/30 border-teal-500/50",
+			again: 'bg-red-500/20 dark:bg-red-500/30 border-red-500/50',
+			hard: 'bg-orange-500/20 dark:bg-orange-500/30 border-orange-500/50',
+			good: 'bg-green-500/20 dark:bg-green-500/30 border-green-500/50',
+			easy: 'bg-teal-500/20 dark:bg-teal-500/30 border-teal-500/50',
 		};
 		return colors[animationResult] || null;
 	};
@@ -323,17 +319,17 @@ export default function CardReviewView({
 		: null;
 
 	const formatTimeAgo = (ms) => {
-		if (!ms) return "Never reviewed";
+		if (!ms) return 'Never reviewed';
 		const seconds = Math.floor(ms / 1000);
 		const minutes = Math.floor(seconds / 60);
 		const hours = Math.floor(minutes / 60);
 		const days = Math.floor(hours / 24);
 
-		if (days > 0) return `${days} day${days !== 1 ? "s" : ""} ago`;
-		if (hours > 0) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+		if (days > 0) return `${days} day${days !== 1 ? 's' : ''} ago`;
+		if (hours > 0) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
 		if (minutes > 0)
-			return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
-		return "Just now";
+			return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+		return 'Just now';
 	};
 
 	const learningStrength = calculateLearningStrength(currentCard);
@@ -345,16 +341,16 @@ export default function CardReviewView({
 
 	const formatDaysUntilDue = () => {
 		if (!currentCard.whenDue) {
-			return "Due";
+			return 'Due';
 		}
 		if (daysUntilDue < 0) {
 			const daysAgo = Math.abs(daysUntilDue);
-			if (daysAgo === 1) return "Due yesterday";
+			if (daysAgo === 1) return 'Due yesterday';
 			return `Due ${daysAgo} days ago`;
 		}
 		// if (daysUntilDue === 0) return "Due today";
 		if (daysUntilDue === 0) return formatHoursAgo();
-		if (daysUntilDue === 1) return "Due tomorrow";
+		if (daysUntilDue === 1) return 'Due tomorrow';
 		return `Due in ${daysUntilDue} days`;
 	};
 
@@ -413,20 +409,20 @@ export default function CardReviewView({
 			)}
 
 			{/* Card */}
-			<div className="mb-8" style={{ perspective: "1000px" }}>
+			<div className="mb-8" style={{ perspective: '1000px' }}>
 				<div
 					className={`cursor-pointer group animate-scale-in ${
-						animationResult ? "pointer-events-none" : ""
+						animationResult ? 'pointer-events-none' : ''
 					}`}
 					onClick={animationResult ? undefined : onFlip}
 					style={{
-						transformStyle: "preserve-3d",
+						transformStyle: 'preserve-3d',
 						transform: isFlipped
-							? "rotateY(180deg)"
-							: "rotateY(0deg)",
+							? 'rotateY(180deg)'
+							: 'rotateY(0deg)',
 						transition:
-							"transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)",
-						display: "grid",
+							'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)',
+						display: 'grid',
 					}}
 				>
 					{/* Front Side */}
@@ -511,10 +507,10 @@ export default function CardReviewView({
 							<span
 								className={`font-medium ${
 									daysUntilDue < 0
-										? "text-red-600 dark:text-red-400"
+										? 'text-red-600 dark:text-red-400'
 										: daysUntilDue === 0
-										? "text-orange-600 dark:text-orange-400"
-										: "text-gray-600 dark:text-gray-400"
+											? 'text-orange-600 dark:text-orange-400'
+											: 'text-gray-600 dark:text-gray-400'
 								}`}
 							>
 								{formatDaysUntilDue()}
@@ -552,12 +548,12 @@ export default function CardReviewView({
 						</h3>
 						<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 							<button
-								onClick={() => handleReview("again")}
+								onClick={() => handleReview('again')}
 								disabled={!!animationResult}
 								className={`px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
-									selectedReview === "again"
-										? "ring-4 ring-red-300 dark:ring-red-400 scale-105 shadow-2xl"
-										: ""
+									selectedReview === 'again'
+										? 'ring-4 ring-red-300 dark:ring-red-400 scale-105 shadow-2xl'
+										: ''
 								}`}
 							>
 								<div className="text-lg font-semibold">
@@ -566,12 +562,12 @@ export default function CardReviewView({
 								<div className="text-sm opacity-90">Poor</div>
 							</button>
 							<button
-								onClick={() => handleReview("hard")}
+								onClick={() => handleReview('hard')}
 								disabled={!!animationResult}
 								className={`px-6 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
-									selectedReview === "hard"
-										? "ring-4 ring-orange-300 dark:ring-orange-400 scale-105 shadow-2xl"
-										: ""
+									selectedReview === 'hard'
+										? 'ring-4 ring-orange-300 dark:ring-orange-400 scale-105 shadow-2xl'
+										: ''
 								}`}
 							>
 								<div className="text-lg font-semibold">
@@ -582,12 +578,12 @@ export default function CardReviewView({
 								</div>
 							</button>
 							<button
-								onClick={() => handleReview("good")}
+								onClick={() => handleReview('good')}
 								disabled={!!animationResult}
 								className={`px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
-									selectedReview === "good"
-										? "ring-4 ring-green-300 dark:ring-green-400 scale-105 shadow-2xl"
-										: ""
+									selectedReview === 'good'
+										? 'ring-4 ring-green-300 dark:ring-green-400 scale-105 shadow-2xl'
+										: ''
 								}`}
 							>
 								<div className="text-lg font-semibold">
@@ -598,12 +594,12 @@ export default function CardReviewView({
 								</div>
 							</button>
 							<button
-								onClick={() => handleReview("easy")}
+								onClick={() => handleReview('easy')}
 								disabled={!!animationResult}
 								className={`px-6 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
-									selectedReview === "easy"
-										? "ring-4 ring-teal-300 dark:ring-teal-400 scale-105 shadow-2xl"
-										: ""
+									selectedReview === 'easy'
+										? 'ring-4 ring-teal-300 dark:ring-teal-400 scale-105 shadow-2xl'
+										: ''
 								}`}
 							>
 								<div className="text-lg font-semibold">

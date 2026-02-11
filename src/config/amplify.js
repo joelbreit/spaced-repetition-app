@@ -16,8 +16,8 @@ const amplifyConfig = {
 				},
 			},
 			allowGuestAccess: false,
-		}
-	}
+		},
+	},
 };
 
 Amplify.configure(amplifyConfig);

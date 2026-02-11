@@ -1,4 +1,8 @@
-import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+	S3Client,
+	GetObjectCommand,
+	PutObjectCommand,
+} from '@aws-sdk/client-s3';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
@@ -14,10 +18,11 @@ const verifier = CognitoJwtVerifier.create({
 
 const headers = {
 	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
+	'Access-Control-Allow-Headers':
+		'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
 	'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,OPTIONS',
 	'Access-Control-Max-Age': '86400',
-	'Content-Type': 'application/json'
+	'Content-Type': 'application/json',
 };
 
 async function verifyToken(authHeader) {
@@ -48,12 +53,13 @@ export const handler = async (event) => {
 			return {
 				statusCode: 200,
 				headers,
-				body: JSON.stringify({ message: 'CORS preflight successful' })
+				body: JSON.stringify({ message: 'CORS preflight successful' }),
 			};
 		}
 
 		// Verify authentication for other requests
-		const authHeader = event.headers?.authorization || event.headers?.Authorization;
+		const authHeader =
+			event.headers?.authorization || event.headers?.Authorization;
 		let userId;
 
 		try {
@@ -66,8 +72,8 @@ export const handler = async (event) => {
 				headers,
 				body: JSON.stringify({
 					error: 'Unauthorized',
-					message: error.message
-				})
+					message: error.message,
+				}),
 			};
 		}
 
@@ -77,7 +83,7 @@ export const handler = async (event) => {
 			try {
 				const command = new GetObjectCommand({
 					Bucket: BUCKET,
-					Key: key
+					Key: key,
 				});
 
 				const response = await s3Client.send(command);
@@ -86,7 +92,7 @@ export const handler = async (event) => {
 				return {
 					statusCode: 200,
 					headers,
-					body: jsonString
+					body: jsonString,
 				};
 			} catch (error) {
 				if (error.name === 'NoSuchKey') {
@@ -94,7 +100,7 @@ export const handler = async (event) => {
 					return {
 						statusCode: 200,
 						headers,
-						body: JSON.stringify(initialData)
+						body: JSON.stringify(initialData),
 					};
 				}
 				throw error;
@@ -108,7 +114,7 @@ export const handler = async (event) => {
 				Bucket: BUCKET,
 				Key: key,
 				Body: JSON.stringify(data, null, 2),
-				ContentType: 'application/json'
+				ContentType: 'application/json',
 			});
 
 			await s3Client.send(command);
@@ -119,8 +125,8 @@ export const handler = async (event) => {
 				body: JSON.stringify({
 					success: true,
 					message: 'Data saved successfully',
-					userId: userId
-				})
+					userId: userId,
+				}),
 			};
 		}
 
@@ -133,7 +139,7 @@ export const handler = async (event) => {
 			try {
 				const getCommand = new GetObjectCommand({
 					Bucket: BUCKET,
-					Key: key
+					Key: key,
 				});
 				const response = await s3Client.send(getCommand);
 				const jsonString = await response.Body.transformToString();
@@ -157,12 +163,14 @@ export const handler = async (event) => {
 			// Apply patch based on type
 			if (type === 'card' && deckId && card) {
 				// Find the deck and update the card
-				const deckIndex = existingData.decks.findIndex(d => d.deckId === deckId);
+				const deckIndex = existingData.decks.findIndex(
+					(d) => d.deckId === deckId
+				);
 				if (deckIndex === -1) {
 					return {
 						statusCode: 404,
 						headers,
-						body: JSON.stringify({ error: 'Deck not found' })
+						body: JSON.stringify({ error: 'Deck not found' }),
 					};
 				}
 
@@ -172,7 +180,9 @@ export const handler = async (event) => {
 				}
 
 				// Find and replace the card
-				const cardIndex = deck.cards.findIndex(c => c.cardId === card.cardId);
+				const cardIndex = deck.cards.findIndex(
+					(c) => c.cardId === card.cardId
+				);
 				if (cardIndex === -1) {
 					// Card doesn't exist, add it
 					deck.cards.push(card);
@@ -182,7 +192,9 @@ export const handler = async (event) => {
 				}
 			} else if (type === 'deck' && deck) {
 				// Find and replace the deck
-				const deckIndex = existingData.decks.findIndex(d => d.deckId === deck.deckId);
+				const deckIndex = existingData.decks.findIndex(
+					(d) => d.deckId === deck.deckId
+				);
 				if (deckIndex === -1) {
 					// Deck doesn't exist, add it
 					existingData.decks.push(deck);
@@ -194,7 +206,9 @@ export const handler = async (event) => {
 				return {
 					statusCode: 400,
 					headers,
-					body: JSON.stringify({ error: 'Invalid patch data format' })
+					body: JSON.stringify({
+						error: 'Invalid patch data format',
+					}),
 				};
 			}
 
@@ -203,7 +217,7 @@ export const handler = async (event) => {
 				Bucket: BUCKET,
 				Key: key,
 				Body: JSON.stringify(existingData, null, 2),
-				ContentType: 'application/json'
+				ContentType: 'application/json',
 			});
 
 			await s3Client.send(putCommand);
@@ -214,17 +228,16 @@ export const handler = async (event) => {
 				body: JSON.stringify({
 					success: true,
 					message: 'Data patched successfully',
-					userId: userId
-				})
+					userId: userId,
+				}),
 			};
 		}
 
 		return {
 			statusCode: 405,
 			headers,
-			body: JSON.stringify({ error: 'Method not allowed' })
+			body: JSON.stringify({ error: 'Method not allowed' }),
 		};
-
 	} catch (error) {
 		console.error('Error:', error);
 		return {
@@ -232,8 +245,8 @@ export const handler = async (event) => {
 			headers,
 			body: JSON.stringify({
 				error: 'Internal server error',
-				message: error.message
-			})
+				message: error.message,
+			}),
 		};
 	}
 };

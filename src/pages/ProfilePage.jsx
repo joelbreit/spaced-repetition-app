@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { useNotification } from "../hooks/useNotification";
-import { useAppData } from "../contexts/AppDataContext";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import NotificationContainer from "../components/NotificationContainer";
-import ActivityHeatmap from "../components/Profile/ActivityHeatmap";
-import ProgressChart from "../components/Profile/ProgressChart";
-import AdditionalStats from "../components/Profile/AdditionalStats";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../hooks/useNotification';
+import { useAppData } from '../contexts/AppDataContext';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import NotificationContainer from '../components/NotificationContainer';
+import ActivityHeatmap from '../components/Profile/ActivityHeatmap';
+import ProgressChart from '../components/Profile/ProgressChart';
+import AdditionalStats from '../components/Profile/AdditionalStats';
 import {
 	ArrowLeft,
 	Download,
@@ -17,7 +17,7 @@ import {
 	Lock,
 	ChevronDown,
 	ChevronUp,
-} from "lucide-react";
+} from 'lucide-react';
 
 function ProfilePage() {
 	const navigate = useNavigate();
@@ -27,18 +27,18 @@ function ProfilePage() {
 
 	// Password change form state
 	const [showPasswordChange, setShowPasswordChange] = useState(false);
-	const [currentPassword, setCurrentPassword] = useState("");
-	const [newPassword, setNewPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
+	const [currentPassword, setCurrentPassword] = useState('');
+	const [newPassword, setNewPassword] = useState('');
+	const [confirmPassword, setConfirmPassword] = useState('');
 	const [isChangingPassword, setIsChangingPassword] = useState(false);
-	const [passwordError, setPasswordError] = useState("");
+	const [passwordError, setPasswordError] = useState('');
 
 	// Handle logout
 	const handleLogout = async () => {
 		const result = await logout();
 		if (result.success) {
-			showSuccess("Logged out successfully");
-			navigate("/");
+			showSuccess('Logged out successfully');
+			navigate('/');
 		}
 	};
 
@@ -46,48 +46,48 @@ function ProfilePage() {
 	const handleExportData = () => {
 		try {
 			const dataStr = JSON.stringify(appData, null, 2);
-			const dataBlob = new Blob([dataStr], { type: "application/json" });
+			const dataBlob = new Blob([dataStr], { type: 'application/json' });
 			const url = URL.createObjectURL(dataBlob);
-			const link = document.createElement("a");
+			const link = document.createElement('a');
 			link.href = url;
 			link.download = `flashcards-export-${
-				new Date().toISOString().split("T")[0]
+				new Date().toISOString().split('T')[0]
 			}.json`;
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
 			URL.revokeObjectURL(url);
-			showSuccess("Data exported successfully!");
+			showSuccess('Data exported successfully!');
 		} catch (error) {
-			console.error("Failed to export data:", error);
-			showError("Failed to export data");
+			console.error('Failed to export data:', error);
+			showError('Failed to export data');
 		}
 	};
 
 	// Handle password change
 	const handlePasswordChange = async (e) => {
 		e.preventDefault();
-		setPasswordError("");
+		setPasswordError('');
 
 		// Validation
 		if (!currentPassword || !newPassword || !confirmPassword) {
-			setPasswordError("All fields are required");
+			setPasswordError('All fields are required');
 			return;
 		}
 
 		if (newPassword.length < 8) {
-			setPasswordError("New password must be at least 8 characters");
+			setPasswordError('New password must be at least 8 characters');
 			return;
 		}
 
 		if (newPassword !== confirmPassword) {
-			setPasswordError("New passwords do not match");
+			setPasswordError('New passwords do not match');
 			return;
 		}
 
 		if (currentPassword === newPassword) {
 			setPasswordError(
-				"New password must be different from current password"
+				'New password must be different from current password'
 			);
 			return;
 		}
@@ -97,20 +97,20 @@ function ProfilePage() {
 		try {
 			const result = await changePassword(currentPassword, newPassword);
 			if (result.success) {
-				showSuccess("Password changed successfully!");
-				setCurrentPassword("");
-				setNewPassword("");
-				setConfirmPassword("");
+				showSuccess('Password changed successfully!');
+				setCurrentPassword('');
+				setNewPassword('');
+				setConfirmPassword('');
 				setShowPasswordChange(false);
-				setPasswordError("");
+				setPasswordError('');
 			} else {
-				setPasswordError(result.error || "Failed to change password");
-				showError(result.error || "Failed to change password");
+				setPasswordError(result.error || 'Failed to change password');
+				showError(result.error || 'Failed to change password');
 			}
 		} catch (error) {
-			console.error("Password change error:", error);
-			setPasswordError(error.message || "An unexpected error occurred");
-			showError(error.message || "Failed to change password");
+			console.error('Password change error:', error);
+			setPasswordError(error.message || 'An unexpected error occurred');
+			showError(error.message || 'Failed to change password');
 		} finally {
 			setIsChangingPassword(false);
 		}
@@ -153,7 +153,7 @@ function ProfilePage() {
 									</label>
 									<p className="text-gray-900 dark:text-slate-100 font-medium">
 										{user?.signInDetails?.loginId ||
-											"Not available"}
+											'Not available'}
 									</p>
 								</div>
 							</div>
@@ -172,15 +172,15 @@ function ProfilePage() {
 							<button
 								onClick={() => {
 									setShowPasswordChange(!showPasswordChange);
-									setPasswordError("");
+									setPasswordError('');
 									if (showPasswordChange) {
-										setCurrentPassword("");
-										setNewPassword("");
-										setConfirmPassword("");
+										setCurrentPassword('');
+										setNewPassword('');
+										setConfirmPassword('');
 									}
 								}}
 								className={`w-full flex items-center justify-between${
-									showPasswordChange ? " mb-4" : ""
+									showPasswordChange ? ' mb-4' : ''
 								}`}
 							>
 								<div className="flex items-center gap-3">
@@ -291,8 +291,8 @@ function ProfilePage() {
 										className="w-full px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 									>
 										{isChangingPassword
-											? "Changing Password..."
-											: "Change Password"}
+											? 'Changing Password...'
+											: 'Change Password'}
 									</button>
 								</form>
 							)}

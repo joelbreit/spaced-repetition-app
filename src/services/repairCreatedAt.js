@@ -126,7 +126,10 @@ export function repairCreatedAtValues(appData) {
 			// First, get all descendant folder IDs including this folder itself
 			const allFolderIds = [folder.folderId, ...descendantFolderIds];
 			decks.forEach((deck) => {
-				if (allFolderIds.includes(deck.parentFolderId) && deck.createdAt) {
+				if (
+					allFolderIds.includes(deck.parentFolderId) &&
+					deck.createdAt
+				) {
 					timestamps.push(deck.createdAt);
 				}
 			});
@@ -143,4 +146,3 @@ export function repairCreatedAtValues(appData) {
 
 	return updatedData;
 }
-

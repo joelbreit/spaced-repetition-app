@@ -6,22 +6,22 @@ export function prettyPrintInterval(interval) {
 	const days = interval / (1000 * 60 * 60 * 24);
 	if (days > 1) {
 		const roundedDays = Math.round(days);
-		return `${roundedDays} day${roundedDays !== 1 ? "s" : ""}`;
+		return `${roundedDays} day${roundedDays !== 1 ? 's' : ''}`;
 	}
 	// hours
 	const hours = interval / (1000 * 60 * 60);
 	if (hours > 1) {
 		const roundedHours = Math.round(hours);
-		return `${roundedHours} hour${roundedHours !== 1 ? "s" : ""}`;
+		return `${roundedHours} hour${roundedHours !== 1 ? 's' : ''}`;
 	}
 	// minutes
 	const minutes = interval / (1000 * 60);
 	if (minutes > 1) {
 		const roundedMinutes = Math.round(minutes);
-		return `${roundedMinutes} minute${roundedMinutes !== 1 ? "s" : ""}`;
+		return `${roundedMinutes} minute${roundedMinutes !== 1 ? 's' : ''}`;
 	}
 	const roundedSeconds = Math.round(interval / 1000);
-	return `${roundedSeconds} second${roundedSeconds !== 1 ? "s" : ""}`;
+	return `${roundedSeconds} second${roundedSeconds !== 1 ? 's' : ''}`;
 }
 
 export function prettyPrintDueDateAsInterval(dueDate) {
@@ -30,9 +30,8 @@ export function prettyPrintDueDateAsInterval(dueDate) {
 }
 
 export function calculateNextInterval(result, card, timestamp = Date.now()) {
-
 	// Always go to minimum interval
-	if (result === "again") {
+	if (result === 'again') {
 		return MIN_INTERVAL;
 	}
 
@@ -47,7 +46,7 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	const previousInterval = getInterval(card);
 
 	// 0.5x MIN(last interval, time since last review)
-	if (result === "hard") {
+	if (result === 'hard') {
 		return Math.max(
 			Math.min(previousInterval, timeSinceLastReview) * 0.5,
 			MIN_INTERVAL
@@ -55,16 +54,14 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	}
 
 	// 1x last interval
-	if (result === "good") {
-		return Math.max(
-			previousInterval,
-			MIN_INTERVAL
-		);
+	if (result === 'good') {
+		return Math.max(previousInterval, MIN_INTERVAL);
 	}
 
 	// 2x MAX(last interval, time since last review)
-	if (result === "easy") {
-		if (timeSinceLastReview < previousInterval) { // prevent exploding due date for early reviews
+	if (result === 'easy') {
+		if (timeSinceLastReview < previousInterval) {
+			// prevent exploding due date for early reviews
 			// interval + 2x time since last review
 			return previousInterval + 2 * timeSinceLastReview;
 		} else {
@@ -79,16 +76,20 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 }
 
 export function getInterval(card) {
-
 	let interval = 0;
 	// Previous interval available
-	if (card.reviews && card.reviews.length > 0 && card.reviews[card.reviews.length - 1].interval) {
+	if (
+		card.reviews &&
+		card.reviews.length > 0 &&
+		card.reviews[card.reviews.length - 1].interval
+	) {
 		interval = card.reviews[card.reviews.length - 1].interval;
 	}
 
 	// Previous interval not available, try dueDate - last review timestamp
 	else if (card.whenDue && card.reviews.length > 0) {
-		interval = card.whenDue - card.reviews[card.reviews.length - 1].timestamp;
+		interval =
+			card.whenDue - card.reviews[card.reviews.length - 1].timestamp;
 	}
 
 	// Else, just use time since last review
@@ -124,14 +125,14 @@ export function calculateLearningStrength(card) {
 
 	const score = weightedSum / totalWeight;
 	return score * 100;
-};
+}
 
 // Based on current interval, how often does the card get reviewed?
 // Cap at 1 per day
 export function getPerDayReviewRate(card) {
 	const interval = getInterval(card);
 	if (!interval) {
-		console.error("No interval found for card");
+		console.error('No interval found for card');
 		return 0;
 	}
 

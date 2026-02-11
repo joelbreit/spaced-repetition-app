@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
 	User as UserIcon,
 	ChevronDown,
@@ -8,11 +8,11 @@ import {
 	Flame,
 	BookOpen,
 	LogIn,
-} from "lucide-react";
-import { useAppData } from "../contexts/AppDataContext";
-import { useAuth } from "../contexts/AuthContext";
-import { loadFromAPI } from "../services/apiStorage";
-import { useNotification } from "../hooks/useNotification";
+} from 'lucide-react';
+import { useAppData } from '../contexts/AppDataContext';
+import { useAuth } from '../contexts/AuthContext';
+import { loadFromAPI } from '../services/apiStorage';
+import { useNotification } from '../hooks/useNotification';
 
 function Header({ user, isSaving, isOnline, onSignInClick }) {
 	const { isAuthenticated, authToken, refreshToken } = useAuth();
@@ -25,8 +25,8 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 	// Format date as YYYY-MM-DD in local timezone
 	const formatDateKey = (date) => {
 		const year = date.getFullYear();
-		const month = String(date.getMonth() + 1).padStart(2, "0");
-		const day = String(date.getDate()).padStart(2, "0");
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
 		return `${year}-${month}-${day}`;
 	};
 
@@ -97,35 +97,35 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 				setAppData(cloudData);
 				// Also update localStorage
 				localStorage.setItem(
-					"spacedRepData",
+					'spacedRepData',
 					JSON.stringify(cloudData)
 				);
-				showSuccess("Data synced from cloud successfully");
+				showSuccess('Data synced from cloud successfully');
 			}
 		} catch (error) {
-			console.error("Failed to sync from API:", error);
-			showError("Failed to sync from cloud. Please try again.");
+			console.error('Failed to sync from API:', error);
+			showError('Failed to sync from cloud. Please try again.');
 		} finally {
 			setIsSyncing(false);
 		}
 	};
 
 	const getSyncTitle = () => {
-		if (!isAuthenticated) return "Local storage";
-		if (isSyncing || isSaving) return "Syncing...";
-		return "Click to sync";
+		if (!isAuthenticated) return 'Local storage';
+		if (isSyncing || isSaving) return 'Syncing...';
+		return 'Click to sync';
 	};
 
 	const isStreakActive = reviewsToday > 0;
 	const streakClasses = isStreakActive
-		? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800"
-		: "bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600";
+		? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
+		: 'bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600';
 	const flameIconClasses = isStreakActive
-		? "text-orange-500"
-		: "text-gray-400 dark:text-slate-500";
+		? 'text-orange-500'
+		: 'text-gray-400 dark:text-slate-500';
 	const streakTextClasses = isStreakActive
-		? "text-orange-700 dark:text-orange-300"
-		: "text-gray-500 dark:text-slate-400";
+		? 'text-orange-700 dark:text-orange-300'
+		: 'text-gray-500 dark:text-slate-400';
 
 	return (
 		<header className="relative z-30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-slate-700 shadow-sm">
@@ -134,7 +134,7 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 					{/* Title - shorter on mobile */}
 					<div className="flex items-center min-w-0 flex-1">
 						<h1
-							onClick={() => navigate("/")}
+							onClick={() => navigate('/')}
 							className="text-lg sm:text-2xl font-bold bg-linear-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent truncate cursor-pointer hover:opacity-80 transition-opacity"
 						>
 							<span className="hidden lg:inline">
@@ -151,10 +151,12 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 							className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full border ${streakClasses}`}
 						>
 							<Flame className={`h-4 w-4 ${flameIconClasses}`} />
-							<span className={`text-xs font-medium ${streakTextClasses}`}>
+							<span
+								className={`text-xs font-medium ${streakTextClasses}`}
+							>
 								<span className="sm:hidden">{streak}</span>
 								<span className="hidden sm:inline">
-									{streak} {streak === 1 ? "day" : "days"}
+									{streak} {streak === 1 ? 'day' : 'days'}
 								</span>
 							</span>
 						</div>
@@ -163,10 +165,12 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 						<div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800">
 							<BookOpen className="h-4 w-4 text-teal-500" />
 							<span className="text-xs font-medium text-teal-700 dark:text-teal-300">
-								<span className="sm:hidden">{reviewsToday}</span>
+								<span className="sm:hidden">
+									{reviewsToday}
+								</span>
 								<span className="hidden sm:inline">
-									{reviewsToday}{" "}
-									{reviewsToday === 1 ? "review" : "reviews"}
+									{reviewsToday}{' '}
+									{reviewsToday === 1 ? 'review' : 'reviews'}
 								</span>
 							</span>
 						</div>
@@ -212,7 +216,7 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 						{/* Profile or Sign In Button - Desktop only */}
 						{isAuthenticated ? (
 							<button
-								onClick={() => navigate("/profile")}
+								onClick={() => navigate('/profile')}
 								className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
 								title="View Profile"
 							>
@@ -240,7 +244,7 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 							<UserIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
 							<ChevronDown
 								className={`h-4 w-4 text-gray-600 dark:text-slate-400 transition-transform ${
-									showUserMenu ? "rotate-180" : ""
+									showUserMenu ? 'rotate-180' : ''
 								}`}
 							/>
 						</button>
@@ -261,7 +265,7 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 											<UserIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
 											<span className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
 												{user?.signInDetails?.loginId ||
-													"User"}
+													'User'}
 											</span>
 										</div>
 									</div>
@@ -271,7 +275,7 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 										<button
 											onClick={() => {
 												setShowUserMenu(false);
-												navigate("/profile");
+												navigate('/profile');
 											}}
 											className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
 										>

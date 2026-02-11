@@ -6,20 +6,20 @@ import {
 	BookOpen,
 	Target,
 	BarChart3,
-} from "lucide-react";
+} from 'lucide-react';
 import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
-} from "../services/cardCalculations";
+} from '../services/cardCalculations';
 
 function getMasteryBadgeColors(mastery) {
 	if (mastery < 25)
-		return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400";
+		return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
 	if (mastery < 50)
-		return "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400";
+		return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400';
 	if (mastery < 75)
-		return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400";
-	return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400";
+		return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400';
+	return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
 }
 
 export default function CardListItem({
@@ -40,16 +40,16 @@ export default function CardListItem({
 		<div
 			className={`bg-white dark:bg-slate-800 rounded-xl border p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group ${
 				isFlagged
-					? "border-orange-300 dark:border-orange-700/50 bg-orange-50/30 dark:bg-orange-900/10"
+					? 'border-orange-300 dark:border-orange-700/50 bg-orange-50/30 dark:bg-orange-900/10'
 					: isStarred
-					? "border-yellow-300 dark:border-yellow-700/50 bg-yellow-50/30 dark:bg-yellow-900/10"
-					: "border-gray-100 dark:border-slate-700"
+						? 'border-yellow-300 dark:border-yellow-700/50 bg-yellow-50/30 dark:bg-yellow-900/10'
+						: 'border-gray-100 dark:border-slate-700'
 			}`}
 		>
 			{/* Deck info badge (when viewing cards across multiple decks) */}
 			{deckName && (
 				<div className="flex items-center gap-1.5 mb-2 text-xs text-gray-500 dark:text-slate-400">
-					<span>{deckSymbol || "📚"}</span>
+					<span>{deckSymbol || '📚'}</span>
 					<span>{deckName}</span>
 				</div>
 			)}
@@ -76,14 +76,14 @@ export default function CardListItem({
 							}}
 							className={`p-1.5 rounded-lg transition-colors duration-200 ${
 								isStarred
-									? "text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
-									: "text-gray-400 dark:text-slate-500 hover:text-yellow-500 dark:hover:text-yellow-400 hover:bg-gray-100 dark:hover:bg-slate-700"
+									? 'text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+									: 'text-gray-400 dark:text-slate-500 hover:text-yellow-500 dark:hover:text-yellow-400 hover:bg-gray-100 dark:hover:bg-slate-700'
 							}`}
-							title={isStarred ? "Unstar card" : "Star card"}
+							title={isStarred ? 'Unstar card' : 'Star card'}
 						>
 							<Star
 								className={`h-4 w-4 ${
-									isStarred ? "fill-current" : ""
+									isStarred ? 'fill-current' : ''
 								}`}
 							/>
 						</button>
@@ -96,14 +96,14 @@ export default function CardListItem({
 							}}
 							className={`p-1.5 rounded-lg transition-colors duration-200 ${
 								isFlagged
-									? "text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-									: "text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-slate-700"
+									? 'text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+									: 'text-gray-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-slate-700'
 							}`}
-							title={isFlagged ? "Unflag card" : "Flag card"}
+							title={isFlagged ? 'Unflag card' : 'Flag card'}
 						>
 							<Flag
 								className={`h-4 w-4 ${
-									isFlagged ? "fill-current" : ""
+									isFlagged ? 'fill-current' : ''
 								}`}
 							/>
 						</button>
@@ -176,4 +176,3 @@ export default function CardListItem({
 		</div>
 	);
 }
-

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
 	ArrowLeft,
 	Search,
@@ -11,16 +11,16 @@ import {
 	ArrowDown,
 	Filter,
 	X,
-} from "lucide-react";
-import { useNotification } from "../hooks/useNotification";
-import { useAppData } from "../contexts/AppDataContext";
-import { useDeckOperations } from "../hooks/useDeckOperations";
+} from 'lucide-react';
+import { useNotification } from '../hooks/useNotification';
+import { useAppData } from '../contexts/AppDataContext';
+import { useDeckOperations } from '../hooks/useDeckOperations';
 import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
-} from "../services/cardCalculations";
-import CardListItem from "./CardListItem";
-import Breadcrumbs from "./Breadcrumbs";
+} from '../services/cardCalculations';
+import CardListItem from './CardListItem';
+import Breadcrumbs from './Breadcrumbs';
 
 export default function FolderCardsView({ onEditCard }) {
 	const { folderId } = useParams();
@@ -29,13 +29,13 @@ export default function FolderCardsView({ onEditCard }) {
 	const { deleteCard, toggleCardFlag, toggleCardStar } = useDeckOperations();
 	const { showConfirmation } = useNotification();
 
-	const [cardSearchTerm, setCardSearchTerm] = useState("");
-	const [sortBy, setSortBy] = useState("default");
-	const [sortDirection, setSortDirection] = useState("desc");
-	const [filterBy, setFilterBy] = useState("all");
+	const [cardSearchTerm, setCardSearchTerm] = useState('');
+	const [sortBy, setSortBy] = useState('default');
+	const [sortDirection, setSortDirection] = useState('desc');
+	const [filterBy, setFilterBy] = useState('all');
 
 	// Handle special "root" folderId
-	const effectiveFolderId = folderId === "root" ? null : folderId;
+	const effectiveFolderId = folderId === 'root' ? null : folderId;
 
 	// Get folder info
 	const folder = effectiveFolderId
@@ -55,7 +55,8 @@ export default function FolderCardsView({ onEditCard }) {
 
 		// Get direct decks in this folder (excluding archived)
 		const directDecks = (appData.decks || []).filter(
-			(d) => d.parentFolderId === targetFolderId && !(d.isArchived || false)
+			(d) =>
+				d.parentFolderId === targetFolderId && !(d.isArchived || false)
 		);
 		allDecks.push(...directDecks);
 
@@ -66,7 +67,9 @@ export default function FolderCardsView({ onEditCard }) {
 
 		// Recursively get decks from subfolders
 		subfolders.forEach((subfolder) => {
-			const subfolderDecks = getAllNonArchivedDecksInFolder(subfolder.folderId);
+			const subfolderDecks = getAllNonArchivedDecksInFolder(
+				subfolder.folderId
+			);
 			allDecks.push(...subfolderDecks);
 		});
 
@@ -82,7 +85,7 @@ export default function FolderCardsView({ onEditCard }) {
 			...card,
 			sourceDeckId: deck.deckId,
 			sourceDeckName: deck.deckName,
-			sourceDeckSymbol: deck.deckSymbol || "📚",
+			sourceDeckSymbol: deck.deckSymbol || '📚',
 		}))
 	);
 
@@ -102,25 +105,25 @@ export default function FolderCardsView({ onEditCard }) {
 
 		// Apply category filter
 		switch (filterBy) {
-			case "new":
+			case 'new':
 				cards = cards.filter((card) => card.reviews.length === 0);
 				break;
-			case "due":
+			case 'due':
 				cards = cards.filter(
 					(card) =>
 						card.whenDue <= Date.now() && card.reviews.length > 0
 				);
 				break;
-			case "learned":
+			case 'learned':
 				cards = cards.filter(
 					(card) =>
 						card.reviews.length > 0 && card.whenDue > Date.now()
 				);
 				break;
-			case "flagged":
+			case 'flagged':
 				cards = cards.filter((card) => card.isFlagged);
 				break;
-			case "starred":
+			case 'starred':
 				cards = cards.filter((card) => card.isStarred);
 				break;
 			default:
@@ -128,20 +131,20 @@ export default function FolderCardsView({ onEditCard }) {
 		}
 
 		// Apply sorting
-		if (sortBy !== "default") {
+		if (sortBy !== 'default') {
 			cards.sort((a, b) => {
 				let aValue, bValue;
 
 				switch (sortBy) {
-					case "reviews":
+					case 'reviews':
 						aValue = a.reviews.length;
 						bValue = b.reviews.length;
 						break;
-					case "mastery":
+					case 'mastery':
 						aValue = calculateLearningStrength(a);
 						bValue = calculateLearningStrength(b);
 						break;
-					case "burden":
+					case 'burden':
 						aValue = getPerDayReviewRate(a);
 						bValue = getPerDayReviewRate(b);
 						break;
@@ -149,7 +152,7 @@ export default function FolderCardsView({ onEditCard }) {
 						return 0;
 				}
 
-				if (sortDirection === "asc") {
+				if (sortDirection === 'asc') {
 					return aValue - bValue;
 				} else {
 					return bValue - aValue;
@@ -163,7 +166,7 @@ export default function FolderCardsView({ onEditCard }) {
 	const sortedAndFilteredCards = getSortedAndFilteredCards();
 
 	const toggleSortDirection = () => {
-		setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+		setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
 	};
 
 	const handleSortChange = (newSortBy) => {
@@ -171,27 +174,27 @@ export default function FolderCardsView({ onEditCard }) {
 			toggleSortDirection();
 		} else {
 			setSortBy(newSortBy);
-			setSortDirection("desc");
+			setSortDirection('desc');
 		}
 	};
 
 	const clearFilters = () => {
-		setCardSearchTerm("");
-		setSortBy("default");
-		setSortDirection("desc");
-		setFilterBy("all");
+		setCardSearchTerm('');
+		setSortBy('default');
+		setSortDirection('desc');
+		setFilterBy('all');
 	};
 
 	const hasActiveFilters =
-		cardSearchTerm || sortBy !== "default" || filterBy !== "all";
+		cardSearchTerm || sortBy !== 'default' || filterBy !== 'all';
 
 	const handleDeleteCard = async (deckId, cardId) => {
 		const confirmed = await showConfirmation({
-			title: "Delete Card",
-			message: "Are you sure you want to delete this card?",
-			confirmText: "Delete",
-			cancelText: "Cancel",
-			type: "danger",
+			title: 'Delete Card',
+			message: 'Are you sure you want to delete this card?',
+			confirmText: 'Delete',
+			cancelText: 'Cancel',
+			type: 'danger',
 		});
 
 		if (confirmed) {
@@ -203,7 +206,7 @@ export default function FolderCardsView({ onEditCard }) {
 		if (effectiveFolderId) {
 			navigate(`/folder/${effectiveFolderId}`);
 		} else {
-			navigate("/");
+			navigate('/');
 		}
 	};
 
@@ -216,7 +219,7 @@ export default function FolderCardsView({ onEditCard }) {
 					Folder not found
 				</p>
 				<button
-					onClick={() => navigate("/")}
+					onClick={() => navigate('/')}
 					className="text-sm text-teal-600 dark:text-teal-400 hover:underline"
 				>
 					Return to home
@@ -225,8 +228,8 @@ export default function FolderCardsView({ onEditCard }) {
 		);
 	}
 
-	const folderName = folder ? folder.folderName : "All Decks";
-	const folderSymbol = folder ? folder.folderSymbol || "📁" : "📚";
+	const folderName = folder ? folder.folderName : 'All Decks';
+	const folderSymbol = folder ? folder.folderSymbol || '📁' : '📚';
 
 	return (
 		<div>
@@ -251,7 +254,8 @@ export default function FolderCardsView({ onEditCard }) {
 								{folderName} - All Cards
 							</h2>
 							<p className="text-sm text-gray-600 dark:text-slate-400">
-								{allCards.length} card(s) across {folderDecks.length} deck(s)
+								{allCards.length} card(s) across{' '}
+								{folderDecks.length} deck(s)
 							</p>
 						</div>
 					</div>
@@ -317,17 +321,17 @@ export default function FolderCardsView({ onEditCard }) {
 							</div>
 
 							<button
-								onClick={() => handleSortChange("reviews")}
+								onClick={() => handleSortChange('reviews')}
 								className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
-									sortBy === "reviews"
-										? "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
-										: "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
+									sortBy === 'reviews'
+										? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400'
+										: 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600'
 								}`}
 							>
 								<BookOpen className="h-3.5 w-3.5" />
 								Reviews
-								{sortBy === "reviews" &&
-									(sortDirection === "asc" ? (
+								{sortBy === 'reviews' &&
+									(sortDirection === 'asc' ? (
 										<ArrowUp className="h-3.5 w-3.5" />
 									) : (
 										<ArrowDown className="h-3.5 w-3.5" />
@@ -335,17 +339,17 @@ export default function FolderCardsView({ onEditCard }) {
 							</button>
 
 							<button
-								onClick={() => handleSortChange("mastery")}
+								onClick={() => handleSortChange('mastery')}
 								className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
-									sortBy === "mastery"
-										? "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
-										: "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
+									sortBy === 'mastery'
+										? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400'
+										: 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600'
 								}`}
 							>
 								<Target className="h-3.5 w-3.5" />
 								Mastery
-								{sortBy === "mastery" &&
-									(sortDirection === "asc" ? (
+								{sortBy === 'mastery' &&
+									(sortDirection === 'asc' ? (
 										<ArrowUp className="h-3.5 w-3.5" />
 									) : (
 										<ArrowDown className="h-3.5 w-3.5" />
@@ -353,17 +357,17 @@ export default function FolderCardsView({ onEditCard }) {
 							</button>
 
 							<button
-								onClick={() => handleSortChange("burden")}
+								onClick={() => handleSortChange('burden')}
 								className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
-									sortBy === "burden"
-										? "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
-										: "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
+									sortBy === 'burden'
+										? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400'
+										: 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600'
 								}`}
 							>
 								<BarChart3 className="h-3.5 w-3.5" />
 								Burden
-								{sortBy === "burden" &&
-									(sortDirection === "asc" ? (
+								{sortBy === 'burden' &&
+									(sortDirection === 'asc' ? (
 										<ArrowUp className="h-3.5 w-3.5" />
 									) : (
 										<ArrowDown className="h-3.5 w-3.5" />
@@ -374,7 +378,7 @@ export default function FolderCardsView({ onEditCard }) {
 						{/* Results count */}
 						{hasActiveFilters && (
 							<div className="text-sm text-gray-500 dark:text-slate-500">
-								Showing {sortedAndFilteredCards.length} of{" "}
+								Showing {sortedAndFilteredCards.length} of{' '}
 								{allCards.length} card(s)
 							</div>
 						)}

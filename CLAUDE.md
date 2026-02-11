@@ -25,6 +25,7 @@ npm run preview  # Preview production build
 Guest mode uses localStorage; authenticated mode uses AWS (Cognito → API Gateway → Lambda → S3).
 
 Key files:
+
 - `src/contexts/AppDataContext.jsx` - Central data state, auto-save with 10s debounce, PATCH optimization
 - `src/contexts/AuthContext.jsx` - Cognito auth, token refresh every 45 min
 - `src/services/cardCalculations.js` - Spaced repetition algorithm
@@ -35,22 +36,28 @@ Key files:
 ## Code Patterns
 
 ### State Updates
+
 Always use `setAppData` with immutable updates - it triggers auto-save:
+
 ```jsx
 const { appData, setAppData } = useAppData();
 
-setAppData(prev => ({
-  ...prev,
-  decks: prev.decks.map(d => d.deckId === deckId ? { ...d, ...updates } : d)
+setAppData((prev) => ({
+	...prev,
+	decks: prev.decks.map((d) =>
+		d.deckId === deckId ? { ...d, ...updates } : d
+	),
 }));
 ```
 
 ### Styling
+
 - Tailwind utility classes everywhere, no CSS-in-JS
 - Dark mode: always include `dark:` variants
 - Primary gradient: `bg-linear-to-r from-teal-500 to-cyan-500`
 
 ### IDs
+
 UUIDs via `crypto.randomUUID()`. Timestamps in milliseconds (Unix epoch).
 
 ## Documentation
@@ -64,6 +71,7 @@ UUIDs via `crypto.randomUUID()`. Timestamps in milliseconds (Unix epoch).
 ## Spaced Repetition Algorithm
 
 Review results affect next interval:
+
 - **Again**: Reset to minimum (~10 min)
 - **Hard**: 0.5x previous interval
 - **Good**: 1x previous interval

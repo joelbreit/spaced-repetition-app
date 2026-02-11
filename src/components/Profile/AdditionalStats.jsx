@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { BarChart3, RefreshCw, Calculator, Wrench } from "lucide-react";
-import { useAppData } from "../../contexts/AppDataContext";
-import { useNotification } from "../../hooks/useNotification";
-import { repairCreatedAtValues } from "../../services/repairCreatedAt";
+import { useState } from 'react';
+import { BarChart3, RefreshCw, Calculator, Wrench } from 'lucide-react';
+import { useAppData } from '../../contexts/AppDataContext';
+import { useNotification } from '../../hooks/useNotification';
+import { repairCreatedAtValues } from '../../services/repairCreatedAt';
 
 export default function AdditionalStats({ appData }) {
 	const { setAppData } = useAppData();
@@ -21,9 +21,9 @@ export default function AdditionalStats({ appData }) {
 				let data = dataToUse;
 				if (
 					dataToUse &&
-					typeof dataToUse === "object" &&
-					"target" in dataToUse &&
-					"type" in dataToUse
+					typeof dataToUse === 'object' &&
+					'target' in dataToUse &&
+					'type' in dataToUse
 				) {
 					// This looks like a SyntheticEvent, ignore it
 					data = null;
@@ -113,7 +113,7 @@ export default function AdditionalStats({ appData }) {
 						? reviewDurations.reduce(
 								(sum, duration) => sum + duration,
 								0
-						  ) / reviewDurations.length
+							) / reviewDurations.length
 						: 0;
 
 				// Format duration as seconds with 2 decimal places
@@ -150,10 +150,10 @@ export default function AdditionalStats({ appData }) {
 						card.reviews.forEach((review) => {
 							if (
 								review.result &&
-								(review.result === "again" ||
-									review.result === "hard" ||
-									review.result === "good" ||
-									review.result === "easy")
+								(review.result === 'again' ||
+									review.result === 'hard' ||
+									review.result === 'good' ||
+									review.result === 'easy')
 							) {
 								resultCounts[review.result]++;
 							}
@@ -215,16 +215,22 @@ export default function AdditionalStats({ appData }) {
 						mostReviewedCard = {
 							reviewCount,
 							front: card.front,
-							deckName: allDecks.find(
-								(deck) =>
-									deck.cards &&
-									deck.cards.some((c) => c.cardId === card.cardId)
-							)?.deckName || "Unknown",
-							deckId: allDecks.find(
-								(deck) =>
-									deck.cards &&
-									deck.cards.some((c) => c.cardId === card.cardId)
-							)?.deckId || "Unknown",
+							deckName:
+								allDecks.find(
+									(deck) =>
+										deck.cards &&
+										deck.cards.some(
+											(c) => c.cardId === card.cardId
+										)
+								)?.deckName || 'Unknown',
+							deckId:
+								allDecks.find(
+									(deck) =>
+										deck.cards &&
+										deck.cards.some(
+											(c) => c.cardId === card.cardId
+										)
+								)?.deckId || 'Unknown',
 						};
 					}
 				});
@@ -255,7 +261,7 @@ export default function AdditionalStats({ appData }) {
 					mostReviewedCard,
 				});
 			} catch (error) {
-				console.error("Error calculating stats:", error);
+				console.error('Error calculating stats:', error);
 			} finally {
 				setIsCalculating(false);
 			}
@@ -274,10 +280,10 @@ export default function AdditionalStats({ appData }) {
 			// Recalculate stats using the repaired data
 			calculateStats(repairedData);
 
-			showSuccess("Missing createdAt values have been repaired");
+			showSuccess('Missing createdAt values have been repaired');
 		} catch (error) {
-			console.error("Error repairing createdAt values:", error);
-			showError("Failed to repair createdAt values");
+			console.error('Error repairing createdAt values:', error);
+			showError('Failed to repair createdAt values');
 		} finally {
 			setIsRepairing(false);
 		}
@@ -302,7 +308,7 @@ export default function AdditionalStats({ appData }) {
 					>
 						<RefreshCw
 							className={`h-4 w-4 ${
-								isCalculating ? "animate-spin" : ""
+								isCalculating ? 'animate-spin' : ''
 							}`}
 						/>
 						Refresh
@@ -314,7 +320,7 @@ export default function AdditionalStats({ appData }) {
 						className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						<Calculator className="h-4 w-4" />
-						{isCalculating ? "Calculating..." : "Calculate Stats"}
+						{isCalculating ? 'Calculating...' : 'Calculate Stats'}
 					</button>
 				)}
 			</div>
@@ -446,7 +452,7 @@ export default function AdditionalStats({ appData }) {
 							</div>
 							<p className="text-xs text-gray-500 dark:text-slate-500 mt-2">
 								({stats.successCount.toLocaleString()} good/easy
-								out of {stats.totalReviews.toLocaleString()}{" "}
+								out of {stats.totalReviews.toLocaleString()}{' '}
 								total reviews)
 							</p>
 						</div>
@@ -541,12 +547,13 @@ export default function AdditionalStats({ appData }) {
 										Most Reviewed Card
 									</span>
 									<span className="text-lg font-semibold text-gray-900 dark:text-slate-100">
-										{stats.mostReviewedCard.reviewCount.toLocaleString()}{" "}
+										{stats.mostReviewedCard.reviewCount.toLocaleString()}{' '}
 										reviews
 									</span>
 								</div>
 								<p className="text-xs text-gray-500 dark:text-slate-500 mt-2">
-									{stats.mostReviewedCard.front} ({stats.mostReviewedCard.deckName})
+									{stats.mostReviewedCard.front} (
+									{stats.mostReviewedCard.deckName})
 								</p>
 							</div>
 						)}
@@ -567,10 +574,10 @@ export default function AdditionalStats({ appData }) {
 								>
 									<Wrench
 										className={`h-3.5 w-3.5 ${
-											isRepairing ? "animate-spin" : ""
+											isRepairing ? 'animate-spin' : ''
 										}`}
 									/>
-									{isRepairing ? "Repairing..." : "Repair"}
+									{isRepairing ? 'Repairing...' : 'Repair'}
 								</button>
 							</div>
 							<div className="space-y-2">
@@ -580,8 +587,8 @@ export default function AdditionalStats({ appData }) {
 											Folders without createdAt
 										</span>
 										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-											{stats.foldersWithoutCreatedAt.toLocaleString()}{" "}
-											/{" "}
+											{stats.foldersWithoutCreatedAt.toLocaleString()}{' '}
+											/{' '}
 											{stats.totalFolders.toLocaleString()}
 										</span>
 									</div>
@@ -592,8 +599,8 @@ export default function AdditionalStats({ appData }) {
 											Decks without createdAt
 										</span>
 										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-											{stats.decksWithoutCreatedAt.toLocaleString()}{" "}
-											/{" "}
+											{stats.decksWithoutCreatedAt.toLocaleString()}{' '}
+											/{' '}
 											{stats.totalDecks.toLocaleString()}
 										</span>
 									</div>
@@ -604,8 +611,8 @@ export default function AdditionalStats({ appData }) {
 											Cards without createdAt
 										</span>
 										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-											{stats.cardsWithoutCreatedAt.toLocaleString()}{" "}
-											/{" "}
+											{stats.cardsWithoutCreatedAt.toLocaleString()}{' '}
+											/{' '}
 											{stats.totalCards.toLocaleString()}
 										</span>
 									</div>

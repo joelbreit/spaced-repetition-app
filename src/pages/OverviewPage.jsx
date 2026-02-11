@@ -1,20 +1,20 @@
-import { useAuth } from "../contexts/AuthContext";
-import AuthView from "../components/AuthView";
-import { useState, useRef } from "react";
-import { Routes, Route } from "react-router-dom";
-import FolderBrowserView from "../components/FolderBrowserView";
-import DeckCardsView from "../components/DeckCardsView";
-import FolderCardsView from "../components/FolderCardsView";
-import CardEditView from "../components/CardEditView";
-import CardReviewView from "../components/Review/CardReviewView";
-import ReviewSummary from "../components/Review/ReviewSummary";
-import Header from "../components/Header";
-import NotificationContainer from "../components/NotificationContainer";
-import Footer from "../components/Footer.jsx";
-import DemoBanner from "../components/DemoBanner";
-import { useAppData } from "../contexts/AppDataContext";
-import { useDeckOperations } from "../hooks/useDeckOperations";
-import { calculateNextInterval } from "../services/cardCalculations";
+import { useAuth } from '../contexts/AuthContext';
+import AuthView from '../components/AuthView';
+import { useState, useRef } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import FolderBrowserView from '../components/FolderBrowserView';
+import DeckCardsView from '../components/DeckCardsView';
+import FolderCardsView from '../components/FolderCardsView';
+import CardEditView from '../components/CardEditView';
+import CardReviewView from '../components/Review/CardReviewView';
+import ReviewSummary from '../components/Review/ReviewSummary';
+import Header from '../components/Header';
+import NotificationContainer from '../components/NotificationContainer';
+import Footer from '../components/Footer.jsx';
+import DemoBanner from '../components/DemoBanner';
+import { useAppData } from '../contexts/AppDataContext';
+import { useDeckOperations } from '../hooks/useDeckOperations';
+import { calculateNextInterval } from '../services/cardCalculations';
 
 function OverviewPage() {
 	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -71,11 +71,11 @@ function OverviewPage() {
 			const orderedCards = [...dueCards, ...newCards, ...notYetDueCards];
 
 			const sections = [
-				{ type: "due", label: "Due", total: dueCards.length },
-				{ type: "new", label: "New", total: newCards.length },
+				{ type: 'due', label: 'Due', total: dueCards.length },
+				{ type: 'new', label: 'New', total: newCards.length },
 				{
-					type: "learned",
-					label: "Learned",
+					type: 'learned',
+					label: 'Learned',
 					total: notYetDueCards.length,
 				},
 			];
@@ -84,7 +84,7 @@ function OverviewPage() {
 			setReviewSections(sections);
 			setCurrentCardIndex(0);
 			setIsFlipped(false);
-			setCurrentView("review");
+			setCurrentView('review');
 		}
 	};
 
@@ -103,7 +103,9 @@ function OverviewPage() {
 
 			// Get direct decks in this folder (excluding archived)
 			const directDecks = (appData.decks || []).filter(
-				(d) => d.parentFolderId === targetFolderId && !(d.isArchived || false)
+				(d) =>
+					d.parentFolderId === targetFolderId &&
+					!(d.isArchived || false)
 			);
 			allDecks.push(...directDecks);
 
@@ -174,11 +176,11 @@ function OverviewPage() {
 		const orderedCards = [...dueCards, ...newCards, ...notYetDueCards];
 
 		const sections = [
-			{ type: "due", label: "Due", total: dueCards.length },
-			{ type: "new", label: "New", total: newCards.length },
+			{ type: 'due', label: 'Due', total: dueCards.length },
+			{ type: 'new', label: 'New', total: newCards.length },
 			{
-				type: "learned",
-				label: "Learned",
+				type: 'learned',
+				label: 'Learned',
 				total: notYetDueCards.length,
 			},
 		];
@@ -188,9 +190,9 @@ function OverviewPage() {
 			? appData.folders?.find((f) => f.folderId === folderId)
 			: null;
 		const virtualDeck = {
-			deckId: folderId || "root-folder", // Use folderId or special ID for root
-			deckName: folder ? `${folder.folderName} (All Decks)` : "All Decks",
-			deckSymbol: folder?.folderSymbol || "📁",
+			deckId: folderId || 'root-folder', // Use folderId or special ID for root
+			deckName: folder ? `${folder.folderName} (All Decks)` : 'All Decks',
+			deckSymbol: folder?.folderSymbol || '📁',
 			cards: orderedCards,
 			isFolderReview: true, // Flag to indicate this is a folder review
 		};
@@ -199,7 +201,7 @@ function OverviewPage() {
 		setReviewSections(sections);
 		setCurrentCardIndex(0);
 		setIsFlipped(false);
-		setCurrentView("review");
+		setCurrentView('review');
 	};
 
 	const recordReview = (
@@ -218,7 +220,7 @@ function OverviewPage() {
 		const interval = calculateNextInterval(result, card, timestamp);
 		const nextDue = timestamp + interval;
 
-		console.log("reviewDuration", reviewDuration);
+		console.log('reviewDuration', reviewDuration);
 
 		const review = {
 			reviewId: `${timestamp}-${Math.random().toString(36).slice(2, 11)}`,
@@ -248,7 +250,7 @@ function OverviewPage() {
 							cards: deck.cards.map((c) =>
 								c.cardId === card.cardId ? updatedCard : c
 							),
-					  }
+						}
 					: deck
 			),
 		}));
@@ -270,7 +272,7 @@ function OverviewPage() {
 			if (currentCardIndex < currentDeckForReview.cards.length - 1) {
 				setCurrentCardIndex(currentCardIndex + 1);
 			} else {
-				setCurrentView("summary");
+				setCurrentView('summary');
 			}
 		}, 300);
 	};
@@ -280,19 +282,17 @@ function OverviewPage() {
 		setPreviousView(currentView);
 		setEditingDeckId(deckId);
 		setSelectedCardId(cardId);
-		setCurrentView("edit");
+		setCurrentView('edit');
 	};
 
 	const handleSaveCard = (deckId, cardId, front, back) => {
 		if (cardId) {
 			updateCard(deckId, cardId, front, back);
-			
+
 			// If we're in a review session, update the currentDeckForReview to reflect the changes
-			if (previousView === "review" && currentDeckForReview) {
+			if (previousView === 'review' && currentDeckForReview) {
 				const updatedCards = currentDeckForReview.cards.map((c) =>
-					c.cardId === cardId
-						? { ...c, front, back }
-						: c
+					c.cardId === cardId ? { ...c, front, back } : c
 				);
 				setCurrentDeckForReview({
 					...currentDeckForReview,
@@ -319,7 +319,7 @@ function OverviewPage() {
 
 	const handleEndReview = () => {
 		if (sessionReviews.length > 0) {
-			setCurrentView("summary");
+			setCurrentView('summary');
 		} else {
 			setCurrentView(null);
 		}
@@ -399,16 +399,14 @@ function OverviewPage() {
 						<Route
 							path="/folder/:folderId/cards"
 							element={
-								<FolderCardsView
-									onEditCard={handleEditCard}
-								/>
+								<FolderCardsView onEditCard={handleEditCard} />
 							}
 						/>
 					</Routes>
 				)}
 
 				{/* Edit overlay */}
-				{currentView === "edit" && editingDeckId && (
+				{currentView === 'edit' && editingDeckId && (
 					<CardEditView
 						appData={appData}
 						deckId={editingDeckId}
@@ -421,7 +419,7 @@ function OverviewPage() {
 				)}
 
 				{/* Review overlay */}
-				{currentView === "review" && currentDeckForReview && (
+				{currentView === 'review' && currentDeckForReview && (
 					<CardReviewView
 						deck={currentDeckForReview}
 						currentCardIndex={currentCardIndex}
@@ -455,7 +453,7 @@ function OverviewPage() {
 												isFlagged: !(
 													c.isFlagged || false
 												),
-										  }
+											}
 										: c
 							);
 							setCurrentDeckForReview({
@@ -479,7 +477,7 @@ function OverviewPage() {
 												isStarred: !(
 													c.isStarred || false
 												),
-										  }
+											}
 										: c
 							);
 							setCurrentDeckForReview({
@@ -491,7 +489,7 @@ function OverviewPage() {
 				)}
 
 				{/* Summary overlay */}
-				{currentView === "summary" && currentDeckForReview && (
+				{currentView === 'summary' && currentDeckForReview && (
 					<ReviewSummary
 						sessionReviews={sessionReviews}
 						cardsCollectionBefore={
@@ -501,7 +499,7 @@ function OverviewPage() {
 											cardsCollectionBeforeReviewRef.current?.flatMap(
 												(deck) => deck.cards
 											) || [],
-								  }
+									}
 								: cardsCollectionBeforeReviewRef.current
 						}
 						cardsCollectionAfter={
@@ -516,12 +514,12 @@ function OverviewPage() {
 												)
 											)
 											.flatMap((deck) => deck.cards),
-								  }
+									}
 								: appData.decks?.find(
 										(d) =>
 											d.deckId ===
 											currentDeckForReview.deckId
-								  )
+									)
 						}
 						onClose={handleCloseSummary}
 					/>

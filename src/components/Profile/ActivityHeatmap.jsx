@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 /**
  * ActivityHeatmap Component
@@ -13,8 +13,8 @@ export default function ActivityHeatmap({ appData }) {
 	// Format date as YYYY-MM-DD in local timezone (not UTC)
 	const formatDateKey = (date) => {
 		const year = date.getFullYear();
-		const month = String(date.getMonth() + 1).padStart(2, "0");
-		const day = String(date.getDate()).padStart(2, "0");
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
 		return `${year}-${month}-${day}`;
 	};
 
@@ -128,11 +128,11 @@ export default function ActivityHeatmap({ appData }) {
 	// Get color class based on activity level
 	const getColorClass = (level) => {
 		const colors = {
-			0: "bg-gray-100 dark:bg-slate-800",
-			1: "bg-teal-200 dark:bg-teal-900/30",
-			2: "bg-teal-400 dark:bg-teal-700/50",
-			3: "bg-teal-600 dark:bg-teal-600/70",
-			4: "bg-teal-800 dark:bg-teal-500",
+			0: 'bg-gray-100 dark:bg-slate-800',
+			1: 'bg-teal-200 dark:bg-teal-900/30',
+			2: 'bg-teal-400 dark:bg-teal-700/50',
+			3: 'bg-teal-600 dark:bg-teal-600/70',
+			4: 'bg-teal-800 dark:bg-teal-500',
 		};
 		return colors[level];
 	};
@@ -140,12 +140,12 @@ export default function ActivityHeatmap({ appData }) {
 	// Format date for tooltip
 	const formatDate = (date) => {
 		const options = {
-			weekday: "short",
-			year: "numeric",
-			month: "short",
-			day: "numeric",
+			weekday: 'short',
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
 		};
-		return date.toLocaleDateString("en-US", options);
+		return date.toLocaleDateString('en-US', options);
 	};
 
 	// Get month labels
@@ -159,8 +159,8 @@ export default function ActivityHeatmap({ appData }) {
 
 			if (month !== lastMonth && weekIndex > 0) {
 				labels.push({
-					month: firstDay.toLocaleDateString("en-US", {
-						month: "short",
+					month: firstDay.toLocaleDateString('en-US', {
+						month: 'short',
 					}),
 					weekIndex,
 				});
@@ -181,7 +181,7 @@ export default function ActivityHeatmap({ appData }) {
 		}
 		const dates = Array.from(activityMap.keys()).sort();
 		// Parse date string as local time (YYYY-MM-DD format)
-		const [year, month, day] = dates[0].split("-").map(Number);
+		const [year, month, day] = dates[0].split('-').map(Number);
 		const date = new Date(year, month - 1, day);
 		date.setHours(0, 0, 0, 0);
 		return date;
@@ -230,11 +230,11 @@ export default function ActivityHeatmap({ appData }) {
 
 	// Format first day for display
 	const formatFirstDay = (date) => {
-		if (!date) return "N/A";
-		return date.toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
+		if (!date) return 'N/A';
+		return date.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
 		});
 	};
 
@@ -265,7 +265,7 @@ export default function ActivityHeatmap({ appData }) {
 				<div className="flex flex-wrap gap-4 text-sm">
 					<div>
 						<span className="text-gray-600 dark:text-slate-400">
-							Total reviews:{" "}
+							Total reviews:{' '}
 						</span>
 						<span className="font-semibold text-gray-900 dark:text-slate-100">
 							{totalReviews}
@@ -273,7 +273,7 @@ export default function ActivityHeatmap({ appData }) {
 					</div>
 					<div>
 						<span className="text-gray-600 dark:text-slate-400">
-							Active days:{" "}
+							Active days:{' '}
 						</span>
 						<span className="font-semibold text-gray-900 dark:text-slate-100">
 							{activeDays}
@@ -281,16 +281,16 @@ export default function ActivityHeatmap({ appData }) {
 					</div>
 					<div>
 						<span className="text-gray-600 dark:text-slate-400">
-							Current streak:{" "}
+							Current streak:{' '}
 						</span>
 						<span className="font-semibold text-gray-900 dark:text-slate-100">
-							{currentStreak}{" "}
-							{currentStreak === 1 ? "day" : "days"}
+							{currentStreak}{' '}
+							{currentStreak === 1 ? 'day' : 'days'}
 						</span>
 					</div>
 					<div>
 						<span className="text-gray-600 dark:text-slate-400">
-							First day:{" "}
+							First day:{' '}
 						</span>
 						<span className="font-semibold text-gray-900 dark:text-slate-100">
 							{formatFirstDay(firstReviewDate)}
@@ -298,7 +298,7 @@ export default function ActivityHeatmap({ appData }) {
 					</div>
 					<div>
 						<span className="text-gray-600 dark:text-slate-400">
-							Avg reviews/day:{" "}
+							Avg reviews/day:{' '}
 						</span>
 						<span className="font-semibold text-gray-900 dark:text-slate-100">
 							{avgReviewsPerDay.toFixed(1)}
@@ -306,7 +306,7 @@ export default function ActivityHeatmap({ appData }) {
 					</div>
 					<div>
 						<span className="text-gray-600 dark:text-slate-400">
-							Avg reviews/active day:{" "}
+							Avg reviews/active day:{' '}
 						</span>
 						<span className="font-semibold text-gray-900 dark:text-slate-100">
 							{avgReviewsPerActiveDay.toFixed(1)}
@@ -321,14 +321,14 @@ export default function ActivityHeatmap({ appData }) {
 					{/* Month Labels */}
 					<div
 						className="flex mb-2 relative"
-						style={{ paddingLeft: "28px", height: "16px" }}
+						style={{ paddingLeft: '28px', height: '16px' }}
 					>
 						{monthLabels.map((label, index) => (
 							<div
 								key={index}
 								className="text-xs text-gray-500 dark:text-slate-500"
 								style={{
-									position: "absolute",
+									position: 'absolute',
 									left: `${28 + label.weekIndex * 14}px`,
 								}}
 							>
@@ -394,8 +394,8 @@ export default function ActivityHeatmap({ appData }) {
 													level
 												)} ${
 													isMaxDay
-														? "ring-2 ring-yellow-400 dark:ring-yellow-500 shadow-sm"
-														: "hover:ring-2 hover:ring-gray-400 dark:hover:ring-slate-500"
+														? 'ring-2 ring-yellow-400 dark:ring-yellow-500 shadow-sm'
+														: 'hover:ring-2 hover:ring-gray-400 dark:hover:ring-slate-500'
 												} transition-all duration-200 cursor-pointer`}
 												onMouseEnter={(e) => {
 													setHoveredDay({
@@ -418,8 +418,8 @@ export default function ActivityHeatmap({ appData }) {
 													day
 												)}: ${count} reviews${
 													isMaxDay
-														? " (Most reviews)"
-														: ""
+														? ' (Most reviews)'
+														: ''
 												}`}
 											/>
 										);
@@ -458,7 +458,7 @@ export default function ActivityHeatmap({ appData }) {
 					style={{
 						left: `${hoveredPosition.x}px`,
 						top: `${hoveredPosition.y - 40}px`,
-						transform: "translateX(-50%)",
+						transform: 'translateX(-50%)',
 					}}
 				>
 					<div className="font-semibold">

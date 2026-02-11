@@ -1,4 +1,4 @@
-import { prettyPrintDueDateAsInterval } from "../../services/cardCalculations";
+import { prettyPrintDueDateAsInterval } from '../../services/cardCalculations';
 
 export default function AnimationOverlay({ nextDueDate }) {
 	if (!nextDueDate) return null;

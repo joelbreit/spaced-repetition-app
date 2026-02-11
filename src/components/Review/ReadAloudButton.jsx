@@ -5,7 +5,7 @@ import {
 	Minus,
 	Loader2,
 	Pause,
-} from "lucide-react";
+} from 'lucide-react';
 import {
 	useState,
 	useEffect,
@@ -13,8 +13,8 @@ import {
 	useImperativeHandle,
 	forwardRef,
 	useCallback,
-} from "react";
-import { readAloudAPI } from "../../services/apiStorage";
+} from 'react';
+import { readAloudAPI } from '../../services/apiStorage';
 
 const ReadAloudButton = forwardRef(function ReadAloudButton(
 	{ text, playbackSpeed, onSpeedChange, voiceId = null, engine = null },
@@ -39,20 +39,20 @@ const ReadAloudButton = forwardRef(function ReadAloudButton(
 		};
 
 		if (showSpeedDropdown) {
-			document.addEventListener("mousedown", handleClickOutside);
+			document.addEventListener('mousedown', handleClickOutside);
 			return () => {
-				document.removeEventListener("mousedown", handleClickOutside);
+				document.removeEventListener('mousedown', handleClickOutside);
 			};
 		}
 	}, [showSpeedDropdown]);
 
 	// Get or create audio player
 	const getAudioPlayer = () => {
-		let audioPlayer = document.getElementById("flashcard-audio-player");
+		let audioPlayer = document.getElementById('flashcard-audio-player');
 		if (!audioPlayer) {
-			audioPlayer = document.createElement("audio");
-			audioPlayer.id = "flashcard-audio-player";
-			audioPlayer.style.display = "none";
+			audioPlayer = document.createElement('audio');
+			audioPlayer.id = 'flashcard-audio-player';
+			audioPlayer.style.display = 'none';
 			document.body.appendChild(audioPlayer);
 		}
 		return audioPlayer;
@@ -75,16 +75,16 @@ const ReadAloudButton = forwardRef(function ReadAloudButton(
 			currentAudioTextRef.current = null;
 		};
 
-		audioPlayer.addEventListener("play", handlePlay);
-		audioPlayer.addEventListener("pause", handlePause);
-		audioPlayer.addEventListener("ended", handleEnded);
-		audioPlayer.addEventListener("error", handleError);
+		audioPlayer.addEventListener('play', handlePlay);
+		audioPlayer.addEventListener('pause', handlePause);
+		audioPlayer.addEventListener('ended', handleEnded);
+		audioPlayer.addEventListener('error', handleError);
 
 		return () => {
-			audioPlayer.removeEventListener("play", handlePlay);
-			audioPlayer.removeEventListener("pause", handlePause);
-			audioPlayer.removeEventListener("ended", handleEnded);
-			audioPlayer.removeEventListener("error", handleError);
+			audioPlayer.removeEventListener('play', handlePlay);
+			audioPlayer.removeEventListener('pause', handlePause);
+			audioPlayer.removeEventListener('ended', handleEnded);
+			audioPlayer.removeEventListener('error', handleError);
 		};
 	}, []);
 
@@ -175,13 +175,13 @@ const ReadAloudButton = forwardRef(function ReadAloudButton(
 				// Set playback speed and new audio, then play
 				audioPlayer.src = URL.createObjectURL(audioBlob);
 				audioPlayer.play().catch((error) => {
-					console.error("Failed to play audio:", error);
+					console.error('Failed to play audio:', error);
 					setIsLoading(false);
 					setIsPlaying(false);
 					currentAudioTextRef.current = null;
 				});
 			} catch (error) {
-				console.error("Failed to read aloud:", error);
+				console.error('Failed to read aloud:', error);
 				setIsLoading(false);
 				setIsPlaying(false);
 				currentAudioTextRef.current = null;
@@ -224,7 +224,7 @@ const ReadAloudButton = forwardRef(function ReadAloudButton(
 						readAloud(text);
 					}}
 					className="p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
-					title={isPlaying ? "Pause" : "Read aloud"}
+					title={isPlaying ? 'Pause' : 'Read aloud'}
 					disabled={isLoading}
 				>
 					{isLoading ? (
@@ -243,14 +243,14 @@ const ReadAloudButton = forwardRef(function ReadAloudButton(
 					}}
 					className={`p-2 transition-all duration-200 text-gray-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-blue-500 dark:hover:text-blue-400 ${
 						showSpeedDropdown
-							? "bg-white/70 dark:bg-slate-700/70 text-blue-500 dark:text-blue-400"
-							: ""
+							? 'bg-white/70 dark:bg-slate-700/70 text-blue-500 dark:text-blue-400'
+							: ''
 					}`}
 					title="Playback speed"
 				>
 					<ChevronDown
 						className={`h-4 w-4 transition-transform ${
-							showSpeedDropdown ? "rotate-180" : ""
+							showSpeedDropdown ? 'rotate-180' : ''
 						}`}
 					/>
 				</button>

@@ -1,43 +1,43 @@
-import { useState, useEffect } from "react";
-import { X, Volume2 } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { X, Volume2 } from 'lucide-react';
 
 // Voice and engine compatibility mapping
 const VOICE_ENGINES = {
-	Danielle: ["standard", "neural", "generative"],
-	Gregory: ["neural"],
-	Joanna: ["neural", "generative"],
-	Kendra: ["standard", "neural"],
-	Kimberly: ["standard", "neural"],
-	Salli: ["standard", "neural", "generative"],
-	Joey: ["standard", "neural"],
-	Matthew: ["neural"],
-	Ruth: ["neural", "generative"],
-	Stephen: ["neural", "generative"],
+	Danielle: ['standard', 'neural', 'generative'],
+	Gregory: ['neural'],
+	Joanna: ['neural', 'generative'],
+	Kendra: ['standard', 'neural'],
+	Kimberly: ['standard', 'neural'],
+	Salli: ['standard', 'neural', 'generative'],
+	Joey: ['standard', 'neural'],
+	Matthew: ['neural'],
+	Ruth: ['neural', 'generative'],
+	Stephen: ['neural', 'generative'],
 };
 
 const VOICE_LIST = Object.keys(VOICE_ENGINES).sort();
 
 const ENGINE_LABELS = {
-	standard: "Standard",
-	neural: "Neural (Higher Quality)",
-	generative: "Generative (Premium)",
+	standard: 'Standard',
+	neural: 'Neural (Higher Quality)',
+	generative: 'Generative (Premium)',
 };
 
 const AUTO_READ_OPTIONS = [
-	{ value: "off", label: "Off" },
-	{ value: "both", label: "Both sides" },
-	{ value: "front", label: "Front only" },
-	{ value: "back", label: "Back only" },
-	{ value: "longer", label: "Longer side only" },
+	{ value: 'off', label: 'Off' },
+	{ value: 'both', label: 'Both sides' },
+	{ value: 'front', label: 'Front only' },
+	{ value: 'back', label: 'Back only' },
+	{ value: 'longer', label: 'Longer side only' },
 ];
 
 export default function ReadAloudSettingsModal({
 	isOpen,
 	onClose,
 	onSave,
-	currentVoiceId = "Ruth",
-	currentEngine = "generative",
-	currentAutoRead = "off",
+	currentVoiceId = 'Ruth',
+	currentEngine = 'generative',
+	currentAutoRead = 'off',
 }) {
 	const [selectedVoiceId, setSelectedVoiceId] = useState(currentVoiceId);
 	const [selectedEngine, setSelectedEngine] = useState(currentEngine);
@@ -51,7 +51,7 @@ export default function ReadAloudSettingsModal({
 	}, [currentVoiceId, currentEngine, currentAutoRead]);
 
 	// Get available engines for selected voice
-	const availableEngines = VOICE_ENGINES[selectedVoiceId] || ["neural"];
+	const availableEngines = VOICE_ENGINES[selectedVoiceId] || ['neural'];
 
 	// If current engine is not available for selected voice, reset to first available
 	useEffect(() => {
@@ -144,12 +144,12 @@ export default function ReadAloudSettingsModal({
 							))}
 						</select>
 						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
-							{selectedEngine === "generative" &&
-								"Generative voices offer the highest quality but cost more."}
-							{selectedEngine === "neural" &&
-								"Neural engine provides high-quality, natural-sounding speech."}
-							{selectedEngine === "standard" &&
-								"Standard engine is cost-effective with good quality."}
+							{selectedEngine === 'generative' &&
+								'Generative voices offer the highest quality but cost more.'}
+							{selectedEngine === 'neural' &&
+								'Neural engine provides high-quality, natural-sounding speech.'}
+							{selectedEngine === 'standard' &&
+								'Standard engine is cost-effective with good quality.'}
 						</p>
 					</div>
 
@@ -160,7 +160,9 @@ export default function ReadAloudSettingsModal({
 						</label>
 						<select
 							value={selectedAutoRead}
-							onChange={(e) => setSelectedAutoRead(e.target.value)}
+							onChange={(e) =>
+								setSelectedAutoRead(e.target.value)
+							}
 							className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 						>
 							{AUTO_READ_OPTIONS.map((opt) => (
@@ -170,7 +172,8 @@ export default function ReadAloudSettingsModal({
 							))}
 						</select>
 						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
-							Automatically read the selected side when it is displayed
+							Automatically read the selected side when it is
+							displayed
 						</p>
 					</div>
 				</div>

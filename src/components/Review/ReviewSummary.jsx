@@ -9,11 +9,11 @@ import {
 	Award,
 	ArrowRight,
 	Clock,
-} from "lucide-react";
+} from 'lucide-react';
 import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
-} from "../../services/cardCalculations";
+} from '../../services/cardCalculations';
 
 export default function ReviewSummary({
 	sessionReviews,
@@ -24,16 +24,16 @@ export default function ReviewSummary({
 	// Calculate session statistics
 	const totalReviewed = sessionReviews.length;
 	const resultCounts = {
-		again: sessionReviews.filter((r) => r.result === "again").length,
-		hard: sessionReviews.filter((r) => r.result === "hard").length,
-		good: sessionReviews.filter((r) => r.result === "good").length,
-		easy: sessionReviews.filter((r) => r.result === "easy").length,
+		again: sessionReviews.filter((r) => r.result === 'again').length,
+		hard: sessionReviews.filter((r) => r.result === 'hard').length,
+		good: sessionReviews.filter((r) => r.result === 'good').length,
+		easy: sessionReviews.filter((r) => r.result === 'easy').length,
 	};
 
 	// Calculate total review time
 	const totalReviewTime = sessionReviews.reduce(
 		(sum, review) => sum + (review.reviewDuration || 0),
-		0,
+		0
 	);
 
 	// Calculate average time per card
@@ -42,11 +42,11 @@ export default function ReviewSummary({
 
 	// Format review time as minutes:seconds
 	const formatReviewTime = (ms) => {
-		if (!ms || ms === 0) return "0:00";
+		if (!ms || ms === 0) return '0:00';
 		const totalSeconds = Math.floor(ms / 1000);
 		const minutes = Math.floor(totalSeconds / 60);
 		const seconds = totalSeconds % 60;
-		return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+		return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 	};
 
 	// Calculate percentages
@@ -73,7 +73,7 @@ export default function ReviewSummary({
 		const avgMastery =
 			cardCollection.cards.reduce(
 				(sum, card) => sum + calculateLearningStrength(card),
-				0,
+				0
 			) / cardCollection.cards.length;
 
 		const totalBurden = cardCollection.cards
@@ -81,15 +81,15 @@ export default function ReviewSummary({
 			.reduce((sum, card) => sum + getPerDayReviewRate(card), 0);
 
 		const dueCount = cardCollection.cards.filter(
-			(card) => card.whenDue <= now && card.reviews.length > 0,
+			(card) => card.whenDue <= now && card.reviews.length > 0
 		).length;
 
 		const newCount = cardCollection.cards.filter(
-			(card) => card.reviews.length === 0,
+			(card) => card.reviews.length === 0
 		).length;
 
 		const learnedCount = cardCollection.cards.filter(
-			(card) => card.reviews.length > 0 && card.whenDue > now,
+			(card) => card.reviews.length > 0 && card.whenDue > now
 		).length;
 
 		return { avgMastery, totalBurden, dueCount, newCount, learnedCount };
@@ -103,7 +103,7 @@ export default function ReviewSummary({
 	const burdenChange = metricsAfter.totalBurden - metricsBefore.totalBurden;
 
 	// Trend indicator component
-	const TrendIndicator = ({ value, suffix = "", invertColors = false }) => {
+	const TrendIndicator = ({ value, suffix = '', invertColors = false }) => {
 		if (Math.abs(value) < 0.01) {
 			return (
 				<span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
@@ -116,11 +116,11 @@ export default function ReviewSummary({
 		const isPositive = value > 0;
 		const color = invertColors
 			? isPositive
-				? "text-red-500"
-				: "text-green-500"
+				? 'text-red-500'
+				: 'text-green-500'
 			: isPositive
-				? "text-green-500"
-				: "text-red-500";
+				? 'text-green-500'
+				: 'text-red-500';
 
 		const Icon = isPositive ? TrendingUp : TrendingDown;
 
@@ -128,7 +128,7 @@ export default function ReviewSummary({
 			<span className={`flex items-center gap-1 ${color}`}>
 				<Icon className="h-4 w-4" />
 				<span>
-					{isPositive ? "+" : ""}
+					{isPositive ? '+' : ''}
 					{value.toFixed(1)}
 					{suffix}
 				</span>
@@ -167,7 +167,7 @@ export default function ReviewSummary({
 							{totalReviewed}
 						</div>
 						<div className="text-gray-500 dark:text-gray-400">
-							card{totalReviewed !== 1 ? "s" : ""} this session
+							card{totalReviewed !== 1 ? 's' : ''} this session
 						</div>
 						{totalReviewed > 0 && totalReviewTime > 0 && (
 							<div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
@@ -177,7 +177,9 @@ export default function ReviewSummary({
 										<div className="flex items-center justify-center gap-2 mb-1">
 											<Clock className="h-5 w-5 text-teal-500" />
 											<div className="text-2xl font-semibold text-gray-900 dark:text-white">
-												{formatReviewTime(totalReviewTime)}
+												{formatReviewTime(
+													totalReviewTime
+												)}
 											</div>
 										</div>
 										<div className="text-sm text-gray-500 dark:text-gray-400">
@@ -189,7 +191,9 @@ export default function ReviewSummary({
 										<div className="flex items-center justify-center gap-2 mb-1">
 											<Clock className="h-5 w-5 text-cyan-500" />
 											<div className="text-2xl font-semibold text-gray-900 dark:text-white">
-												{formatReviewTime(avgTimePerCard)}
+												{formatReviewTime(
+													avgTimePerCard
+												)}
 											</div>
 										</div>
 										<div className="text-sm text-gray-500 dark:text-gray-400">
@@ -215,7 +219,7 @@ export default function ReviewSummary({
 										className="bg-red-500 transition-all duration-500"
 										style={{
 											width: `${getPercentage(
-												resultCounts.again,
+												resultCounts.again
 											)}%`,
 										}}
 									/>
@@ -225,7 +229,7 @@ export default function ReviewSummary({
 										className="bg-orange-500 transition-all duration-500"
 										style={{
 											width: `${getPercentage(
-												resultCounts.hard,
+												resultCounts.hard
 											)}%`,
 										}}
 									/>
@@ -235,7 +239,7 @@ export default function ReviewSummary({
 										className="bg-green-500 transition-all duration-500"
 										style={{
 											width: `${getPercentage(
-												resultCounts.good,
+												resultCounts.good
 											)}%`,
 										}}
 									/>
@@ -245,7 +249,7 @@ export default function ReviewSummary({
 										className="bg-teal-500 transition-all duration-500"
 										style={{
 											width: `${getPercentage(
-												resultCounts.easy,
+												resultCounts.easy
 											)}%`,
 										}}
 									/>
@@ -337,13 +341,20 @@ export default function ReviewSummary({
 											Average Mastery
 										</div>
 										<div className="text-sm text-gray-500 dark:text-gray-400">
-											{metricsBefore.avgMastery.toFixed(1)}%{" "}
-											<ArrowRight className="h-3 w-3 inline" />{" "}
-											{metricsAfter.avgMastery.toFixed(1)}%
+											{metricsBefore.avgMastery.toFixed(
+												1
+											)}
+											%{' '}
+											<ArrowRight className="h-3 w-3 inline" />{' '}
+											{metricsAfter.avgMastery.toFixed(1)}
+											%
 										</div>
 									</div>
 								</div>
-								<TrendIndicator value={masteryChange} suffix="%" />
+								<TrendIndicator
+									value={masteryChange}
+									suffix="%"
+								/>
 							</div>
 
 							{/* Burden Change */}
@@ -355,9 +366,13 @@ export default function ReviewSummary({
 											Daily Burden
 										</div>
 										<div className="text-sm text-gray-500 dark:text-gray-400">
-											{metricsBefore.totalBurden.toFixed(1)}{" "}
-											<ArrowRight className="h-3 w-3 inline" />{" "}
-											{metricsAfter.totalBurden.toFixed(1)}{" "}
+											{metricsBefore.totalBurden.toFixed(
+												1
+											)}{' '}
+											<ArrowRight className="h-3 w-3 inline" />{' '}
+											{metricsAfter.totalBurden.toFixed(
+												1
+											)}{' '}
 											reviews/day
 										</div>
 									</div>
@@ -383,8 +398,8 @@ export default function ReviewSummary({
 											{metricsAfter.dueCount -
 												metricsBefore.dueCount >
 											0
-												? "+"
-												: ""}
+												? '+'
+												: ''}
 											{metricsAfter.dueCount -
 												metricsBefore.dueCount}
 										</div>
@@ -403,8 +418,8 @@ export default function ReviewSummary({
 											{metricsAfter.newCount -
 												metricsBefore.newCount >
 											0
-												? "+"
-												: ""}
+												? '+'
+												: ''}
 											{metricsAfter.newCount -
 												metricsBefore.newCount}
 										</div>
@@ -423,8 +438,8 @@ export default function ReviewSummary({
 											{metricsAfter.learnedCount -
 												metricsBefore.learnedCount >
 											0
-												? "+"
-												: ""}
+												? '+'
+												: ''}
 											{metricsAfter.learnedCount -
 												metricsBefore.learnedCount}
 										</div>

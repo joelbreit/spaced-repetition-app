@@ -9,21 +9,21 @@
 - [ ] **Review should fit better on page**
 - [ ] **Esc key to end review session**
 - [ ] Show keyboard shortcuts somehow
-  - [ ] Cards should stretch to fill the height allowed
-  - [ ] Cards too big for that height should be scrollable
+    - [ ] Cards should stretch to fill the height allowed
+    - [ ] Cards too big for that height should be scrollable
 - [ ] **Track partner cards that are tied to each other**
-  - [ ] When deleting a card, ask if you want to delete the related card
-  - [ ] When deleting a deck with cards that are tied to partner cards
-    - [ ] Ask which cards to delete (all, some, none)
-  - [x] When editing a card, ask if you want to edit the partner card
-  - [x] Show partner cards in card view
-  - [ ] Link to partner card in edit card modal
+    - [ ] When deleting a card, ask if you want to delete the related card
+    - [ ] When deleting a deck with cards that are tied to partner cards
+        - [ ] Ask which cards to delete (all, some, none)
+    - [x] When editing a card, ask if you want to edit the partner card
+    - [x] Show partner cards in card view
+    - [ ] Link to partner card in edit card modal
 - [ ] cf. support for vocab
 - [ ] Add notes to card sides
 - [ ] Configurable minimum interval +1
 - [ ] Replace `alert("Account confirmed! Please log in.");`
 - [ ] Allow confirmation of prompts / form submissions with 'Enter'
-  - [ ] Delete deck dialog
+    - [ ] Delete deck dialog
 - [ ] Show count of search results
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
 - [ ] Track related cards
@@ -39,7 +39,7 @@
 
 - [ ] Change email
 - [ ] Reset password
-  - [ ] From login page based on email
+    - [ ] From login page based on email
 
 ### Header
 
@@ -94,7 +94,7 @@
 ## Clean Up
 
 - [ ] SAM deployment
-  - [ ] Tag resources with app name
+    - [ ] Tag resources with app name
 - [ ] Remove old AWS resources
 - [ ] Remove old scripts
 - [ ] `apiStorage.js` -> `apiCalls.js` or something
@@ -194,6 +194,7 @@
 - [x] Highlight/don't highlight streak if today is included in the streak
 
 2025-12-30
+
 - [x] Add Study All functionality for folders
 - [x] Add Move to Folder functionality to DeckCardsView
 - [x] Folder functionality! New FolderBrowserView, SortableContainerItem, and several other components
@@ -203,7 +204,7 @@
 
 2025-12-29
 
-- [x] Continue showing result buttons after initial flip 
+- [x] Continue showing result buttons after initial flip
 - [x] Symbol selection for decks
 - [x] Show overview after "End Review" button is clicked
 - [x] Fix edit, delete, etc buttons not showing up issue
@@ -267,9 +268,9 @@
 - [x] Update sync timeout from 2 to 10 seconds
 - [x] Update scheduling algorithm
 - [x] Update card review priority order
-  1) Due cards in order of most recently due first to most overdue last
-  2) New cards (random order)
-  3) Not yet due cards in order of due soon first to due in a long time last
+    1. Due cards in order of most recently due first to most overdue last
+    2. New cards (random order)
+    3. Not yet due cards in order of due soon first to due in a long time last
 - [x] Your Study Statistics section
 
 2025-10-30

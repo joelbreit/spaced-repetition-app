@@ -16,7 +16,7 @@ export async function loadFromAPI(authToken, refreshToken = null) {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${authToken}`,
+				Authorization: `Bearer ${authToken}`,
 			},
 		});
 
@@ -31,11 +31,13 @@ export async function loadFromAPI(authToken, refreshToken = null) {
 						method: 'GET',
 						headers: {
 							'Content-Type': 'application/json',
-							'Authorization': `Bearer ${newToken}`,
+							Authorization: `Bearer ${newToken}`,
 						},
 					});
 					if (!retryResponse.ok) {
-						throw new Error(`HTTP error! status: ${retryResponse.status}`);
+						throw new Error(
+							`HTTP error! status: ${retryResponse.status}`
+						);
 					}
 					const data = await retryResponse.json();
 					return data;
@@ -68,7 +70,7 @@ export async function saveToAPI(data, authToken, refreshToken = null) {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${authToken}`,
+				Authorization: `Bearer ${authToken}`,
 			},
 			body: JSON.stringify(data),
 		});
@@ -84,12 +86,14 @@ export async function saveToAPI(data, authToken, refreshToken = null) {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
-							'Authorization': `Bearer ${newToken}`,
+							Authorization: `Bearer ${newToken}`,
 						},
 						body: JSON.stringify(data),
 					});
 					if (!retryResponse.ok) {
-						throw new Error(`HTTP error! status: ${retryResponse.status}`);
+						throw new Error(
+							`HTTP error! status: ${retryResponse.status}`
+						);
 					}
 					const result = await retryResponse.json();
 					return result;
@@ -125,7 +129,7 @@ export async function patchToAPI(patchData, authToken, refreshToken = null) {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${authToken}`,
+				Authorization: `Bearer ${authToken}`,
 			},
 			body: JSON.stringify(patchData),
 		});
@@ -141,12 +145,14 @@ export async function patchToAPI(patchData, authToken, refreshToken = null) {
 						method: 'PATCH',
 						headers: {
 							'Content-Type': 'application/json',
-							'Authorization': `Bearer ${newToken}`,
+							Authorization: `Bearer ${newToken}`,
 						},
 						body: JSON.stringify(patchData),
 					});
 					if (!retryResponse.ok) {
-						throw new Error(`HTTP error! status: ${retryResponse.status}`);
+						throw new Error(
+							`HTTP error! status: ${retryResponse.status}`
+						);
 					}
 					const result = await retryResponse.json();
 					return result;
@@ -221,7 +227,7 @@ export async function readAloudAPI(text, voiceId = null, engine = null) {
 			body: JSON.stringify({
 				text,
 				VoiceId: finalVoiceId,
-				Engine: finalEngine
+				Engine: finalEngine,
 			}),
 		});
 
@@ -235,14 +241,15 @@ export async function readAloudAPI(text, voiceId = null, engine = null) {
 		} else if (finalEngine === 'standard') {
 			costPerMillion = 4;
 		}
-		const dollars = text.length / 1000000 * costPerMillion;
+		const dollars = (text.length / 1000000) * costPerMillion;
 		console.log(`Estimated cost (${finalEngine}): $${dollars.toFixed(4)}`);
 
 		if (!response.ok) {
 			let errorMessage = `HTTP error! status: ${response.status}`;
 			try {
 				const errorData = await response.json();
-				errorMessage = errorData.error || errorData.message || errorMessage;
+				errorMessage =
+					errorData.error || errorData.message || errorMessage;
 			} catch {
 				errorMessage = response.statusText || errorMessage;
 			}

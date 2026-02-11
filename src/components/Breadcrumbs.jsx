@@ -1,13 +1,13 @@
-import { Link } from "react-router-dom";
-import { ChevronRight, Home } from "lucide-react";
-import { useAppData } from "../contexts/AppDataContext";
+import { Link } from 'react-router-dom';
+import { ChevronRight, Home } from 'lucide-react';
+import { useAppData } from '../contexts/AppDataContext';
 
 export default function Breadcrumbs({ folderId, deckId, deckName }) {
 	const { appData } = useAppData();
 
 	// Build breadcrumb path from folder hierarchy
 	const buildPath = () => {
-		const path = [{ name: "Home", url: "/", id: null }];
+		const path = [{ name: 'Home', url: '/', id: null }];
 
 		if (deckId && deckName) {
 			// If we're viewing a deck, include it in the path
@@ -36,7 +36,9 @@ export default function Breadcrumbs({ folderId, deckId, deckName }) {
 		let currentId = folderId;
 		while (currentId && !visited.has(currentId)) {
 			visited.add(currentId);
-			const folder = appData.folders.find((f) => f.folderId === currentId);
+			const folder = appData.folders.find(
+				(f) => f.folderId === currentId
+			);
 			if (!folder) break;
 
 			path.unshift({
@@ -57,14 +59,19 @@ export default function Breadcrumbs({ folderId, deckId, deckName }) {
 	return (
 		<nav className="flex items-center gap-2 text-sm mb-6">
 			{path.map((item, index) => (
-				<div key={item.id || "home"} className="flex items-center gap-2">
+				<div
+					key={item.id || 'home'}
+					className="flex items-center gap-2"
+				>
 					{index === 0 ? (
 						<Link
 							to={item.url}
 							className="flex items-center gap-1 text-gray-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
 						>
 							<Home className="h-4 w-4" />
-							<span className="hidden sm:inline">{item.name}</span>
+							<span className="hidden sm:inline">
+								{item.name}
+							</span>
 						</Link>
 					) : isLast(index) ? (
 						<span className="text-gray-900 dark:text-slate-100 font-medium">
@@ -86,4 +93,3 @@ export default function Breadcrumbs({ folderId, deckId, deckName }) {
 		</nav>
 	);
 }
-

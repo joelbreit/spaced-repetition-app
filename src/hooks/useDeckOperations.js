@@ -1,9 +1,9 @@
-import { useAppData } from "../contexts/AppDataContext";
+import { useAppData } from '../contexts/AppDataContext';
 
 export function useDeckOperations() {
 	const { setAppData } = useAppData();
 
-	const addDeck = (deckName, deckSymbol = "📚", parentFolderId = null) => {
+	const addDeck = (deckName, deckSymbol = '📚', parentFolderId = null) => {
 		const newDeck = {
 			deckId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
 			deckName,
@@ -97,13 +97,13 @@ export function useDeckOperations() {
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? {
-						...deck,
-						cards: deck.cards.map((card) =>
-							card.cardId === cardId
-								? { ...card, front, back }
-								: card
-						),
-					}
+							...deck,
+							cards: deck.cards.map((card) =>
+								card.cardId === cardId
+									? { ...card, front, back }
+									: card
+							),
+						}
 					: deck
 			),
 		}));
@@ -115,11 +115,11 @@ export function useDeckOperations() {
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? {
-						...deck,
-						cards: deck.cards.filter(
-							(card) => card.cardId !== cardId
-						),
-					}
+							...deck,
+							cards: deck.cards.filter(
+								(card) => card.cardId !== cardId
+							),
+						}
 					: deck
 			),
 		}));
@@ -131,18 +131,18 @@ export function useDeckOperations() {
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? {
-						...deck,
-						cards: deck.cards.map((card) =>
-							card.cardId === cardId
-								? {
-									...card,
-									isFlagged: !(
-										card.isFlagged || false
-									),
-								}
-								: card
-						),
-					}
+							...deck,
+							cards: deck.cards.map((card) =>
+								card.cardId === cardId
+									? {
+											...card,
+											isFlagged: !(
+												card.isFlagged || false
+											),
+										}
+									: card
+							),
+						}
 					: deck
 			),
 		}));
@@ -154,18 +154,18 @@ export function useDeckOperations() {
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? {
-						...deck,
-						cards: deck.cards.map((card) =>
-							card.cardId === cardId
-								? {
-									...card,
-									isStarred: !(
-										card.isStarred || false
-									),
-								}
-								: card
-						),
-					}
+							...deck,
+							cards: deck.cards.map((card) =>
+								card.cardId === cardId
+									? {
+											...card,
+											isStarred: !(
+												card.isStarred || false
+											),
+										}
+									: card
+							),
+						}
 					: deck
 			),
 		}));
@@ -227,7 +227,11 @@ export function useDeckOperations() {
 		});
 	};
 
-	const addFolder = (folderName, folderSymbol = "📁", parentFolderId = null) => {
+	const addFolder = (
+		folderName,
+		folderSymbol = '📁',
+		parentFolderId = null
+	) => {
 		const newFolder = {
 			folderId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
 			folderName,
@@ -247,7 +251,12 @@ export function useDeckOperations() {
 			...prev,
 			folders: (prev.folders || []).map((folder) =>
 				folder.folderId === folderId
-					? { ...folder, folderName, folderSymbol, updatedAt: Date.now() }
+					? {
+							...folder,
+							folderName,
+							folderSymbol,
+							updatedAt: Date.now(),
+						}
 					: folder
 			),
 		}));
@@ -256,7 +265,9 @@ export function useDeckOperations() {
 	const deleteFolder = (folderId) => {
 		setAppData((prev) => ({
 			...prev,
-			folders: (prev.folders || []).filter((folder) => folder.folderId !== folderId),
+			folders: (prev.folders || []).filter(
+				(folder) => folder.folderId !== folderId
+			),
 		}));
 	};
 
@@ -265,19 +276,27 @@ export function useDeckOperations() {
 
 		setAppData((prev) => {
 			const item = items[sourceIndex];
-			if (item.type === "folder") {
+			if (item.type === 'folder') {
 				const folders = [...(prev.folders || [])];
-				const sourceFolderIndex = folders.findIndex(f => f.folderId === item.id);
-				const destFolderIndex = folders.findIndex(f => f.folderId === items[destinationIndex].id);
+				const sourceFolderIndex = folders.findIndex(
+					(f) => f.folderId === item.id
+				);
+				const destFolderIndex = folders.findIndex(
+					(f) => f.folderId === items[destinationIndex].id
+				);
 				if (sourceFolderIndex !== -1 && destFolderIndex !== -1) {
 					const [removed] = folders.splice(sourceFolderIndex, 1);
 					folders.splice(destFolderIndex, 0, removed);
 					return { ...prev, folders };
 				}
-			} else if (item.type === "deck") {
+			} else if (item.type === 'deck') {
 				const decks = [...(prev.decks || [])];
-				const sourceDeckIndex = decks.findIndex(d => d.deckId === item.id);
-				const destDeckIndex = decks.findIndex(d => d.deckId === items[destinationIndex].id);
+				const sourceDeckIndex = decks.findIndex(
+					(d) => d.deckId === item.id
+				);
+				const destDeckIndex = decks.findIndex(
+					(d) => d.deckId === items[destinationIndex].id
+				);
 				if (sourceDeckIndex !== -1 && destDeckIndex !== -1) {
 					const [removed] = decks.splice(sourceDeckIndex, 1);
 					decks.splice(destDeckIndex, 0, removed);
@@ -307,4 +326,3 @@ export function useDeckOperations() {
 		toggleArchiveDeck,
 	};
 }
-

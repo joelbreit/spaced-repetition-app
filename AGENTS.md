@@ -3,6 +3,7 @@
 ## Project Overview
 
 A modern React flashcards application with spaced repetition scheduling, built with:
+
 - **Frontend**: React 19, Tailwind CSS v4, Vite
 - **Backend**: AWS Lambda + API Gateway + S3 + Cognito
 - **State**: React Context (AuthContext, AppDataContext, ThemeContext, NotificationContext)
@@ -54,55 +55,57 @@ User data is stored as JSON in S3 at `users/{userId}/data.json`:
 
 ```json
 {
-  "folders": [
-    {
-      "folderId": "uuid",
-      "folderName": "Name",
-      "parentFolderId": null,  // null = root level
-      "folderSymbol": "📁",
-      "folderColor": "#3b82f6"
-    }
-  ],
-  "decks": [
-    {
-      "deckId": "uuid",
-      "deckName": "Deck Name",
-      "deckSymbol": "📚",
-      "parentFolderId": null,  // null = root level
-      "cards": [
-        {
-          "cardId": "uuid",
-          "front": "Question",
-          "back": "Answer",
-          "whenDue": 1234567890,  // Unix timestamp (ms)
-          "reviews": [
-            {
-              "reviewId": "uuid",
-              "timestamp": 1234567890,
-              "result": "again|hard|good|easy",
-              "interval": 86400000,
-              "reviewDuration": 5000
-            }
-          ],
-          "isFlagged": false,
-          "isStarred": false,
-          "partnerCardId": "uuid"  // For reverse cards
-        }
-      ]
-    }
-  ]
+	"folders": [
+		{
+			"folderId": "uuid",
+			"folderName": "Name",
+			"parentFolderId": null, // null = root level
+			"folderSymbol": "📁",
+			"folderColor": "#3b82f6"
+		}
+	],
+	"decks": [
+		{
+			"deckId": "uuid",
+			"deckName": "Deck Name",
+			"deckSymbol": "📚",
+			"parentFolderId": null, // null = root level
+			"cards": [
+				{
+					"cardId": "uuid",
+					"front": "Question",
+					"back": "Answer",
+					"whenDue": 1234567890, // Unix timestamp (ms)
+					"reviews": [
+						{
+							"reviewId": "uuid",
+							"timestamp": 1234567890,
+							"result": "again|hard|good|easy",
+							"interval": 86400000,
+							"reviewDuration": 5000
+						}
+					],
+					"isFlagged": false,
+					"isStarred": false,
+					"partnerCardId": "uuid" // For reverse cards
+				}
+			]
+		}
+	]
 }
 ```
 
 ## Spaced Repetition Algorithm
 
 Review results affect the next due date:
+
 - **Again**: Reset to minimum interval (~10 minutes)
 - **Hard**: Halve the previous interval
 - **Good**: Keep the same interval
 - **Easy**: Double the interval
 
 Card priority during review:
+
 1. Overdue cards (most recently due first)
 2. New cards (randomized)
 3. Future cards (due soonest first)
@@ -110,6 +113,7 @@ Card priority during review:
 ## Component Patterns
 
 ### Context Usage
+
 ```jsx
 import { useAppData } from './contexts/AppDataContext';
 import { useAuth } from './contexts/AuthContext';
@@ -121,11 +125,13 @@ const { showSuccess, showError } = useNotification();
 ```
 
 ### Modifying Data
+
 Always use `setAppData` from AppDataContext - it handles auto-save:
+
 ```jsx
-setAppData(prev => ({
-  ...prev,
-  decks: prev.decks.map(d => d.deckId === deckId ? updatedDeck : d)
+setAppData((prev) => ({
+	...prev,
+	decks: prev.decks.map((d) => (d.deckId === deckId ? updatedDeck : d)),
 }));
 ```
 
@@ -140,6 +146,7 @@ setAppData(prev => ({
 ## Environment Variables
 
 Required in `.env.local`:
+
 ```
 VITE_API_ENDPOINT=https://xxx.execute-api.us-east-1.amazonaws.com/prod
 VITE_USER_POOL_ID=us-east-1_xxx
@@ -150,6 +157,7 @@ VITE_AWS_REGION=us-east-1
 ## AWS Resources
 
 See `docs/AWS Architecture.md` for full details:
+
 - **S3 Bucket**: `spaced-rep-flashcards-data` (versioning enabled)
 - **Lambda**: `flashcards-api` (Node.js 20.x)
 - **API Gateway**: HTTP API with `/data` and `/read-aloud` endpoints
@@ -158,17 +166,20 @@ See `docs/AWS Architecture.md` for full details:
 ## Common Tasks
 
 ### Adding a New Feature
+
 1. Update data structure in `docs/Data.md` if needed
 2. Update `AppDataContext` if state changes are required
 3. Create/modify components in `src/components/`
 4. Follow existing patterns for styling (Tailwind, dark mode variants)
 
 ### Modifying the API
+
 1. Update Lambda code in `src/functions/flashcards-api/index.mjs`
 2. Deploy using `scripts/deploy-lambdas.sh`
 3. Update `src/services/apiStorage.js` client if endpoints change
 
 ### Adding New Card/Deck Properties
+
 1. Add to data schema in `docs/Data.md`
 2. Handle missing values gracefully (properties may not exist on old data)
 3. Update relevant components to use the new property
@@ -183,10 +194,7 @@ See `docs/AWS Architecture.md` for full details:
 ## Known Issues & TODOs
 
 See `docs/Tasks.md` for the full list. Key issues:
+
 - Firefox: Back of cards shows dimly when flipped
 - Orphaned folders/decks should show an error
 - Missing `createdAt` values on some old data
-
-
-
-

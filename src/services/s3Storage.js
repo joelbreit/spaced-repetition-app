@@ -1,4 +1,8 @@
-import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+	S3Client,
+	GetObjectCommand,
+	PutObjectCommand,
+} from '@aws-sdk/client-s3';
 
 // Validate required environment variables
 const AWS_REGION = import.meta.env.VITE_AWS_REGION || 'us-east-1';
@@ -30,10 +34,16 @@ const KEY = 'flashcards-data.json';
 
 export async function loadFromS3() {
 	if (!isS3Configured()) {
-		throw new Error('S3 is not configured. Please set up your AWS environment variables in .env.local file. Missing: ' +
-			[!AWS_ACCESS_KEY_ID && 'VITE_AWS_ACCESS_KEY_ID',
-			!AWS_SECRET_ACCESS_KEY && 'VITE_AWS_SECRET_ACCESS_KEY',
-			!BUCKET && 'VITE_S3_BUCKET'].filter(Boolean).join(', '));
+		throw new Error(
+			'S3 is not configured. Please set up your AWS environment variables in .env.local file. Missing: ' +
+				[
+					!AWS_ACCESS_KEY_ID && 'VITE_AWS_ACCESS_KEY_ID',
+					!AWS_SECRET_ACCESS_KEY && 'VITE_AWS_SECRET_ACCESS_KEY',
+					!BUCKET && 'VITE_S3_BUCKET',
+				]
+					.filter(Boolean)
+					.join(', ')
+		);
 	}
 
 	try {
@@ -56,10 +66,16 @@ export async function loadFromS3() {
 
 export async function saveToS3(data) {
 	if (!isS3Configured()) {
-		throw new Error('S3 is not configured. Please set up your AWS environment variables in .env.local file. Missing: ' +
-			[!AWS_ACCESS_KEY_ID && 'VITE_AWS_ACCESS_KEY_ID',
-			!AWS_SECRET_ACCESS_KEY && 'VITE_AWS_SECRET_ACCESS_KEY',
-			!BUCKET && 'VITE_S3_BUCKET'].filter(Boolean).join(', '));
+		throw new Error(
+			'S3 is not configured. Please set up your AWS environment variables in .env.local file. Missing: ' +
+				[
+					!AWS_ACCESS_KEY_ID && 'VITE_AWS_ACCESS_KEY_ID',
+					!AWS_SECRET_ACCESS_KEY && 'VITE_AWS_SECRET_ACCESS_KEY',
+					!BUCKET && 'VITE_S3_BUCKET',
+				]
+					.filter(Boolean)
+					.join(', ')
+		);
 	}
 
 	const command = new PutObjectCommand({

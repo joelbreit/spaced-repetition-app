@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Plus, Search, FolderOpen, Play, Eye } from "lucide-react";
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Plus, Search, FolderOpen, Play, Eye } from 'lucide-react';
 import {
 	DndContext,
 	closestCenter,
@@ -8,17 +8,17 @@ import {
 	PointerSensor,
 	useSensor,
 	useSensors,
-} from "@dnd-kit/core";
+} from '@dnd-kit/core';
 import {
 	SortableContext,
 	sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable";
-import { useNotification } from "../hooks/useNotification";
-import { useAppData } from "../contexts/AppDataContext";
-import { useDeckOperations } from "../hooks/useDeckOperations";
-import StudyStatistics from "./StudyStatistics";
-import SortableContainerItem from "./SortableContainerItem";
-import Breadcrumbs from "./Breadcrumbs";
+} from '@dnd-kit/sortable';
+import { useNotification } from '../hooks/useNotification';
+import { useAppData } from '../contexts/AppDataContext';
+import { useDeckOperations } from '../hooks/useDeckOperations';
+import StudyStatistics from './StudyStatistics';
+import SortableContainerItem from './SortableContainerItem';
+import Breadcrumbs from './Breadcrumbs';
 
 export default function FolderBrowserView({
 	onStartReview,
@@ -39,16 +39,16 @@ export default function FolderBrowserView({
 	} = useDeckOperations();
 	const { showConfirmation } = useNotification();
 
-	const [newDeckName, setNewDeckName] = useState("");
-	const [newDeckSymbol, setNewDeckSymbol] = useState("📚");
-	const [newFolderName, setNewFolderName] = useState("");
-	const [newFolderSymbol, setNewFolderSymbol] = useState("📁");
+	const [newDeckName, setNewDeckName] = useState('');
+	const [newDeckSymbol, setNewDeckSymbol] = useState('📚');
+	const [newFolderName, setNewFolderName] = useState('');
+	const [newFolderSymbol, setNewFolderSymbol] = useState('📁');
 	const [editingId, setEditingId] = useState(null);
-	const [editingName, setEditingName] = useState("");
-	const [editingSymbol, setEditingSymbol] = useState("");
+	const [editingName, setEditingName] = useState('');
+	const [editingSymbol, setEditingSymbol] = useState('');
 	const [showNewDeckForm, setShowNewDeckForm] = useState(false);
 	const [showNewFolderForm, setShowNewFolderForm] = useState(false);
-	const [searchTerm, setSearchTerm] = useState("");
+	const [searchTerm, setSearchTerm] = useState('');
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -83,7 +83,8 @@ export default function FolderBrowserView({
 
 		// Get direct decks in this folder (excluding archived)
 		const directDecks = (appData.decks || []).filter(
-			(d) => d.parentFolderId === targetFolderId && !(d.isArchived || false)
+			(d) =>
+				d.parentFolderId === targetFolderId && !(d.isArchived || false)
 		);
 		allDecks.push(...directDecks);
 
@@ -94,7 +95,9 @@ export default function FolderBrowserView({
 
 		// Recursively get decks from subfolders
 		subfolders.forEach((subfolder) => {
-			const subfolderDecks = getAllNonArchivedDecksInFolder(subfolder.folderId);
+			const subfolderDecks = getAllNonArchivedDecksInFolder(
+				subfolder.folderId
+			);
 			allDecks.push(...subfolderDecks);
 		});
 
@@ -102,7 +105,8 @@ export default function FolderBrowserView({
 	};
 
 	// Check if there are any non-archived decks for Study All button
-	const hasNonArchivedDecks = getAllNonArchivedDecksInFolder(folderId || null).length > 0;
+	const hasNonArchivedDecks =
+		getAllNonArchivedDecksInFolder(folderId || null).length > 0;
 
 	// Combine into items array for sorting/filtering
 	const allItems = [
@@ -110,14 +114,14 @@ export default function FolderBrowserView({
 			id: f.folderId,
 			name: f.folderName,
 			symbol: f.folderSymbol,
-			type: "folder",
+			type: 'folder',
 			...f,
 		})),
 		...decks.map((d) => ({
 			id: d.deckId,
 			name: d.deckName,
 			symbol: d.deckSymbol,
-			type: "deck",
+			type: 'deck',
 			cards: d.cards,
 			...d,
 		})),
@@ -128,7 +132,7 @@ export default function FolderBrowserView({
 		? allItems.filter((item) => {
 				const searchLower = searchTerm.toLowerCase();
 				if (item.name.toLowerCase().includes(searchLower)) return true;
-				if (item.type === "deck" && item.cards) {
+				if (item.type === 'deck' && item.cards) {
 					return item.cards.some(
 						(card) =>
 							card.front.toLowerCase().includes(searchLower) ||
@@ -136,18 +140,18 @@ export default function FolderBrowserView({
 					);
 				}
 				return false;
-		  })
+			})
 		: allItems;
 
 	const handleAddDeck = () => {
 		if (newDeckName.trim()) {
 			addDeck(
 				newDeckName.trim(),
-				newDeckSymbol || "📚",
+				newDeckSymbol || '📚',
 				folderId || null
 			);
-			setNewDeckName("");
-			setNewDeckSymbol("📚");
+			setNewDeckName('');
+			setNewDeckSymbol('📚');
 			setShowNewDeckForm(false);
 		}
 	};
@@ -156,11 +160,11 @@ export default function FolderBrowserView({
 		if (newFolderName.trim()) {
 			addFolder(
 				newFolderName.trim(),
-				newFolderSymbol || "📁",
+				newFolderSymbol || '📁',
 				folderId || null
 			);
-			setNewFolderName("");
-			setNewFolderSymbol("📁");
+			setNewFolderName('');
+			setNewFolderSymbol('📁');
 			setShowNewFolderForm(false);
 		}
 	};
@@ -171,15 +175,15 @@ export default function FolderBrowserView({
 		const item = allItems.find((i) => i.id === editingId);
 		if (!item) return;
 
-		if (item.type === "folder") {
-			updateFolder(editingId, editingName.trim(), editingSymbol || "📁");
+		if (item.type === 'folder') {
+			updateFolder(editingId, editingName.trim(), editingSymbol || '📁');
 		} else {
-			updateDeck(editingId, editingName.trim(), editingSymbol || "📚");
+			updateDeck(editingId, editingName.trim(), editingSymbol || '📚');
 		}
 
 		setEditingId(null);
-		setEditingName("");
-		setEditingSymbol("");
+		setEditingName('');
+		setEditingSymbol('');
 	};
 
 	const handleDelete = async (id, type) => {
@@ -187,17 +191,17 @@ export default function FolderBrowserView({
 		if (!item) return;
 
 		const confirmed = await showConfirmation({
-			title: `Delete ${type === "folder" ? "Folder" : "Deck"}`,
+			title: `Delete ${type === 'folder' ? 'Folder' : 'Deck'}`,
 			message: `Are you sure you want to delete this ${
-				type === "folder" ? "folder" : "deck"
-			}${type === "deck" ? " and all its cards" : ""}?`,
-			confirmText: "Delete",
-			cancelText: "Cancel",
-			type: "danger",
+				type === 'folder' ? 'folder' : 'deck'
+			}${type === 'deck' ? ' and all its cards' : ''}?`,
+			confirmText: 'Delete',
+			cancelText: 'Cancel',
+			type: 'danger',
 		});
 
 		if (confirmed) {
-			if (type === "folder") {
+			if (type === 'folder') {
 				deleteFolder(id);
 			} else {
 				deleteDeck(id);
@@ -253,7 +257,13 @@ export default function FolderBrowserView({
 				</div>
 				{hasNonArchivedDecks && (
 					<button
-						onClick={() => navigate(folderId ? `/folder/${folderId}/cards` : `/folder/root/cards`)}
+						onClick={() =>
+							navigate(
+								folderId
+									? `/folder/${folderId}/cards`
+									: `/folder/root/cards`
+							)
+						}
 						className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
 					>
 						<Eye className="h-5 w-5" />
@@ -285,7 +295,7 @@ export default function FolderBrowserView({
 								value={newFolderSymbol}
 								onChange={(e) => {
 									const value = e.target.value;
-									const firstChar = [...value][0] || "";
+									const firstChar = [...value][0] || '';
 									setNewFolderSymbol(firstChar);
 								}}
 								className="w-16 px-3 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
@@ -309,8 +319,8 @@ export default function FolderBrowserView({
 							<button
 								onClick={() => {
 									setShowNewFolderForm(false);
-									setNewFolderName("");
-									setNewFolderSymbol("📁");
+									setNewFolderName('');
+									setNewFolderSymbol('📁');
 								}}
 								className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 							>
@@ -340,7 +350,7 @@ export default function FolderBrowserView({
 								value={newDeckSymbol}
 								onChange={(e) => {
 									const value = e.target.value;
-									const firstChar = [...value][0] || "";
+									const firstChar = [...value][0] || '';
 									setNewDeckSymbol(firstChar);
 								}}
 								className="w-16 px-3 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
@@ -362,8 +372,8 @@ export default function FolderBrowserView({
 							<button
 								onClick={() => {
 									setShowNewDeckForm(false);
-									setNewDeckName("");
-									setNewDeckSymbol("📚");
+									setNewDeckName('');
+									setNewDeckSymbol('📚');
 								}}
 								className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 							>
@@ -386,14 +396,14 @@ export default function FolderBrowserView({
 			{filteredItems.length === 0 ? (
 				<div className="col-span-full py-12 text-center animate-fade-in">
 					<div className="text-6xl mb-4">
-						{searchTerm ? "🔍" : isRoot ? "📚" : "📁"}
+						{searchTerm ? '🔍' : isRoot ? '📚' : '📁'}
 					</div>
 					<p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
 						{searchTerm
-							? "No folders or decks found matching your search."
+							? 'No folders or decks found matching your search.'
 							: isRoot
-							? "No folders or decks yet. Create your first one!"
-							: "This folder is empty."}
+								? 'No folders or decks yet. Create your first one!'
+								: 'This folder is empty.'}
 					</p>
 					{!searchTerm && (
 						<p className="text-sm text-gray-400 dark:text-gray-500">
@@ -428,7 +438,11 @@ export default function FolderBrowserView({
 									}
 									onStartReview={onStartReview}
 									onStartFolderReview={onStartFolderReview}
-									onToggleArchive={item.type === "deck" ? toggleArchiveDeck : undefined}
+									onToggleArchive={
+										item.type === 'deck'
+											? toggleArchiveDeck
+											: undefined
+									}
 									isDraggable={!searchTerm}
 									appData={appData}
 								/>

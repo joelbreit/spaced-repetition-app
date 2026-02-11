@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
-import { Mail, Lock, X, AlertCircle } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { useState, useEffect } from 'react';
+import { Mail, Lock, X, AlertCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function AuthView({ onClose }) {
 	const { isAuthenticated, login, register, confirmRegistration } = useAuth();
 	const [isLogin, setIsLogin] = useState(true);
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [confirmationCode, setConfirmationCode] = useState("");
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [confirmationCode, setConfirmationCode] = useState('');
 	const [needsConfirmation, setNeedsConfirmation] = useState(false);
-	const [error, setError] = useState("");
+	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
 	// Close modal if user becomes authenticated
@@ -21,7 +21,7 @@ export default function AuthView({ onClose }) {
 
 	async function handleSubmit(e) {
 		e.preventDefault();
-		setError("");
+		setError('');
 		setIsLoading(true);
 
 		try {
@@ -34,38 +34,38 @@ export default function AuthView({ onClose }) {
 				if (result.success) {
 					setNeedsConfirmation(false);
 					setIsLogin(true);
-					setError("");
+					setError('');
 
 					// After confirmation, auto-login and upload local data
 					const loginResult = await login(email, password);
 					if (loginResult.success) {
 						// Mark that we need to upload local data after signup
-						localStorage.setItem("pendingSignupUpload", "true");
+						localStorage.setItem('pendingSignupUpload', 'true');
 						// The upload will happen in AppDataContext when authToken becomes available
 					}
 				} else {
-					setError(result.error || "Confirmation failed");
+					setError(result.error || 'Confirmation failed');
 				}
 			} else if (isLogin) {
 				// Login
 				const result = await login(email, password);
 				if (!result.success) {
-					setError(result.error || "Login failed");
+					setError(result.error || 'Login failed');
 				}
 			} else {
 				// Register
 				const result = await register(email, password);
 				if (result.success) {
-					if (result.nextStep?.signUpStep === "CONFIRM_SIGN_UP") {
+					if (result.nextStep?.signUpStep === 'CONFIRM_SIGN_UP') {
 						setNeedsConfirmation(true);
-						setError("");
+						setError('');
 					}
 				} else {
-					setError(result.error || "Registration failed");
+					setError(result.error || 'Registration failed');
 				}
 			}
 		} catch (err) {
-			setError(err.message || "An error occurred");
+			setError(err.message || 'An error occurred');
 		} finally {
 			setIsLoading(false);
 		}
@@ -146,8 +146,8 @@ export default function AuthView({ onClose }) {
 									className="w-full px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									{isLoading
-										? "Verifying..."
-										: "Verify Email"}
+										? 'Verifying...'
+										: 'Verify Email'}
 								</button>
 
 								<button
@@ -155,14 +155,14 @@ export default function AuthView({ onClose }) {
 									onClick={() => setNeedsConfirmation(false)}
 									className="w-full text-gray-600 dark:text-slate-400 text-sm hover:text-gray-900 dark:hover:text-slate-200"
 								>
-									Back to {isLogin ? "Login" : "Sign Up"}
+									Back to {isLogin ? 'Login' : 'Sign Up'}
 								</button>
 							</form>
 						</>
 					) : (
 						<>
 							<h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6">
-								{isLogin ? "Welcome Back" : "Create Account"}
+								{isLogin ? 'Welcome Back' : 'Create Account'}
 							</h2>
 
 							<form onSubmit={handleSubmit} className="space-y-4">
@@ -223,10 +223,10 @@ export default function AuthView({ onClose }) {
 									className="w-full px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									{isLoading
-										? "Please wait..."
+										? 'Please wait...'
 										: isLogin
-										? "Sign In"
-										: "Sign Up"}
+											? 'Sign In'
+											: 'Sign Up'}
 								</button>
 							</form>
 
@@ -234,13 +234,13 @@ export default function AuthView({ onClose }) {
 								<button
 									onClick={() => {
 										setIsLogin(!isLogin);
-										setError("");
+										setError('');
 									}}
 									className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium"
 								>
 									{isLogin
 										? "Don't have an account? Sign up"
-										: "Already have an account? Sign in"}
+										: 'Already have an account? Sign in'}
 								</button>
 							</div>
 

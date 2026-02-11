@@ -1,7 +1,7 @@
 import {
 	getPerDayReviewRate,
 	calculateLearningStrength,
-} from "../services/cardCalculations";
+} from '../services/cardCalculations';
 
 export default function StudyStatistics({ appData, folderId = null }) {
 	// Helper function to recursively get all decks in a folder and its subfolders
@@ -18,7 +18,8 @@ export default function StudyStatistics({ appData, folderId = null }) {
 
 		// Get direct decks in this folder (excluding archived)
 		const directDecks = (appData.decks || []).filter(
-			(d) => d.parentFolderId === targetFolderId && !(d.isArchived || false)
+			(d) =>
+				d.parentFolderId === targetFolderId && !(d.isArchived || false)
 		);
 		allDecks.push(...directDecks);
 
@@ -78,7 +79,7 @@ export default function StudyStatistics({ appData, folderId = null }) {
 						(sum, card) => sum + calculateLearningStrength(card),
 						0
 					) / studiedCards.length
-			  )
+				)
 			: 0;
 
 	// Calculate burden per day (sum of review rates for all studied cards)
@@ -88,42 +89,42 @@ export default function StudyStatistics({ appData, folderId = null }) {
 	);
 
 	function getMasteryBadgeColors(mastery) {
-		if (mastery < 25) return "text-red-700 dark:text-red-400";
-		if (mastery < 50) return "text-orange-700 dark:text-orange-400";
-		if (mastery < 75) return "text-yellow-700 dark:text-yellow-400";
-		return "text-green-700 dark:text-green-400";
+		if (mastery < 25) return 'text-red-700 dark:text-red-400';
+		if (mastery < 50) return 'text-orange-700 dark:text-orange-400';
+		if (mastery < 75) return 'text-yellow-700 dark:text-yellow-400';
+		return 'text-green-700 dark:text-green-400';
 	}
 
 	const stats = [
 		{
-			label: "Due",
+			label: 'Due',
 			value: dueCount,
-			customStyle: "text-orange-500 dark:text-orange-400",
+			customStyle: 'text-orange-500 dark:text-orange-400',
 		},
 		{
-			label: "New",
+			label: 'New',
 			value: newCount,
-			customStyle: "text-teal-600",
+			customStyle: 'text-teal-600',
 		},
 		{
-			label: "Learned",
+			label: 'Learned',
 			value: learnedCount,
-			customStyle: "text-green-600",
+			customStyle: 'text-green-600',
 		},
 		{
-			label: "Viewed",
+			label: 'Viewed',
 			value: viewedCount,
-			customStyle: "text-gray-900 dark:text-gray-100",
+			customStyle: 'text-gray-900 dark:text-gray-100',
 		},
 		{
-			label: "Mastery",
-			value: allCards.length > 0 ? `${masteryPercentage}%` : "—",
+			label: 'Mastery',
+			value: allCards.length > 0 ? `${masteryPercentage}%` : '—',
 			customStyle: getMasteryBadgeColors(masteryPercentage),
 		},
 		{
-			label: "Burden/Day",
-			value: allCards.length > 0 ? burdenPerDay.toFixed(1) : "—",
-			customStyle: "text-gray-900 dark:text-gray-100",
+			label: 'Burden/Day',
+			value: allCards.length > 0 ? burdenPerDay.toFixed(1) : '—',
+			customStyle: 'text-gray-900 dark:text-gray-100',
 		},
 	];
 

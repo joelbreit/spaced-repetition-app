@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from 'react';
 import {
 	Star,
 	Flag,
@@ -7,8 +7,8 @@ import {
 	ChevronDown,
 	ChevronUp,
 	Link2,
-} from "lucide-react";
-import { useAppData } from "../contexts/AppDataContext";
+} from 'lucide-react';
+import { useAppData } from '../contexts/AppDataContext';
 
 export default function CardEditView({
 	appData,
@@ -20,8 +20,8 @@ export default function CardEditView({
 	onToggleFlag,
 }) {
 	const { setAppData } = useAppData();
-	const [front, setFront] = useState("");
-	const [back, setBack] = useState("");
+	const [front, setFront] = useState('');
+	const [back, setBack] = useState('');
 	const [isStarred, setIsStarred] = useState(false);
 	const [isFlagged, setIsFlagged] = useState(false);
 	const [partnerCardId, setPartnerCardId] = useState(null);
@@ -49,7 +49,7 @@ export default function CardEditView({
 					const partner = card.partnerCardId
 						? deck.cards.find(
 								(c) => c.cardId === card.partnerCardId
-						  )
+							)
 						: null;
 					if (partner) {
 						const match =
@@ -64,8 +64,8 @@ export default function CardEditView({
 		} else {
 			// Reset for new card
 			setOriginalCard(null);
-			setFront("");
-			setBack("");
+			setFront('');
+			setBack('');
 			setIsStarred(false);
 			setIsFlagged(false);
 			setPartnerCardId(null);
@@ -96,10 +96,10 @@ export default function CardEditView({
 													...card,
 													front: trimmedBack,
 													back: trimmedFront,
-											  }
+												}
 											: card
 									),
-							  }
+								}
 							: deck
 					),
 				}));
@@ -128,16 +128,16 @@ export default function CardEditView({
 	const formatReviewDate = (timestamp) => {
 		const date = new Date(timestamp);
 		return date.toLocaleString(undefined, {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit',
 		});
 	};
 
 	const formatReviewDuration = (duration) => {
-		if (!duration) return "N/A";
+		if (!duration) return 'N/A';
 		const seconds = Math.floor(duration / 1000);
 		if (seconds < 60) return `${seconds}s`;
 		const minutes = Math.floor(seconds / 60);
@@ -147,14 +147,14 @@ export default function CardEditView({
 
 	const getResultColor = (result) => {
 		const colors = {
-			again: "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20",
-			hard: "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20",
-			good: "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20",
-			easy: "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20",
+			again: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
+			hard: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20',
+			good: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+			easy: 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20',
 		};
 		return (
 			colors[result] ||
-			"text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20"
+			'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
 		);
 	};
 
@@ -195,7 +195,7 @@ export default function CardEditView({
 				{/* Header */}
 				<div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50">
 					<h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
-						{cardId ? "Edit Card" : "Create New Card"}
+						{cardId ? 'Edit Card' : 'Create New Card'}
 					</h2>
 					<button
 						onClick={onCancel}
@@ -219,22 +219,22 @@ export default function CardEditView({
 										onClick={handleToggleStar}
 										className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
 											isStarred
-												? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 shadow-sm"
-												: "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600 hover:text-yellow-600 dark:hover:text-yellow-400"
+												? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 shadow-sm'
+												: 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600 hover:text-yellow-600 dark:hover:text-yellow-400'
 										}`}
 										title={
 											isStarred
-												? "Unstar card"
-												: "Star card"
+												? 'Unstar card'
+												: 'Star card'
 										}
 									>
 										<Star
 											className={`h-4 w-4 ${
-												isStarred ? "fill-current" : ""
+												isStarred ? 'fill-current' : ''
 											}`}
 										/>
 										<span className="text-sm font-medium">
-											{isStarred ? "Starred" : "Star"}
+											{isStarred ? 'Starred' : 'Star'}
 										</span>
 									</button>
 
@@ -243,22 +243,22 @@ export default function CardEditView({
 										onClick={handleToggleFlag}
 										className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
 											isFlagged
-												? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 shadow-sm"
-												: "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600 hover:text-orange-600 dark:hover:text-orange-400"
+												? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 shadow-sm'
+												: 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600 hover:text-orange-600 dark:hover:text-orange-400'
 										}`}
 										title={
 											isFlagged
-												? "Unflag card"
-												: "Flag card"
+												? 'Unflag card'
+												: 'Flag card'
 										}
 									>
 										<Flag
 											className={`h-4 w-4 ${
-												isFlagged ? "fill-current" : ""
+												isFlagged ? 'fill-current' : ''
 											}`}
 										/>
 										<span className="text-sm font-medium">
-											{isFlagged ? "Flagged" : "Flag"}
+											{isFlagged ? 'Flagged' : 'Flag'}
 										</span>
 									</button>
 
@@ -287,8 +287,8 @@ export default function CardEditView({
 												<span className="text-sm font-semibold text-gray-700 dark:text-slate-300">
 													{reviews.length} Review
 													{reviews.length !== 1
-														? "s"
-														: ""}
+														? 's'
+														: ''}
 												</span>
 											</div>
 											{showReviews ? (
@@ -331,7 +331,7 @@ export default function CardEditView({
 																			<div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400">
 																				{review.reviewDuration && (
 																					<span>
-																						Duration:{" "}
+																						Duration:{' '}
 																						{formatReviewDuration(
 																							review.reviewDuration
 																						)}
@@ -339,14 +339,14 @@ export default function CardEditView({
 																				)}
 																				{review.interval && (
 																					<span>
-																						Interval:{" "}
+																						Interval:{' '}
 																						{Math.floor(
 																							review.interval /
 																								(1000 *
 																									60 *
 																									60 *
 																									24)
-																						)}{" "}
+																						)}{' '}
 																						days
 																					</span>
 																				)}
@@ -405,8 +405,8 @@ export default function CardEditView({
 							<label
 								className={`flex items-start gap-3 p-3 rounded-xl transition-all duration-200 ${
 									cardsMatch
-										? "cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800"
-										: "cursor-not-allowed"
+										? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800'
+										: 'cursor-not-allowed'
 								}`}
 							>
 								<input
@@ -418,16 +418,16 @@ export default function CardEditView({
 									disabled={!cardsMatch}
 									className={`mt-0.5 h-5 w-5 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 accent-teal-600 dark:accent-teal-400 ${
 										cardsMatch
-											? "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 cursor-pointer"
-											: "border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50 cursor-not-allowed"
+											? 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 cursor-pointer'
+											: 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50 cursor-not-allowed'
 									}`}
 								/>
 								<div className="flex-1 min-w-0">
 									<span
 										className={`text-sm font-medium block ${
 											cardsMatch
-												? "text-gray-700 dark:text-slate-200"
-												: "text-gray-400 dark:text-slate-500"
+												? 'text-gray-700 dark:text-slate-200'
+												: 'text-gray-400 dark:text-slate-500'
 										}`}
 									>
 										Also update partner card (front/back
@@ -456,7 +456,7 @@ export default function CardEditView({
 							disabled={!front.trim() || !back.trim()}
 							className="flex-1 px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
 						>
-							{cardId ? "Update Card" : "Create Card"}
+							{cardId ? 'Update Card' : 'Create Card'}
 						</button>
 					</div>
 				</div>

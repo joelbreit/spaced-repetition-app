@@ -4,7 +4,7 @@ function Footer() {
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
 				<div className="flex flex-col sm:flex-row items-center justify-between gap-4">
 					<p className="text-sm text-gray-600 dark:text-slate-400 text-center sm:text-left">
-						Created by{" "}
+						Created by{' '}
 						<span className="font-semibold text-gray-900 dark:text-slate-100">
 							Joel Breit
 						</span>

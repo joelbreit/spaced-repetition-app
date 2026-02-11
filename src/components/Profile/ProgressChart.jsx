@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo } from 'react';
 import {
 	LineChart,
 	Line,
@@ -8,8 +8,8 @@ import {
 	Tooltip,
 	Legend,
 	ResponsiveContainer,
-} from "recharts";
-import { useTheme } from "../../contexts/ThemeContext";
+} from 'recharts';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * ProgressChart Component
@@ -34,35 +34,35 @@ export default function ProgressChart({ appData }) {
 	};
 
 	const getPeriodKey = (date, period) => {
-		if (period === "day") {
-			return date.toISOString().split("T")[0];
-		} else if (period === "week") {
+		if (period === 'day') {
+			return date.toISOString().split('T')[0];
+		} else if (period === 'week') {
 			const year = date.getFullYear();
 			const week = getWeekNumber(date);
 			return `${year}-W${week}`;
-		} else if (period === "month") {
+		} else if (period === 'month') {
 			return `${date.getFullYear()}-${String(
 				date.getMonth() + 1
-			).padStart(2, "0")}`;
+			).padStart(2, '0')}`;
 		}
-		return date.toISOString().split("T")[0];
+		return date.toISOString().split('T')[0];
 	};
 
 	const formatPeriodLabel = (date, period) => {
-		if (period === "day") {
-			return date.toLocaleDateString("en-US", {
-				month: "short",
-				day: "numeric",
+		if (period === 'day') {
+			return date.toLocaleDateString('en-US', {
+				month: 'short',
+				day: 'numeric',
 			});
-		} else if (period === "week") {
+		} else if (period === 'week') {
 			return `Week ${getWeekNumber(date)}, ${date.getFullYear()}`;
-		} else if (period === "month") {
-			return date.toLocaleDateString("en-US", {
-				month: "short",
-				year: "numeric",
+		} else if (period === 'month') {
+			return date.toLocaleDateString('en-US', {
+				month: 'short',
+				year: 'numeric',
 			});
 		}
-		return date.toLocaleDateString("en-US");
+		return date.toLocaleDateString('en-US');
 	};
 
 	const chartData = useMemo(() => {
@@ -134,7 +134,7 @@ export default function ProgressChart({ appData }) {
 
 		// Determine time period based on data range
 		// const daysDiff = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
-		let period = "day";
+		let period = 'day';
 		// let periodMs = 1000 * 60 * 60 * 24;
 
 		// if (daysDiff > 365) {
@@ -163,11 +163,11 @@ export default function ProgressChart({ appData }) {
 			}
 
 			// Move to next period
-			if (period === "day") {
+			if (period === 'day') {
 				currentDate.setDate(currentDate.getDate() + 1);
-			} else if (period === "week") {
+			} else if (period === 'week') {
 				currentDate.setDate(currentDate.getDate() + 7);
-			} else if (period === "month") {
+			} else if (period === 'month') {
 				currentDate.setMonth(currentDate.getMonth() + 1);
 			}
 		}
@@ -243,7 +243,7 @@ export default function ProgressChart({ appData }) {
 		return result;
 	}, [appData]);
 
-	const axisColor = isDark ? "rgb(148 163 184)" : "rgb(75 85 99)";
+	const axisColor = isDark ? 'rgb(148 163 184)' : 'rgb(75 85 99)';
 
 	if (chartData.length === 0) {
 		return (
@@ -293,15 +293,15 @@ export default function ProgressChart({ appData }) {
 										<div
 											className={`px-3 py-2 rounded-lg shadow-lg border ${
 												isDark
-													? "bg-slate-800 border-slate-700 text-slate-100"
-													: "bg-white border-gray-200 text-gray-900"
+													? 'bg-slate-800 border-slate-700 text-slate-100'
+													: 'bg-white border-gray-200 text-gray-900'
 											}`}
 										>
 											<p
 												className={`font-semibold mb-1 ${
 													isDark
-														? "text-slate-200"
-														: "text-gray-700"
+														? 'text-slate-200'
+														: 'text-gray-700'
 												}`}
 											>
 												{label}
@@ -314,7 +314,7 @@ export default function ProgressChart({ appData }) {
 														color: entry.color,
 													}}
 												>
-													{entry.name}:{" "}
+													{entry.name}:{' '}
 													<span className="font-semibold">
 														{entry.value}
 													</span>

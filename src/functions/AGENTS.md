@@ -11,18 +11,19 @@ This directory contains the source code for AWS Lambda functions. These are depl
 Main data API for CRUD operations on flashcard data.
 
 **Endpoints**:
-| Method  | Path    | Description                       |
+| Method | Path | Description |
 | ------- | ------- | --------------------------------- |
-| GET     | `/data` | Load user's flashcard data        |
-| POST    | `/data` | Save full dataset (overwrites)    |
-| PATCH   | `/data` | Incremental update (card or deck) |
-| OPTIONS | `/data` | CORS preflight                    |
+| GET | `/data` | Load user's flashcard data |
+| POST | `/data` | Save full dataset (overwrites) |
+| PATCH | `/data` | Incremental update (card or deck) |
+| OPTIONS | `/data` | CORS preflight |
 
 **Authentication**: All requests (except OPTIONS) require a valid Cognito JWT in the `Authorization: Bearer <token>` header.
 
 **Data Storage**: S3 bucket at path `users/{userId}/data.json`
 
 **PATCH Request Format**:
+
 ```json
 // Card-level patch
 {
@@ -31,7 +32,7 @@ Main data API for CRUD operations on flashcard data.
   "card": { /* full card object */ }
 }
 
-// Deck-level patch  
+// Deck-level patch
 {
   "type": "deck",
   "deck": { /* full deck object */ }
@@ -39,12 +40,14 @@ Main data API for CRUD operations on flashcard data.
 ```
 
 **Environment Variables**:
+
 - `S3_BUCKET`: S3 bucket name
 - `USER_POOL_ID`: Cognito User Pool ID
 - `CLIENT_ID`: Cognito App Client ID
 - `AWS_REGION`: AWS region
 
 **Dependencies** (bundled in deployment):
+
 - `@aws-sdk/client-s3`
 - `aws-jwt-verify`
 
@@ -53,16 +56,17 @@ Main data API for CRUD operations on flashcard data.
 Text-to-speech API using AWS Polly.
 
 **Endpoint**:
-| Method | Path          | Description            |
+| Method | Path | Description |
 | ------ | ------------- | ---------------------- |
-| POST   | `/read-aloud` | Convert text to speech |
+| POST | `/read-aloud` | Convert text to speech |
 
 **Request Format**:
+
 ```json
 {
-  "text": "Text to speak",
-  "VoiceId": "Ruth",
-  "Engine": "generative"
+	"text": "Text to speak",
+	"VoiceId": "Ruth",
+	"Engine": "generative"
 }
 ```
 
@@ -71,9 +75,11 @@ Text-to-speech API using AWS Polly.
 **No authentication required** - endpoint is public.
 
 **Environment Variables**:
+
 - `AWS_REGION`: AWS region
 
 **Dependencies** (bundled in deployment):
+
 - `@aws-sdk/client-polly`
 
 ## Deployment
@@ -90,6 +96,7 @@ Use the deployment scripts from the project root:
 ```
 
 The deployment scripts:
+
 1. Install dependencies in the function directory
 2. Create a ZIP archive
 3. Upload to AWS Lambda
@@ -108,6 +115,7 @@ npm install
 ## CORS Configuration
 
 Both functions return these headers:
+
 ```javascript
 {
   'Access-Control-Allow-Origin': '*',
@@ -121,14 +129,16 @@ Both functions return these headers:
 ## Error Responses
 
 Standard error format:
+
 ```json
 {
-  "error": "Error type",
-  "message": "Detailed message"
+	"error": "Error type",
+	"message": "Detailed message"
 }
 ```
 
 HTTP status codes:
+
 - `200`: Success
 - `400`: Bad request (invalid patch format)
 - `401`: Unauthorized (invalid/missing token)
@@ -139,25 +149,28 @@ HTTP status codes:
 ## Token Verification
 
 The `flashcards-api` function verifies Cognito JWTs using `aws-jwt-verify`:
+
 ```javascript
 const verifier = CognitoJwtVerifier.create({
-  userPoolId: USER_POOL_ID,
-  tokenUse: 'access',
-  clientId: CLIENT_ID,
+	userPoolId: USER_POOL_ID,
+	tokenUse: 'access',
+	clientId: CLIENT_ID,
 });
 
 const payload = await verifier.verify(token);
-const userId = payload.sub;  // User's unique ID
+const userId = payload.sub; // User's unique ID
 ```
 
 ## S3 Data Structure
 
 Each user's data is stored at:
+
 ```
 s3://spaced-rep-flashcards-data/users/{cognito-user-id}/data.json
 ```
 
 If no data exists for a user, GET returns:
+
 ```json
 { "folders": [], "decks": [] }
 ```
@@ -170,8 +183,9 @@ If no data exists for a user, GET returns:
 - **API Gateway**: First 1M requests/month free
 
 The read-aloud function logs estimated Polly cost per request:
+
 ```javascript
-const dollars = text.length / 1000000 * 30;
+const dollars = (text.length / 1000000) * 30;
 console.log('Estimated cost: $', dollars.toFixed(4));
 ```
 
@@ -185,14 +199,15 @@ console.log('Estimated cost: $', dollars.toFixed(4));
 ### Adding a New Endpoint
 
 For the main API, add a new method handler:
+
 ```javascript
 if (method === 'DELETE') {
-  // Handle delete logic
-  return {
-    statusCode: 200,
-    headers,
-    body: JSON.stringify({ success: true })
-  };
+	// Handle delete logic
+	return {
+		statusCode: 200,
+		headers,
+		body: JSON.stringify({ success: true }),
+	};
 }
 ```
 
@@ -205,7 +220,3 @@ Update CORS headers if new methods are added.
 3. Create `package.json` with dependencies
 4. Add to deployment scripts
 5. Configure API Gateway route (via AWS console or scripts)
-
-
-
-

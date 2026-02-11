@@ -1,12 +1,12 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./config/amplify";
-import { AuthProvider } from "./contexts/AuthContext";
-import { NotificationProvider } from "./contexts/NotificationContext.jsx";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { AppDataProvider } from "./contexts/AppDataContext";
-import ProfilePage from "./pages/ProfilePage";
-import OverviewPage from "./pages/OverviewPage";
-import ScrollToTop from "./components/ScrollToTop";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './config/amplify';
+import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext.jsx';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { AppDataProvider } from './contexts/AppDataContext';
+import ProfilePage from './pages/ProfilePage';
+import OverviewPage from './pages/OverviewPage';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
 	return (

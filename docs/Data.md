@@ -61,6 +61,6 @@
 ## v2 (folders)
 
 - [x] v2: Folders
-  - [x] Add the folders array to the data
-  - [x] folders/decks with no parent folder should be in the root level folder
-  - Note: There will be no representation of the root level folder in the data, but it will be implied. The root level folder doesn't have a color, symbol, or description; it is simply the implied parent of all folders and decks.
+    - [x] Add the folders array to the data
+    - [x] folders/decks with no parent folder should be in the root level folder
+    - Note: There will be no representation of the root level folder in the data, but it will be implied. The root level folder doesn't have a color, symbol, or description; it is simply the implied parent of all folders and decks.

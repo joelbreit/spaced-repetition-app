@@ -1,24 +1,32 @@
-import { useNavigate } from "react-router-dom";
-import { Edit, Trash2, Play, Eye, GripVertical, Folder, Archive } from "lucide-react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { useNavigate } from 'react-router-dom';
+import {
+	Edit,
+	Trash2,
+	Play,
+	Eye,
+	GripVertical,
+	Folder,
+	Archive,
+} from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
-} from "../services/cardCalculations";
+} from '../services/cardCalculations';
 
 function getMasteryColor(mastery) {
-	if (mastery < 25) return "text-red-500 dark:text-red-400";
-	if (mastery < 50) return "text-orange-500 dark:text-orange-400";
-	if (mastery < 75) return "text-yellow-500 dark:text-yellow-400";
-	return "text-green-500 dark:text-green-400";
+	if (mastery < 25) return 'text-red-500 dark:text-red-400';
+	if (mastery < 50) return 'text-orange-500 dark:text-orange-400';
+	if (mastery < 75) return 'text-yellow-500 dark:text-yellow-400';
+	return 'text-green-500 dark:text-green-400';
 }
 
 function getMasteryDotColor(mastery) {
-	if (mastery < 25) return "bg-red-500";
-	if (mastery < 50) return "bg-orange-500";
-	if (mastery < 75) return "bg-yellow-500";
-	return "bg-green-500";
+	if (mastery < 25) return 'bg-red-500';
+	if (mastery < 50) return 'bg-orange-500';
+	if (mastery < 75) return 'bg-yellow-500';
+	return 'bg-green-500';
 }
 
 export default function SortableContainerItem({
@@ -39,8 +47,8 @@ export default function SortableContainerItem({
 	appData, // Needed to count folder contents
 }) {
 	const navigate = useNavigate();
-	const isFolder = type === "folder";
-	const isDeck = type === "deck";
+	const isFolder = type === 'folder';
+	const isDeck = type === 'deck';
 	const isEditing = editingId === item.id;
 	const isArchived = isDeck && (item.isArchived || false);
 
@@ -75,7 +83,7 @@ export default function SortableContainerItem({
 											calculateLearningStrength(card),
 										0
 									) / item.cards.length
-							  )
+								)
 							: 0,
 					aggregateReviewRate:
 						item.cards.length > 0
@@ -106,7 +114,7 @@ export default function SortableContainerItem({
 					reviewedCount: item.cards.filter(
 						(card) => card.reviews.length > 0
 					).length,
-			  }
+				}
 			: null;
 
 	// Helper function to recursively get all decks in a folder and its subfolders
@@ -166,7 +174,7 @@ export default function SortableContainerItem({
 											calculateLearningStrength(card),
 										0
 									) / allCards.length
-							  )
+								)
 							: 0,
 					aggregateReviewRate:
 						allCards.length > 0
@@ -203,7 +211,7 @@ export default function SortableContainerItem({
 				};
 
 				return stats;
-		  })()
+			})()
 		: null;
 
 	const handleClick = () => {
@@ -234,7 +242,7 @@ export default function SortableContainerItem({
 			ref={setNodeRef}
 			style={style}
 			className={`bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 dark:border-slate-700 p-6 transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group animate-slide-up ${
-				isArchived ? "opacity-60" : ""
+				isArchived ? 'opacity-60' : ''
 			}`}
 		>
 			{isEditing ? (
@@ -245,10 +253,10 @@ export default function SortableContainerItem({
 							value={editingSymbol}
 							onChange={(e) => {
 								const value = e.target.value;
-								const firstChar = [...value][0] || "";
+								const firstChar = [...value][0] || '';
 								setEditingSymbol(firstChar);
 							}}
-							placeholder={isFolder ? "📁" : "📚"}
+							placeholder={isFolder ? '📁' : '📚'}
 							className="w-16 px-3 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 							title="Enter an emoji or single character"
 						/>
@@ -257,7 +265,7 @@ export default function SortableContainerItem({
 							value={editingName}
 							onChange={(e) => setEditingName(e.target.value)}
 							placeholder={
-								isFolder ? "Folder name..." : "Deck name..."
+								isFolder ? 'Folder name...' : 'Deck name...'
 							}
 							className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 						/>
@@ -272,8 +280,8 @@ export default function SortableContainerItem({
 						<button
 							onClick={() => {
 								setEditingId(null);
-								setEditingName("");
-								setEditingSymbol("");
+								setEditingName('');
+								setEditingSymbol('');
 							}}
 							className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 						>
@@ -298,8 +306,8 @@ export default function SortableContainerItem({
 							)}
 							<span className="text-4xl">
 								{isFolder
-									? item.symbol || "📁"
-									: item.symbol || "📚"}
+									? item.symbol || '📁'
+									: item.symbol || '📚'}
 							</span>
 							<div className="flex-1">
 								<div className="flex items-center gap-2">
@@ -372,7 +380,7 @@ export default function SortableContainerItem({
 									>
 										{item.cards.length > 0
 											? `${deckStats.averageLearningStrength}%`
-											: "—"}
+											: '—'}
 									</span>
 									<span className="text-xs text-gray-500 dark:text-slate-500">
 										mastery
@@ -384,8 +392,8 @@ export default function SortableContainerItem({
 										{item.cards.length > 0
 											? deckStats.aggregateReviewRate.toFixed(
 													1
-											  )
-											: "—"}
+												)
+											: '—'}
 									</span>
 									<span className="text-xs text-gray-500 dark:text-slate-500">
 										burden/day
@@ -481,7 +489,7 @@ export default function SortableContainerItem({
 									>
 										{folderStats.totalCards > 0
 											? `${folderStats.averageLearningStrength}%`
-											: "—"}
+											: '—'}
 									</span>
 									<span className="text-xs text-gray-500 dark:text-slate-500">
 										mastery
@@ -493,8 +501,8 @@ export default function SortableContainerItem({
 										{folderStats.totalCards > 0
 											? folderStats.aggregateReviewRate.toFixed(
 													1
-											  )
-											: "—"}
+												)
+											: '—'}
 									</span>
 									<span className="text-xs text-gray-500 dark:text-slate-500">
 										burden/day
@@ -554,21 +562,21 @@ export default function SortableContainerItem({
 									{folderStats.folderCount > 0 &&
 										`${folderStats.folderCount} folder${
 											folderStats.folderCount !== 1
-												? "s"
-												: ""
+												? 's'
+												: ''
 										}`}
 									{folderStats.folderCount > 0 &&
 										folderStats.deckCount > 0 &&
-										", "}
+										', '}
 									{folderStats.deckCount > 0 &&
 										`${folderStats.deckCount} deck${
 											folderStats.deckCount !== 1
-												? "s"
-												: ""
+												? 's'
+												: ''
 										}`}
 									{folderStats.folderCount === 0 &&
 										folderStats.deckCount === 0 &&
-										"Empty folder"}
+										'Empty folder'}
 								</span>
 							</div>
 						)}
@@ -619,8 +627,8 @@ export default function SortableContainerItem({
 								setEditingName(item.name);
 								setEditingSymbol(
 									isFolder
-										? item.symbol || "📁"
-										: item.symbol || "📚"
+										? item.symbol || '📁'
+										: item.symbol || '📚'
 								);
 							}}
 							className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
@@ -635,10 +643,14 @@ export default function SortableContainerItem({
 								}}
 								className={`p-2 rounded-lg transition-colors duration-200 ${
 									isArchived
-										? "text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20"
-										: "text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700"
+										? 'text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20'
+										: 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700'
 								}`}
-								title={isArchived ? "Unarchive deck" : "Archive deck"}
+								title={
+									isArchived
+										? 'Unarchive deck'
+										: 'Archive deck'
+								}
 							>
 								<Archive className="h-4 w-4" />
 							</button>

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
+import { useEffect } from 'react';
+import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
 const Notification = ({ notification, onClose }) => {
 	const { id, type, title, message, duration = 5000 } = notification;
@@ -15,19 +15,19 @@ const Notification = ({ notification, onClose }) => {
 
 	const getIcon = () => {
 		switch (type) {
-			case "success":
+			case 'success':
 				return (
 					<CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400" />
 				);
-			case "error":
+			case 'error':
 				return (
 					<AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400" />
 				);
-			case "warning":
+			case 'warning':
 				return (
 					<AlertTriangle className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
 				);
-			case "info":
+			case 'info':
 			default:
 				return (
 					<Info className="w-5 h-5 text-blue-500 dark:text-blue-400" />
@@ -37,15 +37,15 @@ const Notification = ({ notification, onClose }) => {
 
 	const getBackgroundColor = () => {
 		switch (type) {
-			case "success":
-				return "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700";
-			case "error":
-				return "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-700";
-			case "warning":
-				return "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700";
-			case "info":
+			case 'success':
+				return 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700';
+			case 'error':
+				return 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-700';
+			case 'warning':
+				return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700';
+			case 'info':
 			default:
-				return "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700";
+				return 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700';
 		}
 	};
 

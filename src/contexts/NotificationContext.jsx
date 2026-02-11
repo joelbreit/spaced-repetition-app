@@ -1,23 +1,23 @@
-import { useState, useCallback } from "react";
-import { NotificationContext } from "./NotificationContext.js";
+import { useState, useCallback } from 'react';
+import { NotificationContext } from './NotificationContext.js';
 
 export const NotificationProvider = ({ children }) => {
 	const [notifications, setNotifications] = useState([]);
 	const [confirmationDialog, setConfirmationDialog] = useState({
 		isOpen: false,
-		title: "",
-		message: "",
+		title: '',
+		message: '',
 		onConfirm: null,
-		confirmText: "Confirm",
-		cancelText: "Cancel",
-		type: "warning",
+		confirmText: 'Confirm',
+		cancelText: 'Cancel',
+		type: 'warning',
 	});
 
 	const addNotification = useCallback((notification) => {
 		const id = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 		const newNotification = {
 			id,
-			type: "info",
+			type: 'info',
 			duration: 5000,
 			...notification,
 		};
@@ -32,29 +32,29 @@ export const NotificationProvider = ({ children }) => {
 	}, []);
 
 	const showSuccess = useCallback(
-		(message, title = "Success") => {
-			return addNotification({ type: "success", message, title });
+		(message, title = 'Success') => {
+			return addNotification({ type: 'success', message, title });
 		},
 		[addNotification]
 	);
 
 	const showError = useCallback(
-		(message, title = "Error") => {
-			return addNotification({ type: "error", message, title });
+		(message, title = 'Error') => {
+			return addNotification({ type: 'error', message, title });
 		},
 		[addNotification]
 	);
 
 	const showWarning = useCallback(
-		(message, title = "Warning") => {
-			return addNotification({ type: "warning", message, title });
+		(message, title = 'Warning') => {
+			return addNotification({ type: 'warning', message, title });
 		},
 		[addNotification]
 	);
 
 	const showInfo = useCallback(
-		(message, title = "Info") => {
-			return addNotification({ type: "info", message, title });
+		(message, title = 'Info') => {
+			return addNotification({ type: 'info', message, title });
 		},
 		[addNotification]
 	);
@@ -63,11 +63,11 @@ export const NotificationProvider = ({ children }) => {
 		return new Promise((resolve) => {
 			setConfirmationDialog({
 				isOpen: true,
-				title: options.title || "Confirm Action",
-				message: options.message || "Are you sure?",
-				confirmText: options.confirmText || "Confirm",
-				cancelText: options.cancelText || "Cancel",
-				type: options.type || "warning",
+				title: options.title || 'Confirm Action',
+				message: options.message || 'Are you sure?',
+				confirmText: options.confirmText || 'Confirm',
+				cancelText: options.cancelText || 'Cancel',
+				type: options.type || 'warning',
 				onConfirm: () => resolve(true),
 			});
 		});

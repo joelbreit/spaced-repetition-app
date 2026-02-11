@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
 	Plus,
 	Play,
@@ -17,16 +17,16 @@ import {
 	FolderPlus,
 	Folder,
 	FileUp,
-} from "lucide-react";
-import { useNotification } from "../hooks/useNotification";
-import { useAppData } from "../contexts/AppDataContext";
-import { useDeckOperations } from "../hooks/useDeckOperations";
+} from 'lucide-react';
+import { useNotification } from '../hooks/useNotification';
+import { useAppData } from '../contexts/AppDataContext';
+import { useDeckOperations } from '../hooks/useDeckOperations';
 import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
-} from "../services/cardCalculations";
-import CardListItem from "./CardListItem";
-import Breadcrumbs from "./Breadcrumbs";
+} from '../services/cardCalculations';
+import CardListItem from './CardListItem';
+import Breadcrumbs from './Breadcrumbs';
 
 export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const { deckId } = useParams();
@@ -42,13 +42,13 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	} = useDeckOperations();
 	const { showConfirmation, showSuccess, showError } = useNotification();
 
-	const [newCardFront, setNewCardFront] = useState("");
-	const [newCardBack, setNewCardBack] = useState("");
+	const [newCardFront, setNewCardFront] = useState('');
+	const [newCardBack, setNewCardBack] = useState('');
 	const [showNewCardForm, setShowNewCardForm] = useState(false);
-	const [cardSearchTerm, setCardSearchTerm] = useState("");
-	const [sortBy, setSortBy] = useState("default");
-	const [sortDirection, setSortDirection] = useState("desc");
-	const [filterBy, setFilterBy] = useState("all");
+	const [cardSearchTerm, setCardSearchTerm] = useState('');
+	const [sortBy, setSortBy] = useState('default');
+	const [sortDirection, setSortDirection] = useState('desc');
+	const [filterBy, setFilterBy] = useState('all');
 	const [showMoveDialog, setShowMoveDialog] = useState(false);
 
 	const selectedDeck = appData.decks?.find((d) => d.deckId === deckId);
@@ -71,25 +71,25 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 
 		// Apply category filter
 		switch (filterBy) {
-			case "new":
+			case 'new':
 				cards = cards.filter((card) => card.reviews.length === 0);
 				break;
-			case "due":
+			case 'due':
 				cards = cards.filter(
 					(card) =>
 						card.whenDue <= Date.now() && card.reviews.length > 0
 				);
 				break;
-			case "learned":
+			case 'learned':
 				cards = cards.filter(
 					(card) =>
 						card.reviews.length > 0 && card.whenDue > Date.now()
 				);
 				break;
-			case "flagged":
+			case 'flagged':
 				cards = cards.filter((card) => card.isFlagged);
 				break;
-			case "starred":
+			case 'starred':
 				cards = cards.filter((card) => card.isStarred);
 				break;
 			default:
@@ -97,20 +97,20 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 		}
 
 		// Apply sorting
-		if (sortBy !== "default") {
+		if (sortBy !== 'default') {
 			cards.sort((a, b) => {
 				let aValue, bValue;
 
 				switch (sortBy) {
-					case "reviews":
+					case 'reviews':
 						aValue = a.reviews.length;
 						bValue = b.reviews.length;
 						break;
-					case "mastery":
+					case 'mastery':
 						aValue = calculateLearningStrength(a);
 						bValue = calculateLearningStrength(b);
 						break;
-					case "burden":
+					case 'burden':
 						aValue = getPerDayReviewRate(a);
 						bValue = getPerDayReviewRate(b);
 						break;
@@ -118,7 +118,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 						return 0;
 				}
 
-				if (sortDirection === "asc") {
+				if (sortDirection === 'asc') {
 					return aValue - bValue;
 				} else {
 					return bValue - aValue;
@@ -132,7 +132,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const sortedAndFilteredCards = getSortedAndFilteredCards();
 
 	const toggleSortDirection = () => {
-		setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+		setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
 	};
 
 	const handleSortChange = (newSortBy) => {
@@ -140,36 +140,36 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 			toggleSortDirection();
 		} else {
 			setSortBy(newSortBy);
-			setSortDirection("desc");
+			setSortDirection('desc');
 		}
 	};
 
 	const clearFilters = () => {
-		setCardSearchTerm("");
-		setSortBy("default");
-		setSortDirection("desc");
-		setFilterBy("all");
+		setCardSearchTerm('');
+		setSortBy('default');
+		setSortDirection('desc');
+		setFilterBy('all');
 	};
 
 	const hasActiveFilters =
-		cardSearchTerm || sortBy !== "default" || filterBy !== "all";
+		cardSearchTerm || sortBy !== 'default' || filterBy !== 'all';
 
 	const handleAddCard = () => {
 		if (newCardFront.trim() && newCardBack.trim()) {
 			addCard(deckId, newCardFront.trim(), newCardBack.trim());
-			setNewCardFront("");
-			setNewCardBack("");
+			setNewCardFront('');
+			setNewCardBack('');
 			setShowNewCardForm(false);
 		}
 	};
 
 	const handleDeleteCard = async (deckId, cardId) => {
 		const confirmed = await showConfirmation({
-			title: "Delete Card",
-			message: "Are you sure you want to delete this card?",
-			confirmText: "Delete",
-			cancelText: "Cancel",
-			type: "danger",
+			title: 'Delete Card',
+			message: 'Are you sure you want to delete this card?',
+			confirmText: 'Delete',
+			cancelText: 'Cancel',
+			type: 'danger',
 		});
 
 		if (confirmed) {
@@ -195,11 +195,11 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 		confirmMessage += `. Continue?`;
 
 		const confirmed = await showConfirmation({
-			title: "Duplicate Cards (Reversed)",
+			title: 'Duplicate Cards (Reversed)',
 			message: confirmMessage,
-			confirmText: "Duplicate",
-			cancelText: "Cancel",
-			type: "info",
+			confirmText: 'Duplicate',
+			cancelText: 'Cancel',
+			type: 'info',
 		});
 
 		if (confirmed) {
@@ -213,14 +213,14 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 			return;
 		}
 
-		event.target.value = "";
+		event.target.value = '';
 
 		try {
 			const text = await file.text();
-			const lines = text.split("\n").filter((line) => line.trim());
+			const lines = text.split('\n').filter((line) => line.trim());
 
 			if (lines.length === 0) {
-				showError("The file is empty.", "Import Failed");
+				showError('The file is empty.', 'Import Failed');
 				return;
 			}
 
@@ -228,7 +228,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 			let skippedCount = 0;
 
 			for (const line of lines) {
-				const columns = line.split("\t");
+				const columns = line.split('\t');
 
 				if (columns.length < 2) {
 					skippedCount++;
@@ -251,20 +251,20 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 					`Successfully imported ${importedCount} card(s)${
 						skippedCount > 0
 							? `. ${skippedCount} row(s) were skipped.`
-							: ""
+							: ''
 					}`,
-					"Import Complete"
+					'Import Complete'
 				);
 			} else {
 				showError(
-					"No cards were imported. Please check that your TSV file has 2 columns (front and back) separated by tabs.",
-					"Import Failed"
+					'No cards were imported. Please check that your TSV file has 2 columns (front and back) separated by tabs.',
+					'Import Failed'
 				);
 			}
 		} catch (error) {
 			showError(
 				`Failed to import cards: ${error.message}`,
-				"Import Failed"
+				'Import Failed'
 			);
 		}
 	};
@@ -273,13 +273,13 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 		if (selectedDeck?.parentFolderId) {
 			navigate(`/folder/${selectedDeck.parentFolderId}`);
 		} else {
-			navigate("/");
+			navigate('/');
 		}
 	};
 
 	// Build folder tree for selection (excluding current deck's folder to prevent circular moves)
 	const buildFolderOptions = () => {
-		const options = [{ id: null, name: "Root (No Folder)", level: 0 }];
+		const options = [{ id: null, name: 'Root (No Folder)', level: 0 }];
 
 		const addFolderRecursive = (
 			folderId,
@@ -293,10 +293,10 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 			);
 
 			folders.forEach((folder) => {
-				const indent = "  ".repeat(level);
+				const indent = '  '.repeat(level);
 				options.push({
 					id: folder.folderId,
-					name: `${indent}${folder.folderSymbol || "📁"} ${
+					name: `${indent}${folder.folderSymbol || '📁'} ${
 						folder.folderName
 					}`,
 					level: level + 1,
@@ -313,21 +313,21 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 
 	const handleMoveDeck = async (targetFolderId) => {
 		if (targetFolderId === selectedDeck?.parentFolderId) {
-			showError("Deck is already in this folder.", "Move Failed");
+			showError('Deck is already in this folder.', 'Move Failed');
 			setShowMoveDialog(false);
 			return;
 		}
 
 		moveDeck(deckId, targetFolderId);
 		setShowMoveDialog(false);
-		showSuccess("Deck moved successfully.", "Move Complete");
+		showSuccess('Deck moved successfully.', 'Move Complete');
 
 		// Navigate to the new location after a brief delay
 		setTimeout(() => {
 			if (targetFolderId) {
 				navigate(`/folder/${targetFolderId}`);
 			} else {
-				navigate("/");
+				navigate('/');
 			}
 		}, 500);
 	};
@@ -340,7 +340,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 					Deck not found
 				</p>
 				<button
-					onClick={() => navigate("/")}
+					onClick={() => navigate('/')}
 					className="text-sm text-teal-600 dark:text-teal-400 hover:underline"
 				>
 					Return to home
@@ -367,7 +367,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 				<div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 					<div className="flex items-center gap-3">
 						<span className="text-4xl">
-							{selectedDeck.deckSymbol || "📚"}
+							{selectedDeck.deckSymbol || '📚'}
 						</span>
 						<div>
 							<h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
@@ -492,17 +492,17 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 							</div>
 
 							<button
-								onClick={() => handleSortChange("reviews")}
+								onClick={() => handleSortChange('reviews')}
 								className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
-									sortBy === "reviews"
-										? "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
-										: "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
+									sortBy === 'reviews'
+										? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400'
+										: 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600'
 								}`}
 							>
 								<BookOpen className="h-3.5 w-3.5" />
 								Reviews
-								{sortBy === "reviews" &&
-									(sortDirection === "asc" ? (
+								{sortBy === 'reviews' &&
+									(sortDirection === 'asc' ? (
 										<ArrowUp className="h-3.5 w-3.5" />
 									) : (
 										<ArrowDown className="h-3.5 w-3.5" />
@@ -510,17 +510,17 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 							</button>
 
 							<button
-								onClick={() => handleSortChange("mastery")}
+								onClick={() => handleSortChange('mastery')}
 								className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
-									sortBy === "mastery"
-										? "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
-										: "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
+									sortBy === 'mastery'
+										? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400'
+										: 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600'
 								}`}
 							>
 								<Target className="h-3.5 w-3.5" />
 								Mastery
-								{sortBy === "mastery" &&
-									(sortDirection === "asc" ? (
+								{sortBy === 'mastery' &&
+									(sortDirection === 'asc' ? (
 										<ArrowUp className="h-3.5 w-3.5" />
 									) : (
 										<ArrowDown className="h-3.5 w-3.5" />
@@ -528,17 +528,17 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 							</button>
 
 							<button
-								onClick={() => handleSortChange("burden")}
+								onClick={() => handleSortChange('burden')}
 								className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
-									sortBy === "burden"
-										? "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
-										: "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
+									sortBy === 'burden'
+										? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400'
+										: 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600'
 								}`}
 							>
 								<BarChart3 className="h-3.5 w-3.5" />
 								Burden
-								{sortBy === "burden" &&
-									(sortDirection === "asc" ? (
+								{sortBy === 'burden' &&
+									(sortDirection === 'asc' ? (
 										<ArrowUp className="h-3.5 w-3.5" />
 									) : (
 										<ArrowDown className="h-3.5 w-3.5" />
@@ -549,7 +549,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 						{/* Results count */}
 						{hasActiveFilters && (
 							<div className="text-sm text-gray-500 dark:text-slate-500">
-								Showing {sortedAndFilteredCards.length} of{" "}
+								Showing {sortedAndFilteredCards.length} of{' '}
 								{selectedDeck.cards.length} card(s)
 							</div>
 						)}
@@ -589,8 +589,8 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 								<button
 									onClick={() => {
 										setShowNewCardForm(false);
-										setNewCardFront("");
-										setNewCardBack("");
+										setNewCardFront('');
+										setNewCardBack('');
 									}}
 									className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 								>
@@ -674,13 +674,13 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 						<div className="max-h-64 overflow-y-auto mb-4 border border-gray-200 dark:border-slate-700 rounded-lg">
 							{buildFolderOptions().map((option) => (
 								<button
-									key={option.id || "root"}
+									key={option.id || 'root'}
 									onClick={() => handleMoveDeck(option.id)}
 									className={`w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border-b border-gray-100 dark:border-slate-700 last:border-b-0 ${
 										option.id ===
 										selectedDeck?.parentFolderId
-											? "bg-teal-50 dark:bg-teal-900/20"
-											: ""
+											? 'bg-teal-50 dark:bg-teal-900/20'
+											: ''
 									}`}
 									disabled={
 										option.id ===

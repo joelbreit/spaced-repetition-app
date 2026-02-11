@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { X, Cloud } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { useState, useEffect } from 'react';
+import { X, Cloud } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function DemoBanner() {
 	const { isAuthenticated } = useAuth();
@@ -8,8 +8,8 @@ export default function DemoBanner() {
 
 	// Load dismiss state from localStorage
 	useEffect(() => {
-		const dismissed = localStorage.getItem("demoBannerDismissed");
-		if (dismissed === "true") {
+		const dismissed = localStorage.getItem('demoBannerDismissed');
+		if (dismissed === 'true') {
 			setIsDismissed(true);
 		}
 	}, []);
@@ -21,7 +21,7 @@ export default function DemoBanner() {
 
 	const handleDismiss = () => {
 		setIsDismissed(true);
-		localStorage.setItem("demoBannerDismissed", "true");
+		localStorage.setItem('demoBannerDismissed', 'true');
 	};
 
 	return (
@@ -30,7 +30,9 @@ export default function DemoBanner() {
 				<div className="flex items-center gap-3 flex-1">
 					<Cloud className="h-5 w-5 text-teal-600 dark:text-teal-400 shrink-0" />
 					<p className="text-sm text-teal-800 dark:text-teal-200">
-						Your changes are stored locally and can be saved by signing up, but are not guaranteed to be retained otherwise.
+						Your changes are stored locally and can be saved by
+						signing up, but are not guaranteed to be retained
+						otherwise.
 					</p>
 				</div>
 				<button
@@ -44,4 +46,3 @@ export default function DemoBanner() {
 		</div>
 	);
 }
-
