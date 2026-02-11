@@ -231,6 +231,13 @@ export default function CardReviewView({
 				return;
 			}
 
+			// Escape: end review (unless settings modal is open)
+			if (event.key === 'Escape' && !showSettingsModal) {
+				event.preventDefault();
+				onEndReview();
+				return;
+			}
+
 			// Space: play/pause audio
 			if (event.key === ' ' || event.code === 'Space') {
 				event.preventDefault();
@@ -285,6 +292,8 @@ export default function CardReviewView({
 		toggleCurrentSideAudio,
 		handleReview,
 		onFlip,
+		showSettingsModal,
+		onEndReview,
 	]);
 
 	if (!currentCard) {

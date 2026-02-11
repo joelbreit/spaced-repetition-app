@@ -7,7 +7,6 @@
 - [ ] **Search and filtering in all group views**
 - [ ] **Cloze deletions**
 - [ ] **Review should fit better on page**
-- [ ] **Esc key to end review session**
 - [ ] Show keyboard shortcuts somehow
     - [ ] Cards should stretch to fill the height allowed
     - [ ] Cards too big for that height should be scrollable
@@ -109,6 +108,7 @@
 
 2026-02-11
 
+- [x] Added Esc key shortcut to end review session
 - [x] Added FolderCardsView
 
 2026-02-02
