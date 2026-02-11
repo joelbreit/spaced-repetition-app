@@ -235,6 +235,70 @@ export default function AdditionalStats({ appData }) {
 					}
 				});
 
+				// Find mismatched partner cards
+				// Build a map of cardId -> card for quick lookup
+				const cardMap = new Map();
+				allCards.forEach((card) => {
+					cardMap.set(card.cardId, card);
+				});
+
+				const mismatchedPartners = [];
+				const checkedPairs = new Set(); // Track pairs to avoid duplicates
+
+				allCards.forEach((card) => {
+					if (!card.partnerCardId) return;
+
+					// Skip if we already checked this pair
+					const pairKey = [card.cardId, card.partnerCardId]
+						.sort()
+						.join('-');
+					if (checkedPairs.has(pairKey)) return;
+					checkedPairs.add(pairKey);
+
+					const partner = cardMap.get(card.partnerCardId);
+
+					if (!partner) {
+						// Partner card doesn't exist
+						const deck = allDecks.find(
+							(d) =>
+								d.cards &&
+								d.cards.some((c) => c.cardId === card.cardId)
+						);
+						mismatchedPartners.push({
+							cardId: card.cardId,
+							front: card.front,
+							back: card.back,
+							partnerCardId: card.partnerCardId,
+							partnerFront: null,
+							partnerBack: null,
+							deckName: deck?.deckName || 'Unknown',
+							deckId: deck?.deckId,
+							reason: 'Partner card not found',
+						});
+					} else if (
+						card.front !== partner.back ||
+						card.back !== partner.front
+					) {
+						// Content mismatch
+						const deck = allDecks.find(
+							(d) =>
+								d.cards &&
+								d.cards.some((c) => c.cardId === card.cardId)
+						);
+						mismatchedPartners.push({
+							cardId: card.cardId,
+							front: card.front,
+							back: card.back,
+							partnerCardId: card.partnerCardId,
+							partnerFront: partner.front,
+							partnerBack: partner.back,
+							deckName: deck?.deckName || 'Unknown',
+							deckId: deck?.deckId,
+							reason: 'Content mismatch',
+						});
+					}
+				});
+
 				setStats({
 					totalFolders,
 					foldersWithoutCreatedAt,
@@ -259,6 +323,7 @@ export default function AdditionalStats({ appData }) {
 					dueCards,
 					learnedCards,
 					mostReviewedCard,
+					mismatchedPartners,
 				});
 			} catch (error) {
 				console.error('Error calculating stats:', error);
@@ -620,6 +685,112 @@ export default function AdditionalStats({ appData }) {
 							</div>
 						</div>
 					)}
+
+					{/* Mismatched Partner Cards */}
+					{stats.mismatchedPartners &&
+						stats.mismatchedPartners.length > 0 && (
+							<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+								<div className="mb-3">
+									<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+										Mismatched Partner Cards
+									</span>
+									<span className="ml-2 text-xs text-orange-600 dark:text-orange-400">
+										({stats.mismatchedPartners.length}{' '}
+										found)
+									</span>
+								</div>
+								<div className="space-y-3 max-h-64 overflow-y-auto">
+									{stats.mismatchedPartners.map(
+										(mismatch) => (
+											<div
+												key={mismatch.cardId}
+												className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-orange-200 dark:border-orange-800/50"
+											>
+												<div className="flex items-start justify-between gap-2 mb-2">
+													<span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+														{mismatch.reason}
+													</span>
+													<span className="text-xs text-gray-500 dark:text-slate-500">
+														{mismatch.deckName}
+													</span>
+												</div>
+												<div className="space-y-1 text-xs">
+													<div>
+														<span className="text-gray-500 dark:text-slate-500">
+															Front:{' '}
+														</span>
+														<span className="text-gray-700 dark:text-slate-300">
+															{mismatch.front?.substring(
+																0,
+																50
+															) || '(empty)'}
+															{mismatch.front
+																?.length > 50 &&
+																'...'}
+														</span>
+													</div>
+													<div>
+														<span className="text-gray-500 dark:text-slate-500">
+															Back:{' '}
+														</span>
+														<span className="text-gray-700 dark:text-slate-300">
+															{mismatch.back?.substring(
+																0,
+																50
+															) || '(empty)'}
+															{mismatch.back
+																?.length > 50 &&
+																'...'}
+														</span>
+													</div>
+													{mismatch.partnerFront !==
+														null && (
+														<>
+															<div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-700">
+																<span className="text-gray-500 dark:text-slate-500">
+																	Partner
+																	Front:{' '}
+																</span>
+																<span className="text-gray-700 dark:text-slate-300">
+																	{mismatch.partnerFront?.substring(
+																		0,
+																		50
+																	) ||
+																		'(empty)'}
+																	{mismatch
+																		.partnerFront
+																		?.length >
+																		50 &&
+																		'...'}
+																</span>
+															</div>
+															<div>
+																<span className="text-gray-500 dark:text-slate-500">
+																	Partner
+																	Back:{' '}
+																</span>
+																<span className="text-gray-700 dark:text-slate-300">
+																	{mismatch.partnerBack?.substring(
+																		0,
+																		50
+																	) ||
+																		'(empty)'}
+																	{mismatch
+																		.partnerBack
+																		?.length >
+																		50 &&
+																		'...'}
+																</span>
+															</div>
+														</>
+													)}
+												</div>
+											</div>
+										)
+									)}
+								</div>
+							</div>
+						)}
 				</div>
 			) : (
 				<div className="text-center py-8 text-gray-500 dark:text-slate-400">

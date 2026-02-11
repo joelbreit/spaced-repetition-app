@@ -189,16 +189,59 @@ export default function FolderCardsView({ onEditCard }) {
 		cardSearchTerm || sortBy !== 'default' || filterBy !== 'all';
 
 	const handleDeleteCard = async (deckId, cardId) => {
-		const confirmed = await showConfirmation({
-			title: 'Delete Card',
-			message: 'Are you sure you want to delete this card?',
-			confirmText: 'Delete',
-			cancelText: 'Cancel',
-			type: 'danger',
-		});
+		// Find the card to check for partner
+		const card = allCards.find((c) => c.cardId === cardId);
+		const hasPartner = card?.partnerCardId;
 
-		if (confirmed) {
+		// Find the partner card if it exists (could be in any deck)
+		let partnerCard = null;
+		let partnerDeckId = null;
+		if (hasPartner) {
+			for (const deck of appData.decks || []) {
+				const found = deck.cards.find(
+					(c) => c.cardId === card.partnerCardId
+				);
+				if (found) {
+					partnerCard = found;
+					partnerDeckId = deck.deckId;
+					break;
+				}
+			}
+		}
+
+		if (hasPartner && partnerCard) {
+			// Ask if they want to delete the partner card too
+			const deletePartner = await showConfirmation({
+				title: 'Delete Card',
+				message:
+					'This card has a partner card (reversed front/back). Do you want to delete both cards?',
+				confirmText: 'Delete Both',
+				cancelText: 'Delete Only This Card',
+				type: 'danger',
+			});
+
+			if (deletePartner === null) {
+				// User cancelled (clicked outside or pressed escape)
+				return;
+			}
+
 			deleteCard(deckId, cardId);
+			if (deletePartner) {
+				deleteCard(partnerDeckId, card.partnerCardId);
+			}
+		} else {
+			// No partner, just confirm deletion normally
+			const confirmed = await showConfirmation({
+				title: 'Delete Card',
+				message: 'Are you sure you want to delete this card?',
+				confirmText: 'Delete',
+				cancelText: 'Cancel',
+				type: 'danger',
+			});
+
+			if (confirmed) {
+				deleteCard(deckId, cardId);
+			}
 		}
 	};
 

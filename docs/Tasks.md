@@ -10,13 +10,6 @@
 - [ ] Show keyboard shortcuts somehow
     - [ ] Cards should stretch to fill the height allowed
     - [ ] Cards too big for that height should be scrollable
-- [ ] **Track partner cards that are tied to each other**
-    - [ ] When deleting a card, ask if you want to delete the related card
-    - [ ] When deleting a deck with cards that are tied to partner cards
-        - [ ] Ask which cards to delete (all, some, none)
-    - [x] When editing a card, ask if you want to edit the partner card
-    - [x] Show partner cards in card view
-    - [ ] Link to partner card in edit card modal
 - [ ] cf. support for vocab
 - [ ] Add notes to card sides
 - [ ] Configurable minimum interval +1
@@ -108,6 +101,7 @@
 
 2026-02-11
 
+- [x] Added tracking of partner cards when deleting cards
 - [x] Added Esc key shortcut to end review session
 - [x] Added FolderCardsView
 
