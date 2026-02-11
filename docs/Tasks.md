@@ -2,9 +2,6 @@
 
 ## Issues
 
-- [ ] Should show an error if a folder or deck is orphaned (parentFolderId is not null and can't be found)
-- [ ] In Firefox, the back of cards shows up dimmly when flipped
-
 ## Features
 
 - [ ] **Search and filtering in all group views**
@@ -109,6 +106,10 @@
 - [ ] Consistent calculations
 
 ## Complete
+
+2026-02-11
+
+- [x] Added FolderCardsView
 
 2026-02-02
 

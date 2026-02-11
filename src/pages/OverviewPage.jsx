@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
 import FolderBrowserView from "../components/FolderBrowserView";
 import DeckCardsView from "../components/DeckCardsView";
+import FolderCardsView from "../components/FolderCardsView";
 import CardEditView from "../components/CardEditView";
 import CardReviewView from "../components/Review/CardReviewView";
 import ReviewSummary from "../components/Review/ReviewSummary";
@@ -392,6 +393,14 @@ function OverviewPage() {
 								<DeckCardsView
 									onEditCard={handleEditCard}
 									onStartReview={startReview}
+								/>
+							}
+						/>
+						<Route
+							path="/folder/:folderId/cards"
+							element={
+								<FolderCardsView
+									onEditCard={handleEditCard}
 								/>
 							}
 						/>

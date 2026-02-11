@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { Plus, Search, FolderOpen, Play } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Plus, Search, FolderOpen, Play, Eye } from "lucide-react";
 import {
 	DndContext,
 	closestCenter,
@@ -25,6 +25,7 @@ export default function FolderBrowserView({
 	onStartFolderReview,
 }) {
 	const { folderId } = useParams();
+	const navigate = useNavigate();
 	const { appData } = useAppData();
 	const {
 		addDeck,
@@ -250,6 +251,15 @@ export default function FolderBrowserView({
 						className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 					/>
 				</div>
+				{hasNonArchivedDecks && (
+					<button
+						onClick={() => navigate(folderId ? `/folder/${folderId}/cards` : `/folder/root/cards`)}
+						className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
+					>
+						<Eye className="h-5 w-5" />
+						View All Cards
+					</button>
+				)}
 				{onStartFolderReview && hasNonArchivedDecks && (
 					<button
 						onClick={() => onStartFolderReview(folderId || null)}

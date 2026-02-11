@@ -29,6 +29,8 @@ export default function CardListItem({
 	onDeleteCard,
 	onToggleCardStar,
 	onToggleCardFlag,
+	deckName = null,
+	deckSymbol = null,
 }) {
 	const isFlagged = card.isFlagged || false;
 	const isStarred = card.isStarred || false;
@@ -44,6 +46,14 @@ export default function CardListItem({
 					: "border-gray-100 dark:border-slate-700"
 			}`}
 		>
+			{/* Deck info badge (when viewing cards across multiple decks) */}
+			{deckName && (
+				<div className="flex items-center gap-1.5 mb-2 text-xs text-gray-500 dark:text-slate-400">
+					<span>{deckSymbol || "📚"}</span>
+					<span>{deckName}</span>
+				</div>
+			)}
+
 			{/* Header row with Front label and action buttons */}
 			<div className="flex items-start justify-between gap-2 mb-2">
 				<div className="flex items-center gap-2">
