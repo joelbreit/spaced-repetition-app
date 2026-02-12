@@ -69,28 +69,39 @@ export default function CardReviewView({
 	const audioPlayerRef = useRef(null);
 	const currentAudioTextRef = useRef(null);
 
-	// Playback speed (read from localStorage, not stateful since settings modal handles changes)
-	const playbackSpeed = parseFloat(
-		localStorage.getItem('readAloudPlaybackSpeed') || '1.0'
-	);
-
-	// Read aloud settings state
+	// Read aloud settings state (including playback speed)
 	const [readAloudSettings, setReadAloudSettings] = useState(() => {
 		try {
 			const saved = localStorage.getItem('readAloudSettings');
+			const savedSpeed = localStorage.getItem('readAloudPlaybackSpeed');
 			if (saved) {
 				const settings = JSON.parse(saved);
 				return {
 					voiceId: settings.voiceId || 'Ruth',
 					engine: settings.engine || 'generative',
 					autoRead: settings.autoRead || 'off',
+					playbackSpeed: savedSpeed ? parseFloat(savedSpeed) : 1.0,
 				};
 			}
+			return {
+				voiceId: 'Ruth',
+				engine: 'generative',
+				autoRead: 'off',
+				playbackSpeed: savedSpeed ? parseFloat(savedSpeed) : 1.0,
+			};
 		} catch (error) {
 			console.error('Error loading readAloud settings:', error);
 		}
-		return { voiceId: 'Ruth', engine: 'generative', autoRead: 'off' };
+		return {
+			voiceId: 'Ruth',
+			engine: 'generative',
+			autoRead: 'off',
+			playbackSpeed: 1.0,
+		};
 	});
+
+	// Convenience accessor for playback speed
+	const playbackSpeed = readAloudSettings.playbackSpeed;
 
 	// Settings modal state
 	const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -222,10 +233,24 @@ export default function CardReviewView({
 	]);
 
 	// Handle settings save
-	const handleSaveSettings = (voiceId, engine, autoRead = 'off') => {
-		const newSettings = { voiceId, engine, autoRead };
+	const handleSaveSettings = (
+		voiceId,
+		engine,
+		autoRead = 'off',
+		newPlaybackSpeed = 1.0
+	) => {
+		const newSettings = {
+			voiceId,
+			engine,
+			autoRead,
+			playbackSpeed: newPlaybackSpeed,
+		};
 		setReadAloudSettings(newSettings);
 		localStorage.setItem('readAloudSettings', JSON.stringify(newSettings));
+		localStorage.setItem(
+			'readAloudPlaybackSpeed',
+			newPlaybackSpeed.toString()
+		);
 	};
 
 	// Handle Read Aloud
@@ -710,6 +735,7 @@ export default function CardReviewView({
 				currentVoiceId={readAloudSettings.voiceId}
 				currentEngine={readAloudSettings.engine}
 				currentAutoRead={readAloudSettings.autoRead}
+				currentPlaybackSpeed={readAloudSettings.playbackSpeed}
 			/>
 		</div>
 	);

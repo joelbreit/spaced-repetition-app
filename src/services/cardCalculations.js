@@ -235,16 +235,10 @@ export function calculateCardCounts(cards) {
 		(card) => card.reviews && card.reviews.length > 0
 	).length;
 	const dueCount = cards.filter(
-		(card) =>
-			card.reviews &&
-			card.reviews.length > 0 &&
-			card.whenDue <= now
+		(card) => card.reviews && card.reviews.length > 0 && card.whenDue <= now
 	).length;
 	const learnedCount = cards.filter(
-		(card) =>
-			card.reviews &&
-			card.reviews.length > 0 &&
-			card.whenDue > now
+		(card) => card.reviews && card.reviews.length > 0 && card.whenDue > now
 	).length;
 
 	return {

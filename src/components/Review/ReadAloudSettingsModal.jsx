@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Volume2 } from 'lucide-react';
+import { X, Volume2, Minus, Plus } from 'lucide-react';
 
 // Voice and engine compatibility mapping
 const VOICE_ENGINES = {
@@ -38,17 +38,21 @@ export default function ReadAloudSettingsModal({
 	currentVoiceId = 'Ruth',
 	currentEngine = 'generative',
 	currentAutoRead = 'off',
+	currentPlaybackSpeed = 1.0,
 }) {
 	const [selectedVoiceId, setSelectedVoiceId] = useState(currentVoiceId);
 	const [selectedEngine, setSelectedEngine] = useState(currentEngine);
 	const [selectedAutoRead, setSelectedAutoRead] = useState(currentAutoRead);
+	const [selectedPlaybackSpeed, setSelectedPlaybackSpeed] =
+		useState(currentPlaybackSpeed);
 
 	// Update local state when props change
 	useEffect(() => {
 		setSelectedVoiceId(currentVoiceId);
 		setSelectedEngine(currentEngine);
 		setSelectedAutoRead(currentAutoRead);
-	}, [currentVoiceId, currentEngine, currentAutoRead]);
+		setSelectedPlaybackSpeed(currentPlaybackSpeed);
+	}, [currentVoiceId, currentEngine, currentAutoRead, currentPlaybackSpeed]);
 
 	// Get available engines for selected voice
 	const availableEngines = VOICE_ENGINES[selectedVoiceId] || ['neural'];
@@ -68,7 +72,12 @@ export default function ReadAloudSettingsModal({
 	};
 
 	const handleSave = () => {
-		onSave(selectedVoiceId, selectedEngine, selectedAutoRead);
+		onSave(
+			selectedVoiceId,
+			selectedEngine,
+			selectedAutoRead,
+			selectedPlaybackSpeed
+		);
 		onClose();
 	};
 
@@ -77,7 +86,17 @@ export default function ReadAloudSettingsModal({
 		setSelectedVoiceId(currentVoiceId);
 		setSelectedEngine(currentEngine);
 		setSelectedAutoRead(currentAutoRead);
+		setSelectedPlaybackSpeed(currentPlaybackSpeed);
 		onClose();
+	};
+
+	const adjustPlaybackSpeed = (delta) => {
+		const newSpeed = Math.max(
+			0.5,
+			Math.min(4.0, selectedPlaybackSpeed + delta)
+		);
+		const roundedSpeed = Math.round(newSpeed * 10) / 10;
+		setSelectedPlaybackSpeed(roundedSpeed);
 	};
 
 	if (!isOpen) return null;
@@ -175,6 +194,37 @@ export default function ReadAloudSettingsModal({
 						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
 							Automatically read the selected side when it is
 							displayed
+						</p>
+					</div>
+
+					{/* Playback Speed */}
+					<div>
+						<label className="mb-3 block text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
+							Playback Speed
+						</label>
+						<div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+							<button
+								onClick={() => adjustPlaybackSpeed(-0.1)}
+								disabled={selectedPlaybackSpeed <= 0.5}
+								className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+								title="Decrease speed"
+							>
+								<Minus className="h-5 w-5" />
+							</button>
+							<span className="text-xl font-semibold text-gray-900 dark:text-slate-100 min-w-16 text-center">
+								{selectedPlaybackSpeed.toFixed(1)}x
+							</span>
+							<button
+								onClick={() => adjustPlaybackSpeed(0.1)}
+								disabled={selectedPlaybackSpeed >= 4.0}
+								className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+								title="Increase speed"
+							>
+								<Plus className="h-5 w-5" />
+							</button>
+						</div>
+						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+							Adjust the playback speed (0.5x - 4.0x)
 						</p>
 					</div>
 				</div>
