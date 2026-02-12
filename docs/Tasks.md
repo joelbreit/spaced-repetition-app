@@ -26,6 +26,7 @@
 - [ ] Markdown support
 - [ ] Weekly leagues - other users are my other weeks from the past
 - [ ] Select lucid icons instead of emojis for folders/decks
+- [ ] Centralize all the mastery and burden calculation logic
 
 ### Account Management
 
@@ -101,6 +102,7 @@
 
 2026-02-11
 
+- [x] More cohesive card styling
 - [x] Added tracking of partner cards when deleting cards
 - [x] Added Esc key shortcut to end review session
 - [x] Added FolderCardsView

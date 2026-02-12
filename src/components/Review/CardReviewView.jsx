@@ -8,8 +8,10 @@ import {
 	Calendar,
 	RulerDimensionLine,
 	Weight,
-	BookOpen,
 	Settings,
+	Volume2,
+	Loader2,
+	Pause,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import SegmentedProgressBar from '../SegmentedProgressBar';
@@ -22,6 +24,7 @@ import {
 	getPerDayReviewRate,
 } from '../../services/cardCalculations';
 import { useAppData } from '../../contexts/AppDataContext';
+import { readAloudAPI } from '../../services/apiStorage';
 
 export default function CardReviewView({
 	deck,
@@ -41,11 +44,12 @@ export default function CardReviewView({
 	const isFlagged = currentCard?.isFlagged || false;
 	const isStarred = currentCard?.isStarred || false;
 
-	// Get source deck name if this is a folder review
-	const sourceDeckName = currentCard?.sourceDeckId
+	// Get source deck info if this is a folder review
+	const sourceDeck = currentCard?.sourceDeckId
 		? appData.decks?.find((d) => d.deckId === currentCard.sourceDeckId)
-				?.deckName
 		: null;
+	const displayDeckName = sourceDeck?.deckName || deck.deckName;
+	const displayDeckSymbol = sourceDeck?.deckSymbol || deck.deckSymbol || '📚';
 
 	// Animation state for review result
 	const [animationResult, setAnimationResult] = useState(null);
@@ -59,20 +63,19 @@ export default function CardReviewView({
 	// Track review timing - start time when card is first viewed
 	const reviewStartTimeRef = useRef(null);
 
-	// Refs for read aloud buttons
-	const frontReadAloudRef = useRef(null);
-	const backReadAloudRef = useRef(null);
+	// Read aloud state
+	const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+	const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+	const audioPlayerRef = useRef(null);
+	const currentAudioTextRef = useRef(null);
 
-	// Playback speed state
-	const [playbackSpeed, setPlaybackSpeed] = useState(() => {
-		// Load from localStorage, default to 1.0
-		const saved = localStorage.getItem('readAloudPlaybackSpeed');
-		return saved ? parseFloat(saved) : 1.0;
-	});
+	// Playback speed (read from localStorage, not stateful since settings modal handles changes)
+	const playbackSpeed = parseFloat(
+		localStorage.getItem('readAloudPlaybackSpeed') || '1.0'
+	);
 
 	// Read aloud settings state
 	const [readAloudSettings, setReadAloudSettings] = useState(() => {
-		// Load from localStorage, default to Ruth/generative/off
 		try {
 			const saved = localStorage.getItem('readAloudSettings');
 			if (saved) {
@@ -98,7 +101,6 @@ export default function CardReviewView({
 			setHasBeenFlipped(false);
 			setSelectedReview(null);
 			previousCardIndexRef.current = currentCardIndex;
-			// Start timing when card is first shown
 			reviewStartTimeRef.current = Date.now();
 		}
 	}, [currentCardIndex]);
@@ -117,13 +119,65 @@ export default function CardReviewView({
 		}
 	}, [isFlipped, hasBeenFlipped]);
 
-	// Save playback speed to localStorage when it changes
+	// Get or create audio player
+	const getAudioPlayer = useCallback(() => {
+		let audioPlayer = document.getElementById('flashcard-audio-player');
+		if (!audioPlayer) {
+			audioPlayer = document.createElement('audio');
+			audioPlayer.id = 'flashcard-audio-player';
+			audioPlayer.style.display = 'none';
+			document.body.appendChild(audioPlayer);
+		}
+		return audioPlayer;
+	}, []);
+
+	// Set up audio event listeners
 	useEffect(() => {
-		localStorage.setItem(
-			'readAloudPlaybackSpeed',
-			playbackSpeed.toString()
-		);
+		const audioPlayer = getAudioPlayer();
+		audioPlayerRef.current = audioPlayer;
+
+		const handlePlay = () => setIsPlayingAudio(true);
+		const handlePause = () => setIsPlayingAudio(false);
+		const handleEnded = () => {
+			setIsPlayingAudio(false);
+			currentAudioTextRef.current = null;
+		};
+		const handleError = () => {
+			setIsLoadingAudio(false);
+			setIsPlayingAudio(false);
+			currentAudioTextRef.current = null;
+		};
+
+		audioPlayer.addEventListener('play', handlePlay);
+		audioPlayer.addEventListener('pause', handlePause);
+		audioPlayer.addEventListener('ended', handleEnded);
+		audioPlayer.addEventListener('error', handleError);
+
+		return () => {
+			audioPlayer.removeEventListener('play', handlePlay);
+			audioPlayer.removeEventListener('pause', handlePause);
+			audioPlayer.removeEventListener('ended', handleEnded);
+			audioPlayer.removeEventListener('error', handleError);
+		};
+	}, [getAudioPlayer]);
+
+	// Update playback speed when it changes
+	useEffect(() => {
+		if (audioPlayerRef.current) {
+			audioPlayerRef.current.playbackRate = playbackSpeed;
+		}
 	}, [playbackSpeed]);
+
+	// Stop audio when card changes or flips
+	useEffect(() => {
+		const audioPlayer = audioPlayerRef.current;
+		if (audioPlayer && !audioPlayer.paused) {
+			audioPlayer.pause();
+		}
+		setIsPlayingAudio(false);
+		setIsLoadingAudio(false);
+		currentAudioTextRef.current = null;
+	}, [currentCardIndex, isFlipped]);
 
 	// Auto-read when side is shown (after flip animation)
 	useEffect(() => {
@@ -134,27 +188,30 @@ export default function CardReviewView({
 		const timeoutId = setTimeout(() => {
 			const frontLen = (currentCard.front || '').length;
 			const backLen = (currentCard.back || '').length;
-			let shouldReadFront = false;
-			let shouldReadBack = false;
+			let shouldRead = false;
+
 			if (autoRead === 'both') {
-				shouldReadFront = !isFlipped;
-				shouldReadBack = isFlipped;
+				shouldRead = true;
 			} else if (autoRead === 'front') {
-				shouldReadFront = !isFlipped;
+				shouldRead = !isFlipped;
 			} else if (autoRead === 'back') {
-				shouldReadBack = isFlipped;
+				shouldRead = isFlipped;
 			} else if (autoRead === 'longer') {
-				if (!isFlipped && frontLen >= backLen) shouldReadFront = true;
-				if (isFlipped && backLen >= frontLen) shouldReadBack = true;
+				if (!isFlipped && frontLen >= backLen) shouldRead = true;
+				if (isFlipped && backLen >= frontLen) shouldRead = true;
 			}
-			if (shouldReadFront && (currentCard.front || '').trim()) {
-				frontReadAloudRef.current?.togglePlayPause();
-			}
-			if (shouldReadBack && (currentCard.back || '').trim()) {
-				backReadAloudRef.current?.togglePlayPause();
+
+			if (shouldRead) {
+				const textToRead = isFlipped
+					? currentCard.back
+					: currentCard.front;
+				if ((textToRead || '').trim()) {
+					handleReadAloud();
+				}
 			}
 		}, 650);
 		return () => clearTimeout(timeoutId);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		isFlipped,
 		currentCardIndex,
@@ -171,12 +228,81 @@ export default function CardReviewView({
 		localStorage.setItem('readAloudSettings', JSON.stringify(newSettings));
 	};
 
+	// Handle Read Aloud
+	const handleReadAloud = useCallback(async () => {
+		const textToRead = isFlipped ? currentCard?.back : currentCard?.front;
+		if (!textToRead?.trim()) return;
+
+		const audioPlayer = audioPlayerRef.current;
+
+		// If already playing the same text, pause it
+		if (isPlayingAudio && currentAudioTextRef.current === textToRead) {
+			audioPlayer?.pause();
+			return;
+		}
+
+		// If paused and it's the same text, resume
+		if (
+			audioPlayer &&
+			audioPlayer.paused &&
+			audioPlayer.src &&
+			currentAudioTextRef.current === textToRead
+		) {
+			audioPlayer.play();
+			return;
+		}
+
+		// Otherwise, load and play new audio
+		setIsLoadingAudio(true);
+
+		try {
+			const audioBlob = await readAloudAPI(
+				textToRead,
+				readAloudSettings.voiceId,
+				readAloudSettings.engine
+			);
+
+			const player = getAudioPlayer();
+
+			if (player.src) {
+				URL.revokeObjectURL(player.src);
+			}
+
+			currentAudioTextRef.current = textToRead;
+
+			player.onloadedmetadata = () => {
+				player.playbackRate = playbackSpeed;
+				setIsLoadingAudio(false);
+			};
+
+			player.src = URL.createObjectURL(audioBlob);
+			player.play().catch((error) => {
+				console.error('Failed to play audio:', error);
+				setIsLoadingAudio(false);
+				setIsPlayingAudio(false);
+				currentAudioTextRef.current = null;
+			});
+		} catch (error) {
+			console.error('Failed to read aloud:', error);
+			setIsLoadingAudio(false);
+			setIsPlayingAudio(false);
+			currentAudioTextRef.current = null;
+		}
+	}, [
+		isFlipped,
+		currentCard,
+		isPlayingAudio,
+		readAloudSettings,
+		playbackSpeed,
+		getAudioPlayer,
+	]);
+
 	// Handle review button click - trigger animation then record
 	const handleReview = useCallback(
 		(result) => {
 			if (!currentCard) return;
 
-			const timestamp = Date.now(); // Capture timestamp at button click
+			const timestamp = Date.now();
 			const interval = calculateNextInterval(
 				result,
 				currentCard,
@@ -184,7 +310,6 @@ export default function CardReviewView({
 			);
 			const nextDue = timestamp + interval;
 
-			// Calculate review duration (time from card view to review button click)
 			const reviewDuration = reviewStartTimeRef.current
 				? timestamp - reviewStartTimeRef.current
 				: 0;
@@ -193,12 +318,9 @@ export default function CardReviewView({
 			setNextDueDate(nextDue);
 			setSelectedReview(result);
 
-			// After animation completes, record the review with the same timestamp and duration
 			setTimeout(() => {
 				onReview(result, timestamp, reviewDuration);
 
-				// Keep the animation result visible for a bit longer while it flips back
-				// This matches the 300ms delay in OverviewPage.jsx
 				setTimeout(() => {
 					setAnimationResult(null);
 					setNextDueDate(null);
@@ -209,20 +331,9 @@ export default function CardReviewView({
 		[currentCard, onReview]
 	);
 
-	// Function to toggle play/pause for current side
-	const toggleCurrentSideAudio = useCallback(() => {
-		const currentReadAloudRef = isFlipped
-			? backReadAloudRef
-			: frontReadAloudRef;
-		if (currentReadAloudRef.current) {
-			currentReadAloudRef.current.togglePlayPause();
-		}
-	}, [isFlipped]);
-
 	// Keyboard shortcuts
 	useEffect(() => {
 		const handleKeyDown = (event) => {
-			// Don't trigger shortcuts if user is typing in an input/textarea
 			if (
 				event.target.tagName === 'INPUT' ||
 				event.target.tagName === 'TEXTAREA' ||
@@ -242,7 +353,7 @@ export default function CardReviewView({
 			if (event.key === ' ' || event.code === 'Space') {
 				event.preventDefault();
 				if (!animationResult) {
-					toggleCurrentSideAudio();
+					handleReadAloud();
 				}
 				return;
 			}
@@ -289,7 +400,7 @@ export default function CardReviewView({
 		isFlipped,
 		hasBeenFlipped,
 		animationResult,
-		toggleCurrentSideAudio,
+		handleReadAloud,
 		handleReview,
 		onFlip,
 		showSettingsModal,
@@ -299,10 +410,6 @@ export default function CardReviewView({
 	if (!currentCard) {
 		return null;
 	}
-
-	const handleSpeedChange = (newSpeed) => {
-		setPlaybackSpeed(newSpeed);
-	};
 
 	// Get animation color based on result
 	const getAnimationColor = () => {
@@ -321,79 +428,90 @@ export default function CardReviewView({
 	const reviews = currentCard.reviews || [];
 	const reviewCount = reviews.length;
 
-	// Time since last review
 	const lastReview = reviews.length > 0 ? reviews[reviews.length - 1] : null;
 	const timeSinceLastReview = lastReview
 		? Date.now() - lastReview.timestamp
 		: null;
 
 	const formatTimeAgo = (ms) => {
-		if (!ms) return 'Never reviewed';
+		if (!ms) return 'Never';
 		const seconds = Math.floor(ms / 1000);
 		const minutes = Math.floor(seconds / 60);
 		const hours = Math.floor(minutes / 60);
 		const days = Math.floor(hours / 24);
 
-		if (days > 0) return `${days} day${days !== 1 ? 's' : ''} ago`;
-		if (hours > 0) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-		if (minutes > 0)
-			return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+		if (days > 0) return `${days}d ago`;
+		if (hours > 0) return `${hours}h ago`;
+		if (minutes > 0) return `${minutes}m ago`;
 		return 'Just now';
 	};
 
 	const learningStrength = calculateLearningStrength(currentCard);
 
-	// Days until next due
 	const daysUntilDue = currentCard.whenDue
 		? Math.ceil((currentCard.whenDue - Date.now()) / (1000 * 60 * 60 * 24))
 		: 0;
 
 	const formatDaysUntilDue = () => {
-		if (!currentCard.whenDue) {
-			return 'Due';
-		}
+		if (!currentCard.whenDue) return 'Due';
 		if (daysUntilDue < 0) {
 			const daysAgo = Math.abs(daysUntilDue);
-			if (daysAgo === 1) return 'Due yesterday';
-			return `Due ${daysAgo} days ago`;
+			if (daysAgo === 1) return 'Yesterday';
+			return `${daysAgo}d overdue`;
 		}
-		// if (daysUntilDue === 0) return "Due today";
-		if (daysUntilDue === 0) return formatHoursAgo();
-		if (daysUntilDue === 1) return 'Due tomorrow';
-		return `Due in ${daysUntilDue} days`;
-	};
-
-	// e.g. Due x hours ago
-	const formatHoursAgo = () => {
-		const hoursAgo = Math.ceil(
-			(Date.now() - currentCard.whenDue) / (1000 * 60 * 60)
-		);
-
-		if (hoursAgo === 1) return formatMinutesAgo();
-		return `Due ${hoursAgo} hours ago`;
-	};
-
-	// e.g. Due x minutes ago
-	const formatMinutesAgo = () => {
-		const minutesAgo = Math.ceil(
-			(Date.now() - currentCard.whenDue) / (1000 * 60)
-		);
-		return `Due ${minutesAgo} minutes ago`;
+		if (daysUntilDue === 0) return 'Today';
+		if (daysUntilDue === 1) return 'Tomorrow';
+		return `In ${daysUntilDue}d`;
 	};
 
 	const formatInterval = () => {
 		const interval = getInterval(currentCard);
-
-		// days
 		const days = Math.floor(interval / (1000 * 60 * 60 * 24));
-		if (days > 0) return `${days} days`;
-		// hours
+		if (days > 0) return `${days}d`;
 		const hours = Math.floor(interval / (1000 * 60 * 60));
-		if (hours > 0) return `${hours} hours`;
-		// minutes
+		if (hours > 0) return `${hours}h`;
 		const minutes = Math.floor(interval / (1000 * 60));
-		return `${minutes} minutes`;
+		return `${minutes}m`;
 	};
+
+	const getDueColor = () => {
+		if (daysUntilDue < 0) return 'text-red-600 dark:text-red-400';
+		if (daysUntilDue === 0) return 'text-orange-600 dark:text-orange-400';
+		return 'text-gray-600 dark:text-gray-400';
+	};
+
+	// Build stats array for CardSide
+	const cardStats = [
+		{
+			icon: <BarChart3 className="h-3 w-3 text-teal-500" />,
+			value: reviewCount,
+			label: 'reviews',
+		},
+		{
+			icon: <Clock className="h-3 w-3 text-blue-500" />,
+			value: formatTimeAgo(timeSinceLastReview),
+		},
+		{
+			icon: <Target className="h-3 w-3 text-green-500" />,
+			value: `${Math.round(learningStrength)}%`,
+			label: 'mastery',
+		},
+		{
+			icon: <Calendar className="h-3 w-3 text-cyan-500" />,
+			value: formatDaysUntilDue(),
+			valueColor: getDueColor(),
+		},
+		{
+			icon: <RulerDimensionLine className="h-3 w-3 text-blue-500" />,
+			value: formatInterval(),
+			label: 'interval',
+		},
+		{
+			icon: <Weight className="h-3 w-3 text-purple-500" />,
+			value: getPerDayReviewRate(currentCard).toFixed(2),
+			label: 'burden',
+		},
+	];
 
 	return (
 		<div className="mx-auto max-w-4xl">
@@ -404,21 +522,8 @@ export default function CardReviewView({
 				totalCards={totalCards}
 			/>
 
-			{/* Source Deck Name (for folder reviews) */}
-			{sourceDeckName && (
-				<div className="mb-4 flex justify-center">
-					<div className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 rounded-lg text-sm text-gray-700 dark:text-gray-300">
-						<BookOpen className="h-4 w-4 text-teal-500" />
-						<span className="font-medium">From:</span>
-						<span className="text-teal-600 dark:text-teal-400">
-							{sourceDeckName}
-						</span>
-					</div>
-				</div>
-			)}
-
 			{/* Card */}
-			<div className="mb-8" style={{ perspective: '1000px' }}>
+			<div className="mb-6" style={{ perspective: '1000px' }}>
 				<div
 					className={`cursor-pointer group animate-scale-in ${
 						animationResult ? 'pointer-events-none' : ''
@@ -436,115 +541,39 @@ export default function CardReviewView({
 				>
 					{/* Front Side */}
 					<CardSide
-						ref={frontReadAloudRef}
 						side="Front"
 						text={currentCard.front}
 						animationResult={animationResult}
 						nextDueDate={animationResult ? nextDueDate : null}
 						animationColor={getAnimationColor()}
-						playbackSpeed={playbackSpeed}
-						onSpeedChange={handleSpeedChange}
-						voiceId={readAloudSettings.voiceId}
-						engine={readAloudSettings.engine}
 						isStarred={isStarred}
 						isFlagged={isFlagged}
 						onToggleStar={onToggleStar}
 						onToggleFlag={onToggleFlag}
 						cardId={currentCard.cardId}
 						transform="rotateY(0deg)"
+						deckName={displayDeckName}
+						deckSymbol={displayDeckSymbol}
+						stats={cardStats}
 					/>
 
 					{/* Back Side */}
 					<CardSide
-						ref={backReadAloudRef}
 						side="Back"
 						text={currentCard.back}
 						animationResult={animationResult}
 						nextDueDate={animationResult ? nextDueDate : null}
 						animationColor={getAnimationColor()}
-						playbackSpeed={playbackSpeed}
-						onSpeedChange={handleSpeedChange}
-						voiceId={readAloudSettings.voiceId}
-						engine={readAloudSettings.engine}
 						isStarred={isStarred}
 						isFlagged={isFlagged}
 						onToggleStar={onToggleStar}
 						onToggleFlag={onToggleFlag}
 						cardId={currentCard.cardId}
 						transform="rotateY(180deg)"
+						deckName={displayDeckName}
+						deckSymbol={displayDeckSymbol}
+						stats={cardStats}
 					/>
-				</div>
-			</div>
-
-			{/* Card Statistics - Compact */}
-			<div className="mb-6">
-				<div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 rounded-lg px-4 py-2">
-					<div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
-						{/* Review Count */}
-						<div className="flex items-center gap-1.5">
-							<BarChart3 className="h-3 w-3 text-teal-500" />
-							<span className="text-gray-600 dark:text-gray-400 font-medium">
-								{reviewCount}
-							</span>
-							<span className="text-gray-500 dark:text-gray-500">
-								reviews
-							</span>
-						</div>
-
-						{/* Time Since Last Review */}
-						<div className="flex items-center gap-1.5">
-							<Clock className="h-3 w-3 text-blue-500" />
-							<span className="text-gray-600 dark:text-gray-400">
-								{formatTimeAgo(timeSinceLastReview)}
-							</span>
-						</div>
-
-						{/* Learning Strength */}
-						<div className="flex items-center gap-1.5">
-							<Target className="h-3 w-3 text-green-500" />
-							<span className="text-gray-600 dark:text-gray-400 font-medium">
-								{Math.round(learningStrength)}%
-							</span>
-							<span className="text-gray-500 dark:text-gray-500">
-								mastery
-							</span>
-						</div>
-
-						{/* Next Due Date */}
-						<div className="flex items-center gap-1.5">
-							<Calendar className="h-3 w-3 text-cyan-500" />
-							<span
-								className={`font-medium ${
-									daysUntilDue < 0
-										? 'text-red-600 dark:text-red-400'
-										: daysUntilDue === 0
-											? 'text-orange-600 dark:text-orange-400'
-											: 'text-gray-600 dark:text-gray-400'
-								}`}
-							>
-								{formatDaysUntilDue()}
-							</span>
-						</div>
-
-						{/* Interval */}
-						<div className="flex items-center gap-1.5">
-							<RulerDimensionLine className="h-3 w-3 text-blue-500" />
-							<span className="text-gray-600 dark:text-gray-400 font-medium">
-								{formatInterval()}
-							</span>
-						</div>
-
-						{/* Burden/Day */}
-						<div className="flex items-center gap-1.5">
-							<Weight className="h-3 w-3 text-purple-500" />
-							<span className="text-gray-600 dark:text-gray-400 font-medium">
-								{getPerDayReviewRate(currentCard).toFixed(2)}
-							</span>
-							<span className="text-gray-500 dark:text-gray-500">
-								burden/day
-							</span>
-						</div>
-					</div>
 				</div>
 			</div>
 
@@ -631,24 +660,41 @@ export default function CardReviewView({
 				)}
 
 				{/* Action buttons */}
-				<div className="flex justify-center gap-4">
+				<div className="flex justify-center gap-3 flex-wrap">
+					<button
+						onClick={handleReadAloud}
+						disabled={isLoadingAudio}
+						className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+						title={isPlayingAudio ? 'Pause' : 'Read aloud (Space)'}
+					>
+						{isLoadingAudio ? (
+							<Loader2 className="h-5 w-5 animate-spin" />
+						) : isPlayingAudio ? (
+							<Pause className="h-5 w-5" />
+						) : (
+							<Volume2 className="h-5 w-5" />
+						)}
+						<span className="hidden sm:inline">
+							{isPlayingAudio ? 'Pause' : 'Listen'}
+						</span>
+					</button>
 					<button
 						onClick={() => onEditCard(currentCard.cardId)}
-						className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+						className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 					>
 						<Edit className="h-5 w-5" />
 						<span className="hidden sm:inline">Edit</span>
 					</button>
 					<button
 						onClick={() => setShowSettingsModal(true)}
-						className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+						className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 					>
 						<Settings className="h-5 w-5" />
 						<span className="hidden sm:inline">Settings</span>
 					</button>
 					<button
 						onClick={onEndReview}
-						className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+						className="flex items-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
 					>
 						<X className="h-5 w-5" />
 						<span className="hidden sm:inline">End</span>
