@@ -11,8 +11,9 @@ import {
 	Clock,
 } from 'lucide-react';
 import {
-	calculateLearningStrength,
-	getPerDayReviewRate,
+	calculateAverageMastery,
+	calculateReviewedCardsBurden,
+	calculateCardCounts,
 } from '../../services/cardCalculations';
 
 export default function ReviewSummary({
@@ -55,11 +56,8 @@ export default function ReviewSummary({
 
 	// Calculate metrics before and after for a card collection (deck or folder)
 	const calculateCardCollectionMetrics = (cardCollection) => {
-		if (
-			!cardCollection ||
-			!cardCollection.cards ||
-			cardCollection.cards.length === 0
-		) {
+		const cards = cardCollection?.cards || [];
+		if (cards.length === 0) {
 			return {
 				avgMastery: 0,
 				totalBurden: 0,
@@ -69,30 +67,14 @@ export default function ReviewSummary({
 			};
 		}
 
-		const now = Date.now();
-		const avgMastery =
-			cardCollection.cards.reduce(
-				(sum, card) => sum + calculateLearningStrength(card),
-				0
-			) / cardCollection.cards.length;
-
-		const totalBurden = cardCollection.cards
-			.filter((card) => card.reviews && card.reviews.length > 0)
-			.reduce((sum, card) => sum + getPerDayReviewRate(card), 0);
-
-		const dueCount = cardCollection.cards.filter(
-			(card) => card.whenDue <= now && card.reviews.length > 0
-		).length;
-
-		const newCount = cardCollection.cards.filter(
-			(card) => card.reviews.length === 0
-		).length;
-
-		const learnedCount = cardCollection.cards.filter(
-			(card) => card.reviews.length > 0 && card.whenDue > now
-		).length;
-
-		return { avgMastery, totalBurden, dueCount, newCount, learnedCount };
+		const counts = calculateCardCounts(cards);
+		return {
+			avgMastery: calculateAverageMastery(cards),
+			totalBurden: calculateReviewedCardsBurden(cards),
+			dueCount: counts.dueCount,
+			newCount: counts.newCount,
+			learnedCount: counts.learnedCount,
+		};
 	};
 
 	const metricsBefore = calculateCardCollectionMetrics(cardsCollectionBefore);

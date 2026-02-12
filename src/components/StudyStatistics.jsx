@@ -1,6 +1,7 @@
 import {
-	getPerDayReviewRate,
-	calculateLearningStrength,
+	calculateAverageMastery,
+	calculateReviewedCardsBurden,
+	calculateCardCounts,
 } from '../services/cardCalculations';
 
 export default function StudyStatistics({ appData, folderId = null }) {
@@ -39,54 +40,22 @@ export default function StudyStatistics({ appData, folderId = null }) {
 
 	// Get all cards in the folder (or all cards if folderId is null for root)
 	const getAllCardsInFolder = () => {
-		// Get all decks recursively in the folder (null means root)
 		const allDecksInFolder = getAllDecksInFolder(folderId);
-		const allCards = [];
-		allDecksInFolder.forEach((deck) => {
-			if (deck.cards && deck.cards.length > 0) {
-				allCards.push(...deck.cards);
-			}
-		});
-		return allCards;
+		return allDecksInFolder.flatMap((deck) => deck.cards || []);
 	};
 
 	const allCards = getAllCardsInFolder();
-	const now = Date.now();
 
-	// Calculate counts
-	const dueCount = allCards.filter(
-		(card) => card.reviews && card.reviews.length > 0 && card.whenDue <= now
-	).length;
+	// Calculate counts using centralized function
+	const counts = calculateCardCounts(allCards);
 
-	const newCount = allCards.filter(
-		(card) => !card.reviews || card.reviews.length === 0
-	).length;
-
-	const learnedCount = allCards.filter(
-		(card) => card.reviews && card.reviews.length > 0 && card.whenDue > now
-	).length;
-
-	const viewedCount = dueCount + learnedCount;
-
-	// Calculate mastery percentage (average learning strength)
-	const studiedCards = allCards.filter(
-		(card) => card.reviews && card.reviews.length > 0
+	// Calculate mastery (only for reviewed cards)
+	const masteryPercentage = Math.round(
+		calculateAverageMastery(allCards, true)
 	);
-	const masteryPercentage =
-		studiedCards.length > 0
-			? Math.round(
-					studiedCards.reduce(
-						(sum, card) => sum + calculateLearningStrength(card),
-						0
-					) / studiedCards.length
-				)
-			: 0;
 
-	// Calculate burden per day (sum of review rates for all studied cards)
-	const burdenPerDay = studiedCards.reduce(
-		(sum, card) => sum + getPerDayReviewRate(card),
-		0
-	);
+	// Calculate burden per day (only for reviewed cards)
+	const burdenPerDay = calculateReviewedCardsBurden(allCards);
 
 	function getMasteryBadgeColors(mastery) {
 		if (mastery < 25) return 'text-red-700 dark:text-red-400';
@@ -98,22 +67,22 @@ export default function StudyStatistics({ appData, folderId = null }) {
 	const stats = [
 		{
 			label: 'Due',
-			value: dueCount,
+			value: counts.dueCount,
 			customStyle: 'text-orange-500 dark:text-orange-400',
 		},
 		{
 			label: 'New',
-			value: newCount,
+			value: counts.newCount,
 			customStyle: 'text-teal-600',
 		},
 		{
 			label: 'Learned',
-			value: learnedCount,
+			value: counts.learnedCount,
 			customStyle: 'text-green-600',
 		},
 		{
 			label: 'Viewed',
-			value: viewedCount,
+			value: counts.reviewedCount,
 			customStyle: 'text-gray-900 dark:text-gray-100',
 		},
 		{

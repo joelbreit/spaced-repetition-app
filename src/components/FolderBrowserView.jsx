@@ -267,7 +267,7 @@ export default function FolderBrowserView({
 						className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200"
 					>
 						<Eye className="h-5 w-5" />
-						View All Cards
+						<span className="hidden sm:inline">View All Cards</span>
 					</button>
 				)}
 				{onStartFolderReview && hasNonArchivedDecks && (

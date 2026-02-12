@@ -143,3 +143,141 @@ export function getPerDayReviewRate(card) {
 		return 0;
 	}
 }
+
+// ============================================
+// Aggregate calculations for decks/folders
+// ============================================
+
+/**
+ * Calculate average mastery for an array of cards
+ * @param {Array} cards - Array of card objects
+ * @param {boolean} reviewedOnly - If true, only include cards that have been reviewed
+ * @returns {number} Average mastery percentage (0-100)
+ */
+export function calculateAverageMastery(cards, reviewedOnly = false) {
+	if (!cards || cards.length === 0) return 0;
+
+	const targetCards = reviewedOnly
+		? cards.filter((card) => card.reviews && card.reviews.length > 0)
+		: cards;
+
+	if (targetCards.length === 0) return 0;
+
+	const totalMastery = targetCards.reduce(
+		(sum, card) => sum + calculateLearningStrength(card),
+		0
+	);
+	return totalMastery / targetCards.length;
+}
+
+/**
+ * Calculate total burden (reviews per day) for an array of cards
+ * @param {Array} cards - Array of card objects
+ * @returns {number} Total reviews per day
+ */
+export function calculateTotalBurden(cards) {
+	if (!cards || cards.length === 0) return 0;
+	return cards.reduce((sum, card) => sum + getPerDayReviewRate(card), 0);
+}
+
+/**
+ * Calculate mastery and burden stats for a deck
+ * @param {Object} deck - Deck object with cards array
+ * @returns {{ mastery: number, burden: number }}
+ */
+export function calculateDeckStats(deck) {
+	const cards = deck?.cards || [];
+	return {
+		mastery: calculateAverageMastery(cards),
+		burden: calculateTotalBurden(cards),
+	};
+}
+
+/**
+ * Calculate mastery and burden stats for multiple decks (folder-level)
+ * @param {Array} decks - Array of deck objects
+ * @returns {{ mastery: number, burden: number, totalCards: number }}
+ */
+export function calculateFolderStats(decks) {
+	if (!decks || decks.length === 0) {
+		return { mastery: 0, burden: 0, totalCards: 0 };
+	}
+
+	const allCards = decks.flatMap((deck) => deck.cards || []);
+	return {
+		mastery: calculateAverageMastery(allCards),
+		burden: calculateTotalBurden(allCards),
+		totalCards: allCards.length,
+	};
+}
+
+/**
+ * Calculate card counts by status
+ * @param {Array} cards - Array of card objects
+ * @returns {{ newCount: number, dueCount: number, learnedCount: number, reviewedCount: number, totalCount: number }}
+ */
+export function calculateCardCounts(cards) {
+	if (!cards || cards.length === 0) {
+		return {
+			newCount: 0,
+			dueCount: 0,
+			learnedCount: 0,
+			reviewedCount: 0,
+			totalCount: 0,
+		};
+	}
+
+	const now = Date.now();
+	const newCount = cards.filter(
+		(card) => !card.reviews || card.reviews.length === 0
+	).length;
+	const reviewedCount = cards.filter(
+		(card) => card.reviews && card.reviews.length > 0
+	).length;
+	const dueCount = cards.filter(
+		(card) =>
+			card.reviews &&
+			card.reviews.length > 0 &&
+			card.whenDue <= now
+	).length;
+	const learnedCount = cards.filter(
+		(card) =>
+			card.reviews &&
+			card.reviews.length > 0 &&
+			card.whenDue > now
+	).length;
+
+	return {
+		newCount,
+		dueCount,
+		learnedCount,
+		reviewedCount,
+		totalCount: cards.length,
+	};
+}
+
+/**
+ * Calculate burden only for cards that have been reviewed at least once
+ * @param {Array} cards - Array of card objects
+ * @returns {number} Total reviews per day for reviewed cards only
+ */
+export function calculateReviewedCardsBurden(cards) {
+	if (!cards || cards.length === 0) return 0;
+	return cards
+		.filter((card) => card.reviews && card.reviews.length > 0)
+		.reduce((sum, card) => sum + getPerDayReviewRate(card), 0);
+}
+
+/**
+ * Calculate comprehensive stats for an array of cards
+ * @param {Array} cards - Array of card objects
+ * @returns {{ mastery: number, burden: number, newCount: number, dueCount: number, learnedCount: number, reviewedCount: number, totalCount: number }}
+ */
+export function calculateCardStats(cards) {
+	const counts = calculateCardCounts(cards);
+	return {
+		mastery: calculateAverageMastery(cards),
+		burden: calculateReviewedCardsBurden(cards),
+		...counts,
+	};
+}

@@ -10,10 +10,7 @@ import {
 } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import {
-	calculateLearningStrength,
-	getPerDayReviewRate,
-} from '../services/cardCalculations';
+import { calculateCardStats } from '../services/cardCalculations';
 
 function getMasteryColor(mastery) {
 	if (mastery < 25) return 'text-red-500 dark:text-red-400';
@@ -73,48 +70,17 @@ export default function SortableContainerItem({
 	// For decks, calculate stats
 	const deckStats =
 		isDeck && item.cards
-			? {
-					averageLearningStrength:
-						item.cards.length > 0
-							? Math.round(
-									item.cards.reduce(
-										(sum, card) =>
-											sum +
-											calculateLearningStrength(card),
-										0
-									) / item.cards.length
-								)
-							: 0,
-					aggregateReviewRate:
-						item.cards.length > 0
-							? item.cards
-									.filter(
-										(card) =>
-											card.reviews &&
-											card.reviews.length > 0
-									)
-									.reduce(
-										(sum, card) =>
-											sum + getPerDayReviewRate(card),
-										0
-									)
-							: 0,
-					dueCount: item.cards.filter(
-						(card) =>
-							card.whenDue <= Date.now() &&
-							card.reviews.length > 0
-					).length,
-					newCount: item.cards.filter(
-						(card) => card.reviews.length === 0
-					).length,
-					learnedCount: item.cards.filter(
-						(card) =>
-							card.reviews.length > 0 && card.whenDue > Date.now()
-					).length,
-					reviewedCount: item.cards.filter(
-						(card) => card.reviews.length > 0
-					).length,
-				}
+			? (() => {
+					const stats = calculateCardStats(item.cards);
+					return {
+						averageLearningStrength: Math.round(stats.mastery),
+						aggregateReviewRate: stats.burden,
+						dueCount: stats.dueCount,
+						newCount: stats.newCount,
+						learnedCount: stats.learnedCount,
+						reviewedCount: stats.reviewedCount,
+					};
+				})()
 			: null;
 
 	// Helper function to recursively get all decks in a folder and its subfolders
@@ -153,64 +119,24 @@ export default function SortableContainerItem({
 				const allDecksInFolder = getAllDecksInFolder(item.id);
 
 				// Collect all cards from all decks
-				const allCards = [];
-				allDecksInFolder.forEach((deck) => {
-					if (deck.cards && deck.cards.length > 0) {
-						allCards.push(...deck.cards);
-					}
-				});
+				const allCards = allDecksInFolder.flatMap(
+					(deck) => deck.cards || []
+				);
 
-				// Calculate aggregated stats
-				const stats = {
+				// Calculate aggregated stats using centralized function
+				const cardStats = calculateCardStats(allCards);
+
+				return {
 					folderCount,
 					deckCount: allDecksInFolder.length,
 					totalCards: allCards.length,
-					averageLearningStrength:
-						allCards.length > 0
-							? Math.round(
-									allCards.reduce(
-										(sum, card) =>
-											sum +
-											calculateLearningStrength(card),
-										0
-									) / allCards.length
-								)
-							: 0,
-					aggregateReviewRate:
-						allCards.length > 0
-							? allCards
-									.filter(
-										(card) =>
-											card.reviews &&
-											card.reviews.length > 0
-									)
-									.reduce(
-										(sum, card) =>
-											sum + getPerDayReviewRate(card),
-										0
-									)
-							: 0,
-					dueCount: allCards.filter(
-						(card) =>
-							card.whenDue <= Date.now() &&
-							card.reviews &&
-							card.reviews.length > 0
-					).length,
-					newCount: allCards.filter(
-						(card) => !card.reviews || card.reviews.length === 0
-					).length,
-					learnedCount: allCards.filter(
-						(card) =>
-							card.reviews &&
-							card.reviews.length > 0 &&
-							card.whenDue > Date.now()
-					).length,
-					reviewedCount: allCards.filter(
-						(card) => card.reviews && card.reviews.length > 0
-					).length,
+					averageLearningStrength: Math.round(cardStats.mastery),
+					aggregateReviewRate: cardStats.burden,
+					dueCount: cardStats.dueCount,
+					newCount: cardStats.newCount,
+					learnedCount: cardStats.learnedCount,
+					reviewedCount: cardStats.reviewedCount,
 				};
-
-				return stats;
 			})()
 		: null;
 
