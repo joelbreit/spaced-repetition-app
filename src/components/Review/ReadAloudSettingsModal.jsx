@@ -39,12 +39,14 @@ export default function ReadAloudSettingsModal({
 	currentEngine = 'generative',
 	currentAutoRead = 'off',
 	currentPlaybackSpeed = 1.0,
+	currentPrefetchAudio = false,
 }) {
 	const [selectedVoiceId, setSelectedVoiceId] = useState(currentVoiceId);
 	const [selectedEngine, setSelectedEngine] = useState(currentEngine);
 	const [selectedAutoRead, setSelectedAutoRead] = useState(currentAutoRead);
 	const [selectedPlaybackSpeed, setSelectedPlaybackSpeed] =
 		useState(currentPlaybackSpeed);
+	const [selectedPrefetchAudio, setSelectedPrefetchAudio] = useState(currentPrefetchAudio);
 
 	// Update local state when props change
 	useEffect(() => {
@@ -52,7 +54,8 @@ export default function ReadAloudSettingsModal({
 		setSelectedEngine(currentEngine);
 		setSelectedAutoRead(currentAutoRead);
 		setSelectedPlaybackSpeed(currentPlaybackSpeed);
-	}, [currentVoiceId, currentEngine, currentAutoRead, currentPlaybackSpeed]);
+		setSelectedPrefetchAudio(currentPrefetchAudio);
+	}, [currentVoiceId, currentEngine, currentAutoRead, currentPlaybackSpeed, currentPrefetchAudio]);
 
 	// Get available engines for selected voice
 	const availableEngines = VOICE_ENGINES[selectedVoiceId] || ['neural'];
@@ -76,7 +79,8 @@ export default function ReadAloudSettingsModal({
 			selectedVoiceId,
 			selectedEngine,
 			selectedAutoRead,
-			selectedPlaybackSpeed
+			selectedPlaybackSpeed,
+			selectedPrefetchAudio
 		);
 		onClose();
 	};
@@ -87,6 +91,7 @@ export default function ReadAloudSettingsModal({
 		setSelectedEngine(currentEngine);
 		setSelectedAutoRead(currentAutoRead);
 		setSelectedPlaybackSpeed(currentPlaybackSpeed);
+		setSelectedPrefetchAudio(currentPrefetchAudio);
 		onClose();
 	};
 
@@ -225,6 +230,31 @@ export default function ReadAloudSettingsModal({
 						</div>
 						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
 							Adjust the playback speed (0.5x - 4.0x)
+						</p>
+					</div>
+
+					{/* Pre-load Audio */}
+					<div>
+						<label className="mb-3 block text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
+							Pre-load Audio
+						</label>
+						<div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+							<span className="text-sm text-gray-700 dark:text-slate-300">Pre-load next 2 cards</span>
+							<button
+								onClick={() => setSelectedPrefetchAudio(!selectedPrefetchAudio)}
+								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+									selectedPrefetchAudio ? 'bg-teal-500' : 'bg-gray-200 dark:bg-slate-600'
+								}`}
+							>
+								<span
+									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+										selectedPrefetchAudio ? 'translate-x-6' : 'translate-x-1'
+									}`}
+								/>
+							</button>
+						</div>
+						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+							Pre-loads audio for the next 2 cards to reduce playback delays
 						</p>
 					</div>
 				</div>

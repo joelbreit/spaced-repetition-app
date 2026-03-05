@@ -68,6 +68,9 @@ export default function CardReviewView({
 	const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 	const audioPlayerRef = useRef(null);
 	const currentAudioTextRef = useRef(null);
+	const audioCacheRef = useRef(new Map());
+	const prefetchInFlightRef = useRef(new Set());
+	const cacheVersionRef = useRef(0);
 
 	// Read aloud settings state (including playback speed)
 	const [readAloudSettings, setReadAloudSettings] = useState(() => {
@@ -81,6 +84,7 @@ export default function CardReviewView({
 					engine: settings.engine || 'generative',
 					autoRead: settings.autoRead || 'off',
 					playbackSpeed: savedSpeed ? parseFloat(savedSpeed) : 1.0,
+					prefetchAudio: settings.prefetchAudio || false,
 				};
 			}
 			return {
@@ -88,6 +92,7 @@ export default function CardReviewView({
 				engine: 'generative',
 				autoRead: 'off',
 				playbackSpeed: savedSpeed ? parseFloat(savedSpeed) : 1.0,
+				prefetchAudio: false,
 			};
 		} catch (error) {
 			console.error('Error loading readAloud settings:', error);
@@ -97,6 +102,7 @@ export default function CardReviewView({
 			engine: 'generative',
 			autoRead: 'off',
 			playbackSpeed: 1.0,
+			prefetchAudio: false,
 		};
 	});
 
@@ -179,6 +185,44 @@ export default function CardReviewView({
 		}
 	}, [playbackSpeed]);
 
+	// Clear cache when voice or engine changes
+	useEffect(() => {
+		audioCacheRef.current.clear();
+		prefetchInFlightRef.current.clear();
+		cacheVersionRef.current += 1;
+	}, [readAloudSettings.voiceId, readAloudSettings.engine]);
+
+	// Prefetch audio for upcoming cards
+	useEffect(() => {
+		if (!readAloudSettings.prefetchAudio) return;
+		const { voiceId, engine } = readAloudSettings;
+		const cards = deck.cards;
+		const end = Math.min(currentCardIndex + 3, cards.length);
+		const version = cacheVersionRef.current;
+
+		for (let i = currentCardIndex; i < end; i++) {
+			const card = cards[i];
+			for (const text of [card.front, card.back]) {
+				if (!text?.trim()) continue;
+				const key = `${voiceId}|${engine}|${text}`;
+				if (audioCacheRef.current.has(key) || prefetchInFlightRef.current.has(key)) continue;
+
+				prefetchInFlightRef.current.add(key);
+				readAloudAPI(text, voiceId, engine)
+					.then((blob) => {
+						if (cacheVersionRef.current === version) {
+							audioCacheRef.current.set(key, blob);
+						}
+					})
+					.catch(() => {/* silent fail — prefetch is best-effort */})
+					.finally(() => {
+						prefetchInFlightRef.current.delete(key);
+					});
+			}
+		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentCardIndex, readAloudSettings.prefetchAudio, readAloudSettings.voiceId, readAloudSettings.engine, deck.cards]);
+
 	// Stop audio when card changes or flips
 	useEffect(() => {
 		const audioPlayer = audioPlayerRef.current;
@@ -237,13 +281,15 @@ export default function CardReviewView({
 		voiceId,
 		engine,
 		autoRead = 'off',
-		newPlaybackSpeed = 1.0
+		newPlaybackSpeed = 1.0,
+		prefetchAudio = false
 	) => {
 		const newSettings = {
 			voiceId,
 			engine,
 			autoRead,
 			playbackSpeed: newPlaybackSpeed,
+			prefetchAudio,
 		};
 		setReadAloudSettings(newSettings);
 		localStorage.setItem('readAloudSettings', JSON.stringify(newSettings));
@@ -281,11 +327,17 @@ export default function CardReviewView({
 		setIsLoadingAudio(true);
 
 		try {
-			const audioBlob = await readAloudAPI(
-				textToRead,
-				readAloudSettings.voiceId,
-				readAloudSettings.engine
-			);
+			const cacheKey = `${readAloudSettings.voiceId}|${readAloudSettings.engine}|${textToRead}`;
+			let audioBlob = audioCacheRef.current.get(cacheKey);
+
+			if (!audioBlob) {
+				audioBlob = await readAloudAPI(
+					textToRead,
+					readAloudSettings.voiceId,
+					readAloudSettings.engine
+				);
+				audioCacheRef.current.set(cacheKey, audioBlob);
+			}
 
 			const player = getAudioPlayer();
 
@@ -736,6 +788,7 @@ export default function CardReviewView({
 				currentEngine={readAloudSettings.engine}
 				currentAutoRead={readAloudSettings.autoRead}
 				currentPlaybackSpeed={readAloudSettings.playbackSpeed}
+			currentPrefetchAudio={readAloudSettings.prefetchAudio}
 			/>
 		</div>
 	);
