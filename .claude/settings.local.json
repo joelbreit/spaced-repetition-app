@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(wc -l /Users/joel/code/repos/spaced-repetition-app/exclude/*.csv)"
     ]
   }
 }

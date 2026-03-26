@@ -87,6 +87,7 @@ export function AppDataProvider({ children }) {
 	const lastSaveTime = useRef(null);
 	const appDataRef = useRef(appData);
 	const lastSavedStateRef = useRef(null);
+	const hasLoadedFromCloudRef = useRef(false);
 	const healthCheckInProgress = useRef(false);
 
 	// Wrapped setter that tracks guest edits
@@ -130,6 +131,7 @@ export function AppDataProvider({ children }) {
 
 			// Guest mode: always start from demo data (in-memory only, no persistence)
 			if (!isAuthenticated || !authToken) {
+				hasLoadedFromCloudRef.current = false;
 				setAppData(demoData);
 				lastSavedStateRef.current = JSON.parse(
 					JSON.stringify(demoData)
@@ -158,6 +160,7 @@ export function AppDataProvider({ children }) {
 				lastSavedStateRef.current = JSON.parse(
 					JSON.stringify(finalData)
 				);
+				hasLoadedFromCloudRef.current = true;
 				setIsOnline(true);
 			} catch (error) {
 				console.error('Failed to load from API:', error);
@@ -305,7 +308,7 @@ export function AppDataProvider({ children }) {
 		}
 
 		// No changes detected
-		return null;
+		return false;
 	};
 
 	// Auto-save data - to cloud if authenticated, no-op if guest
@@ -331,6 +334,16 @@ export function AppDataProvider({ children }) {
 				return;
 			}
 
+			// Don't save until we've successfully loaded cloud data at least once.
+			// Guards against the race where auth resolves after the guest branch
+			// runs but before the authenticated load completes, which would cause
+			// the initial demoData state to be written to the cloud.
+			if (!hasLoadedFromCloudRef.current) {
+				setIsSaving(false);
+				saveTimeoutRef.current = null;
+				return;
+			}
+
 			// Authenticated mode: save to cloud
 			const currentAuthToken = authToken;
 			try {
@@ -340,11 +353,16 @@ export function AppDataProvider({ children }) {
 					lastSavedStateRef.current
 				);
 
-				if (patchData) {
+				if (patchData === false) {
+					// No changes — nothing to save
+					setIsSaving(false);
+					saveTimeoutRef.current = null;
+					return;
+				} else if (patchData) {
 					// Use PATCH for incremental update
 					await patchToAPI(patchData, currentAuthToken, refreshToken);
 				} else {
-					// Fall back to POST for full save
+					// null = fall back to POST for full save
 					await saveToAPI(dataToSave, currentAuthToken, refreshToken);
 				}
 
