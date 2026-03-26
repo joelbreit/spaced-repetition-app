@@ -21,7 +21,7 @@ npm run build   # Production build
 ```
 User (Browser)
     │
-    ├── Guest Mode → localStorage only
+    ├── Guest Mode → in-memory only (React state, resets on reload)
     │
     └── Authenticated Mode
             │
@@ -31,9 +31,9 @@ User (Browser)
 
 ### Key Data Flow
 
-1. **Loading**: `AppDataContext` loads data from API (authenticated) or localStorage (guest)
+1. **Loading**: `AppDataContext` loads data from API (authenticated) or uses in-memory demo data (guest)
 2. **Auto-save**: Changes debounced to 10 seconds, uses PATCH for incremental saves when possible
-3. **Offline fallback**: Falls back to localStorage if API is unavailable
+3. **API failure**: Shows error toast — no localStorage fallback. Data remains in React state for retry.
 
 ## Important Files & Directories
 
@@ -186,10 +186,12 @@ See `docs/AWS Architecture.md` for full details:
 
 ## Testing Considerations
 
-- Guest mode should work fully offline (localStorage only)
+- Guest mode is ephemeral — demo data resets on page reload (no localStorage)
+- Guests who edit data and sign up see an export checkbox to download their work
+- Authenticated users can import JSON from the Profile page to merge decks/folders
 - Auth token expires after 1 hour; refresh happens every 45 minutes
 - PATCH optimization only works for single deck/card changes; bulk operations use POST
-- Demo data loads for new guest users
+- New authenticated users start with empty state (no sample decks)
 
 ## Known Issues & TODOs
 

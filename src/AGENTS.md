@@ -36,12 +36,12 @@ The app wraps contexts in this order (outermost to innermost):
 
 - **Purpose**: Manages all flashcard data (folders, decks, cards)
 - **Key exports**: `useAppData()` hook
-- **State**: `appData`, `isLoading`, `isSaving`, `isOnline`
+- **State**: `appData`, `isLoading`, `isSaving`, `isOnline`, `hasGuestEdits`
 - **Features**:
     - Auto-saves with 10-second debounce
     - PATCH optimization for single card/deck changes
-    - Falls back to localStorage when offline
-    - Merges local data on signup
+    - Guest mode is in-memory only — no localStorage persistence
+    - `hasGuestEdits` flag tracks whether the guest has modified demo data
 
 ### `AuthContext.jsx`
 
@@ -262,5 +262,5 @@ In review mode (`CardReviewView.jsx`):
 ## Error Handling
 
 - API errors show toast notifications via `showError()`
-- Falls back to localStorage on network failure
+- No localStorage fallback — data stays in React state on network failure, retried on next save
 - Token expiry triggers automatic refresh, retries request once

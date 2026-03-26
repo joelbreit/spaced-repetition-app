@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Mail, Lock, X, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAppData } from '../contexts/AppDataContext';
 
 export default function AuthView({ onClose }) {
 	const { isAuthenticated, login, register, confirmRegistration } = useAuth();
+	const { appData, hasGuestEdits } = useAppData();
 	const [isLogin, setIsLogin] = useState(true);
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -11,6 +13,7 @@ export default function AuthView({ onClose }) {
 	const [needsConfirmation, setNeedsConfirmation] = useState(false);
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
+	const [exportOnSignup, setExportOnSignup] = useState(true);
 
 	// Close modal if user becomes authenticated
 	useEffect(() => {
@@ -18,6 +21,27 @@ export default function AuthView({ onClose }) {
 			onClose();
 		}
 	}, [isAuthenticated, onClose]);
+
+	const triggerExport = () => {
+		const dataToExport = {
+			...appData,
+			decks: appData.decks.filter(
+				(d) => d.deckId !== 'demo-getting-started'
+			),
+		};
+		const dataStr = JSON.stringify(dataToExport, null, 2);
+		const dataBlob = new Blob([dataStr], { type: 'application/json' });
+		const url = URL.createObjectURL(dataBlob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `flashcards-export-${
+			new Date().toISOString().split('T')[0]
+		}.json`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+	};
 
 	async function handleSubmit(e) {
 		e.preventDefault();
@@ -36,13 +60,8 @@ export default function AuthView({ onClose }) {
 					setIsLogin(true);
 					setError('');
 
-					// After confirmation, auto-login and upload local data
-					const loginResult = await login(email, password);
-					if (loginResult.success) {
-						// Mark that we need to upload local data after signup
-						localStorage.setItem('pendingSignupUpload', 'true');
-						// The upload will happen in AppDataContext when authToken becomes available
-					}
+					// After confirmation, auto-login
+					await login(email, password);
 				} else {
 					setError(result.error || 'Confirmation failed');
 				}
@@ -53,7 +72,10 @@ export default function AuthView({ onClose }) {
 					setError(result.error || 'Login failed');
 				}
 			} else {
-				// Register
+				// Register — export data first if requested
+				if (hasGuestEdits && exportOnSignup) {
+					triggerExport();
+				}
 				const result = await register(email, password);
 				if (result.success) {
 					if (result.nextStep?.signUpStep === 'CONFIRM_SIGN_UP') {
@@ -210,6 +232,32 @@ export default function AuthView({ onClose }) {
 									)}
 								</div>
 
+								{/* Export checkbox — only shown on signup when guest has edits */}
+								{!isLogin && hasGuestEdits && (
+									<label className="flex items-start gap-3 cursor-pointer">
+										<input
+											type="checkbox"
+											checked={exportOnSignup}
+											onChange={(e) =>
+												setExportOnSignup(
+													e.target.checked
+												)
+											}
+											className="mt-0.5 h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500"
+										/>
+										<div>
+											<span className="text-sm font-medium text-gray-700 dark:text-slate-300">
+												Download my flashcards before
+												signing up
+											</span>
+											<p className="text-xs text-gray-500 dark:text-slate-500 mt-0.5">
+												You can import this data after
+												logging in.
+											</p>
+										</div>
+									</label>
+								)}
+
 								{error && (
 									<div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm">
 										<AlertCircle className="h-4 w-4" />
@@ -243,18 +291,6 @@ export default function AuthView({ onClose }) {
 										: 'Already have an account? Sign in'}
 								</button>
 							</div>
-
-							{/* Test Credentials (remove in production) */}
-							{/* <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-								<p className="text-xs text-blue-700 dark:text-blue-400 font-semibold mb-1">
-									Test Credentials:
-								</p>
-								<p className="text-xs text-blue-600 dark:text-blue-300">
-									Email: test@example.com
-									<br />
-									Password: Test1234
-								</p>
-							</div> */}
 						</>
 					)}
 				</div>

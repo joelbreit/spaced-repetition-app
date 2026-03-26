@@ -95,11 +95,6 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 			if (cloudData) {
 				// Update appData with the loaded data
 				setAppData(cloudData);
-				// Also update localStorage
-				localStorage.setItem(
-					'spacedRepData',
-					JSON.stringify(cloudData)
-				);
 				showSuccess('Data synced from cloud successfully');
 			}
 		} catch (error) {

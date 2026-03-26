@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../hooks/useNotification';
@@ -10,8 +10,8 @@ import ActivityHeatmap from '../components/Profile/ActivityHeatmap';
 import ProgressChart from '../components/Profile/ProgressChart';
 import AdditionalStats from '../components/Profile/AdditionalStats';
 import {
-	ArrowLeft,
 	Download,
+	Upload,
 	LogOut,
 	User as UserIcon,
 	Lock,
@@ -23,7 +23,8 @@ function ProfilePage() {
 	const navigate = useNavigate();
 	const { user, logout, changePassword } = useAuth();
 	const { showSuccess, showError } = useNotification();
-	const { appData, isSaving, isOnline } = useAppData();
+	const { appData, setAppData, isSaving, isOnline } = useAppData();
+	const fileInputRef = useRef(null);
 
 	// Password change form state
 	const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -62,6 +63,58 @@ function ProfilePage() {
 			console.error('Failed to export data:', error);
 			showError('Failed to export data');
 		}
+	};
+
+	// Handle import data
+	const handleImportData = () => {
+		fileInputRef.current?.click();
+	};
+
+	const handleFileChange = (e) => {
+		const file = e.target.files[0];
+		if (!file) return;
+
+		const reader = new FileReader();
+		reader.onload = (event) => {
+			try {
+				const imported = JSON.parse(event.target.result);
+				if (!imported.decks || !Array.isArray(imported.decks)) {
+					showError('Invalid file format');
+					return;
+				}
+
+				const importedDecks = imported.decks || [];
+				const importedFolders = imported.folders || [];
+
+				const existingDeckIds = new Set(
+					appData.decks.map((d) => d.deckId)
+				);
+				const existingFolderIds = new Set(
+					(appData.folders || []).map((f) => f.folderId)
+				);
+				const newDecks = importedDecks.filter(
+					(d) => !existingDeckIds.has(d.deckId)
+				);
+				const newFolders = importedFolders.filter(
+					(f) => !existingFolderIds.has(f.folderId)
+				);
+
+				setAppData((prev) => ({
+					...prev,
+					decks: [...prev.decks, ...newDecks],
+					folders: [...(prev.folders || []), ...newFolders],
+				}));
+
+				showSuccess(
+					`Imported ${newDecks.length} decks and ${newFolders.length} folders.`
+				);
+			} catch (err) {
+				console.error('Failed to parse import file:', err);
+				showError('Failed to import data. Invalid JSON file.');
+			}
+		};
+		reader.readAsText(file);
+		e.target.value = '';
 	};
 
 	// Handle password change
@@ -318,6 +371,29 @@ function ProfilePage() {
 										</div>
 									</div>
 								</button>
+
+								{/* Import Button */}
+								<button
+									onClick={handleImportData}
+									className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 font-medium rounded-xl transition-colors duration-200"
+								>
+									<Upload className="h-5 w-5" />
+									<div className="flex-1 text-left">
+										<div className="font-medium">
+											Import Data
+										</div>
+										<div className="text-sm text-gray-600 dark:text-slate-400">
+											Import flashcards from a JSON file
+										</div>
+									</div>
+								</button>
+								<input
+									ref={fileInputRef}
+									type="file"
+									accept=".json"
+									onChange={handleFileChange}
+									className="hidden"
+								/>
 
 								{/* Logout Button */}
 								<button

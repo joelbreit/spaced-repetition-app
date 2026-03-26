@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import {
+	createContext,
+	useContext,
+	useState,
+	useEffect,
+	useRef,
+	useCallback,
+} from 'react';
 import { useAuth } from './AuthContext';
 import { useNotification } from '../hooks/useNotification';
 import {
@@ -66,60 +73,32 @@ const demoData = {
 	],
 };
 
-// Initial sample data (used only if API has no data for authenticated users)
-const initialData = {
-	folders: [],
-	decks: [
-		{
-			deckId: '1',
-			deckName: 'Spanish Vocabulary',
-			cards: [
-				{
-					cardId: '1',
-					front: 'Hello',
-					back: 'Hola',
-					reviews: [],
-					whenDue: Date.now(),
-				},
-				{
-					cardId: '2',
-					front: 'Goodbye',
-					back: 'Adiós',
-					reviews: [],
-					whenDue: Date.now(),
-				},
-			],
-		},
-		{
-			deckId: '2',
-			deckName: 'Math Facts',
-			cards: [
-				{
-					cardId: '3',
-					front: '2 + 2',
-					back: '4',
-					reviews: [],
-					whenDue: Date.now(),
-				},
-			],
-		},
-	],
-};
-
 export function AppDataProvider({ children }) {
 	const { authToken, isAuthenticated, refreshToken } = useAuth();
-	const { showSuccess, showError } = useNotification();
+	const { showError } = useNotification();
 
 	const [appData, setAppData] = useState(demoData);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isOnline, setIsOnline] = useState(true);
+	const [hasGuestEdits, setHasGuestEdits] = useState(false);
 
 	const saveTimeoutRef = useRef(null);
 	const lastSaveTime = useRef(null);
 	const appDataRef = useRef(appData);
 	const lastSavedStateRef = useRef(null);
 	const healthCheckInProgress = useRef(false);
+
+	// Wrapped setter that tracks guest edits
+	const setAppDataTracked = useCallback(
+		(updater) => {
+			if (!isAuthenticated) {
+				setHasGuestEdits(true);
+			}
+			setAppData(updater);
+		},
+		[isAuthenticated]
+	);
 
 	// Check API health on mount (only for authenticated users)
 	useEffect(() => {
@@ -144,36 +123,19 @@ export function AppDataProvider({ children }) {
 		checkHealth();
 	}, [isAuthenticated]);
 
-	// Load data - from API if authenticated, from localStorage if guest
+	// Load data - from API if authenticated, in-memory demo data if guest
 	useEffect(() => {
 		async function loadData() {
 			setIsLoading(true);
 
-			// Guest mode: load from localStorage only
+			// Guest mode: always start from demo data (in-memory only, no persistence)
 			if (!isAuthenticated || !authToken) {
-				try {
-					const localData = localStorage.getItem('spacedRepData');
-					let finalData;
-					if (localData) {
-						finalData = JSON.parse(localData);
-						setAppData(finalData);
-					} else {
-						finalData = demoData;
-						setAppData(demoData);
-					}
-					lastSavedStateRef.current = JSON.parse(
-						JSON.stringify(finalData)
-					);
-					setIsOnline(false); // Guests are always "local"
-				} catch (error) {
-					console.error('Failed to load local data:', error);
-					setAppData(demoData);
-					lastSavedStateRef.current = JSON.parse(
-						JSON.stringify(demoData)
-					);
-				} finally {
-					setIsLoading(false);
-				}
+				setAppData(demoData);
+				lastSavedStateRef.current = JSON.parse(
+					JSON.stringify(demoData)
+				);
+				setIsOnline(false);
+				setIsLoading(false);
 				return;
 			}
 
@@ -182,134 +144,36 @@ export function AppDataProvider({ children }) {
 				const cloudData = await loadFromAPI(authToken, refreshToken);
 
 				let finalData;
-				const pendingUpload = localStorage.getItem(
-					'pendingSignupUpload'
-				);
-
 				if (
 					!cloudData ||
 					!cloudData.decks ||
 					cloudData.decks.length === 0
 				) {
-					const localData = localStorage.getItem('spacedRepData');
-					if (localData) {
-						const parsed = JSON.parse(localData);
-						setAppData(parsed);
-						await saveToAPI(parsed, authToken, refreshToken);
-						lastSaveTime.current = Date.now();
-						if (pendingUpload) {
-							showSuccess(
-								'Your local data has been saved to the cloud!'
-							);
-							localStorage.removeItem('pendingSignupUpload');
-						} else {
-							showSuccess('Local data synced to cloud');
-						}
-						finalData = parsed;
-					} else {
-						setAppData(initialData);
-						finalData = initialData;
-					}
+					finalData = { folders: [], decks: [] };
 				} else {
-					// Cloud has data - check if we should merge with local (only on signup)
-					if (pendingUpload) {
-						const localData = localStorage.getItem('spacedRepData');
-						if (localData) {
-							const parsed = JSON.parse(localData);
-							// Merge local data with cloud data (local takes precedence for conflicts)
-							const mergedDecks = [...cloudData.decks];
-							const mergedFolders = [
-								...(cloudData.folders || []),
-							];
-
-							// Add local decks that don't exist in cloud
-							parsed.decks?.forEach((localDeck) => {
-								if (
-									!mergedDecks.find(
-										(d) => d.deckId === localDeck.deckId
-									)
-								) {
-									mergedDecks.push(localDeck);
-								}
-							});
-
-							// Add local folders that don't exist in cloud
-							parsed.folders?.forEach((localFolder) => {
-								if (
-									!mergedFolders.find(
-										(f) =>
-											f.folderId === localFolder.folderId
-									)
-								) {
-									mergedFolders.push(localFolder);
-								}
-							});
-
-							const mergedData = {
-								decks: mergedDecks,
-								folders: mergedFolders,
-							};
-
-							setAppData(mergedData);
-							await saveToAPI(
-								mergedData,
-								authToken,
-								refreshToken
-							);
-							lastSaveTime.current = Date.now();
-							showSuccess(
-								'Your local data has been saved to the cloud!'
-							);
-							localStorage.removeItem('pendingSignupUpload');
-							finalData = mergedData;
-						} else {
-							setAppData(cloudData);
-							finalData = cloudData;
-							localStorage.removeItem('pendingSignupUpload');
-						}
-					} else {
-						// Login (not signup) - prioritize cloud data
-						setAppData(cloudData);
-						finalData = cloudData;
-					}
-
-					localStorage.setItem(
-						'spacedRepData',
-						JSON.stringify(finalData)
-					);
+					finalData = cloudData;
 				}
 
-				// Initialize last saved state after loading
+				setAppData(finalData);
 				lastSavedStateRef.current = JSON.parse(
 					JSON.stringify(finalData)
 				);
 				setIsOnline(true);
 			} catch (error) {
 				console.error('Failed to load from API:', error);
-				showError(
-					'Failed to load data from cloud. Using local backup.'
-				);
+				showError('Failed to load data from cloud.');
 				setIsOnline(false);
-
-				const localData = localStorage.getItem('spacedRepData');
-				let fallbackData;
-				if (localData) {
-					fallbackData = JSON.parse(localData);
-					setAppData(fallbackData);
-				} else {
-					fallbackData = initialData;
-					setAppData(initialData);
-				}
-				// Initialize last saved state with fallback data
+				const emptyData = { folders: [], decks: [] };
+				setAppData(emptyData);
 				lastSavedStateRef.current = JSON.parse(
-					JSON.stringify(fallbackData)
+					JSON.stringify(emptyData)
 				);
 			} finally {
 				setIsLoading(false);
 			}
 		}
 		loadData();
-	}, [isAuthenticated, authToken, refreshToken, showError, showSuccess]);
+	}, [isAuthenticated, authToken, refreshToken, showError]);
 
 	// Keep appDataRef in sync with appData
 	useEffect(() => {
@@ -444,7 +308,7 @@ export function AppDataProvider({ children }) {
 		return null;
 	};
 
-	// Auto-save data - to cloud if authenticated, to localStorage if guest
+	// Auto-save data - to cloud if authenticated, no-op if guest
 	useEffect(() => {
 		if (isLoading) return;
 
@@ -456,24 +320,14 @@ export function AppDataProvider({ children }) {
 			setIsSaving(true);
 			const dataToSave = appDataRef.current;
 
-			// Guest mode: save to localStorage only
+			// Guest mode: data lives in React state only — nothing to persist
 			if (!isAuthenticated || !authToken) {
-				try {
-					localStorage.setItem(
-						'spacedRepData',
-						JSON.stringify(dataToSave)
-					);
-					lastSavedStateRef.current = JSON.parse(
-						JSON.stringify(dataToSave)
-					);
-					lastSaveTime.current = Date.now();
-				} catch (error) {
-					console.error('Failed to save to localStorage:', error);
-					showError('Failed to save data locally.');
-				} finally {
-					setIsSaving(false);
-					saveTimeoutRef.current = null;
-				}
+				lastSavedStateRef.current = JSON.parse(
+					JSON.stringify(dataToSave)
+				);
+				lastSaveTime.current = Date.now();
+				setIsSaving(false);
+				saveTimeoutRef.current = null;
 				return;
 			}
 
@@ -494,12 +348,6 @@ export function AppDataProvider({ children }) {
 					await saveToAPI(dataToSave, currentAuthToken, refreshToken);
 				}
 
-				// Update local storage
-				localStorage.setItem(
-					'spacedRepData',
-					JSON.stringify(dataToSave)
-				);
-
 				// Update last saved state
 				lastSavedStateRef.current = JSON.parse(
 					JSON.stringify(dataToSave)
@@ -508,12 +356,8 @@ export function AppDataProvider({ children }) {
 				lastSaveTime.current = Date.now();
 			} catch (error) {
 				console.error('Failed to save to API:', error);
-				showError('Failed to save to cloud. Data saved locally.');
+				showError('Failed to save to cloud.');
 				setIsOnline(false);
-				localStorage.setItem(
-					'spacedRepData',
-					JSON.stringify(dataToSave)
-				);
 				lastSaveTime.current = Date.now();
 			} finally {
 				setIsSaving(false);
@@ -545,31 +389,13 @@ export function AppDataProvider({ children }) {
 		showError,
 	]);
 
-	// Function to upload local data to cloud (used after signup)
-	const uploadLocalDataToCloud = async (token) => {
-		try {
-			const localData = localStorage.getItem('spacedRepData');
-			if (localData) {
-				const parsed = JSON.parse(localData);
-				await saveToAPI(parsed, token, refreshToken);
-				showSuccess('Your local data has been saved to the cloud!');
-				return true;
-			}
-			return false;
-		} catch (error) {
-			console.error('Failed to upload local data to cloud:', error);
-			showError('Failed to upload local data to cloud.');
-			return false;
-		}
-	};
-
 	const value = {
 		appData,
-		setAppData,
+		setAppData: setAppDataTracked,
 		isLoading,
 		isSaving,
 		isOnline,
-		uploadLocalDataToCloud,
+		hasGuestEdits,
 	};
 
 	// if there are decks, but no folders in appData, log an issue
