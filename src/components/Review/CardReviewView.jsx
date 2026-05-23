@@ -264,7 +264,7 @@ export default function CardReviewView({
 					handleReadAloud();
 				}
 			}
-		}, 650);
+		}, 250);
 		return () => clearTimeout(timeoutId);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
@@ -612,7 +612,7 @@ export default function CardReviewView({
 							? 'rotateY(180deg)'
 							: 'rotateY(0deg)',
 						transition:
-							'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)',
+							'transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
 						display: 'grid',
 					}}
 				>

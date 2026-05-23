@@ -274,7 +274,7 @@ function OverviewPage() {
 			} else {
 				setCurrentView('summary');
 			}
-		}, 300);
+		}, 200);
 	};
 
 	const handleEditCard = (deckId, cardId) => {
