@@ -46,7 +46,8 @@ export default function ReadAloudSettingsModal({
 	const [selectedAutoRead, setSelectedAutoRead] = useState(currentAutoRead);
 	const [selectedPlaybackSpeed, setSelectedPlaybackSpeed] =
 		useState(currentPlaybackSpeed);
-	const [selectedPrefetchAudio, setSelectedPrefetchAudio] = useState(currentPrefetchAudio);
+	const [selectedPrefetchAudio, setSelectedPrefetchAudio] =
+		useState(currentPrefetchAudio);
 
 	// Update local state when props change
 	useEffect(() => {
@@ -55,7 +56,23 @@ export default function ReadAloudSettingsModal({
 		setSelectedAutoRead(currentAutoRead);
 		setSelectedPlaybackSpeed(currentPlaybackSpeed);
 		setSelectedPrefetchAudio(currentPrefetchAudio);
-	}, [currentVoiceId, currentEngine, currentAutoRead, currentPlaybackSpeed, currentPrefetchAudio]);
+	}, [
+		currentVoiceId,
+		currentEngine,
+		currentAutoRead,
+		currentPlaybackSpeed,
+		currentPrefetchAudio,
+	]);
+
+	// Pre-load audio is only meaningful when auto-read is enabled
+	const prefetchDisabled = selectedAutoRead === 'off';
+
+	// Keep pre-load coupled to auto-read: force it off when auto-read is off
+	useEffect(() => {
+		if (selectedAutoRead === 'off' && selectedPrefetchAudio) {
+			setSelectedPrefetchAudio(false);
+		}
+	}, [selectedAutoRead, selectedPrefetchAudio]);
 
 	// Get available engines for selected voice
 	const availableEngines = VOICE_ENGINES[selectedVoiceId] || ['neural'];
@@ -111,9 +128,9 @@ export default function ReadAloudSettingsModal({
 			className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
 			onClick={handleBackdropClick}
 		>
-			<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 w-full max-w-md overflow-hidden flex flex-col">
+			<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
 				{/* Header */}
-				<div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700">
+				<div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 shrink-0">
 					<div className="flex items-center gap-3">
 						<Volume2 className="h-6 w-6 text-teal-500" />
 						<h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
@@ -130,7 +147,7 @@ export default function ReadAloudSettingsModal({
 				</div>
 
 				{/* Content */}
-				<div className="p-6 space-y-6">
+				<div className="flex-1 overflow-y-auto p-6 space-y-6">
 					{/* Voice Selection */}
 					<div>
 						<label className="mb-3 block text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
@@ -178,30 +195,6 @@ export default function ReadAloudSettingsModal({
 						</p>
 					</div>
 
-					{/* Auto-read when side is shown */}
-					<div>
-						<label className="mb-3 block text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
-							Auto-read when side is shown
-						</label>
-						<select
-							value={selectedAutoRead}
-							onChange={(e) =>
-								setSelectedAutoRead(e.target.value)
-							}
-							className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-						>
-							{AUTO_READ_OPTIONS.map((opt) => (
-								<option key={opt.value} value={opt.value}>
-									{opt.label}
-								</option>
-							))}
-						</select>
-						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
-							Automatically read the selected side when it is
-							displayed
-						</p>
-					</div>
-
 					{/* Playback Speed */}
 					<div>
 						<label className="mb-3 block text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
@@ -233,34 +226,71 @@ export default function ReadAloudSettingsModal({
 						</p>
 					</div>
 
-					{/* Pre-load Audio */}
+					{/* Auto-read when side is shown */}
 					<div>
+						<label className="mb-3 block text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
+							Auto-read when side is shown
+						</label>
+						<select
+							value={selectedAutoRead}
+							onChange={(e) =>
+								setSelectedAutoRead(e.target.value)
+							}
+							className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+						>
+							{AUTO_READ_OPTIONS.map((opt) => (
+								<option key={opt.value} value={opt.value}>
+									{opt.label}
+								</option>
+							))}
+						</select>
+						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+							Automatically read the selected side when it is
+							displayed
+						</p>
+					</div>
+
+					{/* Pre-load Audio */}
+					<div className={prefetchDisabled ? 'opacity-50' : ''}>
 						<label className="mb-3 block text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
 							Pre-load Audio
 						</label>
 						<div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
-							<span className="text-sm text-gray-700 dark:text-slate-300">Pre-load next 2 cards</span>
+							<span className="text-sm text-gray-700 dark:text-slate-300">
+								Pre-load next 2 cards
+							</span>
 							<button
-								onClick={() => setSelectedPrefetchAudio(!selectedPrefetchAudio)}
-								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-									selectedPrefetchAudio ? 'bg-teal-500' : 'bg-gray-200 dark:bg-slate-600'
+								onClick={() =>
+									setSelectedPrefetchAudio(
+										!selectedPrefetchAudio
+									)
+								}
+								disabled={prefetchDisabled}
+								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:cursor-not-allowed ${
+									selectedPrefetchAudio
+										? 'bg-teal-500'
+										: 'bg-gray-200 dark:bg-slate-600'
 								}`}
 							>
 								<span
 									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-										selectedPrefetchAudio ? 'translate-x-6' : 'translate-x-1'
+										selectedPrefetchAudio
+											? 'translate-x-6'
+											: 'translate-x-1'
 									}`}
 								/>
 							</button>
 						</div>
 						<p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
-							Pre-loads audio for the next 2 cards to reduce playback delays
+							{prefetchDisabled
+								? 'Enable auto-read to pre-load audio for upcoming cards'
+								: 'Pre-loads audio for the next 2 cards to reduce playback delays'}
 						</p>
 					</div>
 				</div>
 
 				{/* Footer */}
-				<div className="p-6 border-t border-gray-200 dark:border-slate-700">
+				<div className="p-6 border-t border-gray-200 dark:border-slate-700 shrink-0">
 					<div className="flex gap-4">
 						<button
 							onClick={handleCancel}
