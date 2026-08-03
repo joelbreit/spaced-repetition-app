@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Bootstrap import of pre-existing flashcards stateful resources
+
+# ============================================================================
+# STEP 1 OF 2 - see README.md in this directory.
+#
+# This template exists only to create the `flashcards` stack by IMPORTING the
+# three resources that predate CloudFormation. It is deliberately NOT a SAM
+# template: import change sets do not support transforms/macros, and an import
+# change set cannot create resources at the same time as it imports them.
+#
+# The three resource blocks below MUST stay byte-identical in meaning to their
+# counterparts in ../template.yaml. If they drift, the first `sam deploy` after
+# the import will "correct" the live resources toward whatever this says.
+#
+# UserPoolId on UserPoolClient is a literal here, and ../template.yaml matches
+# it deliberately. An earlier draft used !Ref UserPool in the SAM template; even
+# though it resolves to the same string, CloudFormation compares the expression
+# and planned to REPLACE the client (UserPoolId is create-only), which would
+# have issued a new ClientId. Keep both templates on the literal.
+# ============================================================================
+
+Resources:
+    FlashcardsDataBucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
+        Properties:
+            BucketName: spaced-rep-flashcards-data
+            VersioningConfiguration:
+                Status: Enabled
+            BucketEncryption:
+                ServerSideEncryptionConfiguration:
+                    - ServerSideEncryptionByDefault:
+                          SSEAlgorithm: AES256
+                      BucketKeyEnabled: false
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                BlockPublicPolicy: true
+                IgnorePublicAcls: true
+                RestrictPublicBuckets: true
+            OwnershipControls:
+                Rules:
+                    - ObjectOwnership: BucketOwnerEnforced
+            CorsConfiguration:
+                CorsRules:
+                    - AllowedHeaders:
+                          - '*'
+                      AllowedMethods:
+                          - GET
+                          - PUT
+                          - POST
+                      AllowedOrigins:
+                          - http://localhost:5173
+                          - https://*.netlify.app
+                          - https://*.vercel.app
+                      ExposedHeaders:
+                          - ETag
+                      MaxAge: 3000
+
+    UserPool:
+        Type: AWS::Cognito::UserPool
+        DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
+        Properties:
+            UserPoolName: flashcards-users
+            UsernameAttributes:
+                - email
+            AutoVerifiedAttributes:
+                - email
+            MfaConfiguration: 'OFF'
+            DeletionProtection: INACTIVE
+            Policies:
+                PasswordPolicy:
+                    MinimumLength: 8
+                    RequireUppercase: false
+                    RequireLowercase: true
+                    RequireNumbers: true
+                    RequireSymbols: false
+                    TemporaryPasswordValidityDays: 7
+            EmailConfiguration:
+                EmailSendingAccount: COGNITO_DEFAULT
+            Schema:
+                - Name: email
+                  AttributeDataType: String
+                  Required: true
+                  Mutable: false
+            AdminCreateUserConfig:
+                AllowAdminCreateUserOnly: false
+            VerificationMessageTemplate:
+                DefaultEmailOption: CONFIRM_WITH_CODE
+            AccountRecoverySetting:
+                RecoveryMechanisms:
+                    - Name: verified_email
+                      Priority: 1
+                    - Name: verified_phone_number
+                      Priority: 2
+
+    UserPoolClient:
+        Type: AWS::Cognito::UserPoolClient
+        DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
+        Properties:
+            ClientName: flashcards-web-client
+            UserPoolId: us-east-1_RtLlfMBtw
+            GenerateSecret: false
+            ExplicitAuthFlows:
+                - ALLOW_USER_PASSWORD_AUTH
+                - ALLOW_USER_SRP_AUTH
+                - ALLOW_REFRESH_TOKEN_AUTH
+            ReadAttributes:
+                - email
+            WriteAttributes:
+                - email
+            RefreshTokenValidity: 30
+            EnableTokenRevocation: true
+            AuthSessionValidity: 3
+            AllowedOAuthFlowsUserPoolClient: false

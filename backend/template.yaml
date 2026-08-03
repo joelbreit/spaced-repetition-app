@@ -1,0 +1,269 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Spaced repetition flashcards API
+
+# NOTE: This stack was migrated from imperative shell scripts (scripts/*.sh) in
+# 2026-08. The S3 bucket, Cognito user pool, and user pool client predate the
+# stack and were brought under management with a CloudFormation IMPORT (see
+# import/README.md). They carry Retain policies because their physical IDs are
+# load-bearing: S3 object keys are users/{cognito sub}/data.json, so replacing
+# the user pool would orphan every user's data.
+
+Globals:
+    Function:
+        Runtime: nodejs20.x
+        Timeout: 30
+        MemorySize: 256
+        Architectures:
+            - x86_64
+        Tags:
+            Project: flashcards
+
+Resources:
+    # ==========================================================================
+    # Imported stateful resources - DO NOT let these be replaced.
+    # Properties here mirror the live resources exactly; changing them changes
+    # production. Verify with `aws cloudformation detect-stack-drift` after edits.
+    # ==========================================================================
+
+    FlashcardsDataBucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
+        Properties:
+            BucketName: spaced-rep-flashcards-data
+            VersioningConfiguration:
+                Status: Enabled
+            BucketEncryption:
+                ServerSideEncryptionConfiguration:
+                    - ServerSideEncryptionByDefault:
+                          SSEAlgorithm: AES256
+                      BucketKeyEnabled: false
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                BlockPublicPolicy: true
+                IgnorePublicAcls: true
+                RestrictPublicBuckets: true
+            OwnershipControls:
+                Rules:
+                    - ObjectOwnership: BucketOwnerEnforced
+            # Legacy: dates from the abandoned browser-writes-to-S3-directly design.
+            # Nothing uses it now (the Lambda calls S3 server-side, where CORS does
+            # not apply). Kept here so the migration is behaviour-preserving; slated
+            # for removal, along with a NoncurrentVersionExpiration lifecycle rule.
+            CorsConfiguration:
+                CorsRules:
+                    - AllowedHeaders:
+                          - '*'
+                      AllowedMethods:
+                          - GET
+                          - PUT
+                          - POST
+                      AllowedOrigins:
+                          - http://localhost:5173
+                          - https://*.netlify.app
+                          - https://*.vercel.app
+                      ExposedHeaders:
+                          - ETag
+                      MaxAge: 3000
+
+    UserPool:
+        Type: AWS::Cognito::UserPool
+        DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
+        Properties:
+            UserPoolName: flashcards-users
+            UsernameAttributes:
+                - email
+            AutoVerifiedAttributes:
+                - email
+            MfaConfiguration: 'OFF'
+            DeletionProtection: INACTIVE
+            Policies:
+                PasswordPolicy:
+                    MinimumLength: 8
+                    RequireUppercase: false
+                    RequireLowercase: true
+                    RequireNumbers: true
+                    RequireSymbols: false
+                    TemporaryPasswordValidityDays: 7
+            EmailConfiguration:
+                EmailSendingAccount: COGNITO_DEFAULT
+            Schema:
+                - Name: email
+                  AttributeDataType: String
+                  Required: true
+                  Mutable: false
+            AdminCreateUserConfig:
+                AllowAdminCreateUserOnly: false
+            VerificationMessageTemplate:
+                DefaultEmailOption: CONFIRM_WITH_CODE
+            AccountRecoverySetting:
+                RecoveryMechanisms:
+                    - Name: verified_email
+                      Priority: 1
+                    - Name: verified_phone_number
+                      Priority: 2
+
+    UserPoolClient:
+        Type: AWS::Cognito::UserPoolClient
+        DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
+        DependsOn: UserPool
+        Properties:
+            ClientName: flashcards-web-client
+            # Deliberately a literal, NOT !Ref UserPool. UserPoolId is a create-only
+            # property, and the import recorded it as a literal. Switching the
+            # expression to !Ref reads as a change to that property, which makes
+            # CloudFormation replace the client - a new ClientId would break
+            # VITE_COGNITO_CLIENT_ID and orphan the existing client. DependsOn above
+            # preserves the ordering that !Ref would have implied.
+            UserPoolId: us-east-1_RtLlfMBtw
+            GenerateSecret: false
+            ExplicitAuthFlows:
+                - ALLOW_USER_PASSWORD_AUTH
+                - ALLOW_USER_SRP_AUTH
+                - ALLOW_REFRESH_TOKEN_AUTH
+            ReadAttributes:
+                - email
+            WriteAttributes:
+                - email
+            RefreshTokenValidity: 30
+            EnableTokenRevocation: true
+            AuthSessionValidity: 3
+            AllowedOAuthFlowsUserPoolClient: false
+
+    # ==========================================================================
+    # API
+    # ==========================================================================
+
+    # No DefaultAuthorizer: the data function verifies the Cognito JWT in code
+    # and /read-aloud is deliberately open, matching the pre-migration stack.
+    # Moving to a gateway JWT authorizer (as in the bookmarks stack) is a
+    # follow-up - it also needs the frontend to send Authorization on
+    # /read-aloud, which readAloudAPI() does not currently do.
+    HttpApi:
+        Type: AWS::Serverless::HttpApi
+        Properties:
+            StageName: prod
+            CorsConfiguration:
+                AllowOrigins:
+                    - '*'
+                AllowHeaders:
+                    - content-type
+                    - authorization
+                    - x-amz-date
+                    - x-api-key
+                    - x-amz-security-token
+                AllowMethods:
+                    - GET
+                    - POST
+                    - PATCH
+                    - PUT
+                    - DELETE
+                    - OPTIONS
+                MaxAge: 86400
+            Tags:
+                Project: flashcards
+
+    # ==========================================================================
+    # Functions
+    #
+    # FunctionName is intentionally omitted so CloudFormation auto-names these.
+    # The legacy flashcards-api / flashcards-read-aloud functions still exist
+    # outside the stack, and explicit names would collide during cutover. Once
+    # the legacy functions are deleted you can pin FunctionName if you prefer
+    # (it forces a replacement, which is harmless here).
+    # ==========================================================================
+
+    DataFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: src/functions/flashcards-api/
+            Handler: index.handler
+            Description: Reads and writes per-user flashcard data in S3
+            Environment:
+                Variables:
+                    S3_BUCKET: !Ref FlashcardsDataBucket
+                    USER_POOL_ID: !Ref UserPool
+                    CLIENT_ID: !Ref UserPoolClient
+            # Mirrors the legacy flashcards-s3-access policy rather than using
+            # SAM's S3CrudPolicy, which would grant a broader action set.
+            Policies:
+                - Statement:
+                      - Effect: Allow
+                        Action:
+                            - s3:GetObject
+                            - s3:PutObject
+                            - s3:DeleteObject
+                        Resource: !Sub '${FlashcardsDataBucket.Arn}/*'
+                      - Effect: Allow
+                        Action:
+                            - s3:ListBucket
+                        Resource: !GetAtt FlashcardsDataBucket.Arn
+            Events:
+                GetData:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref HttpApi
+                        Path: /data
+                        Method: GET
+                PostData:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref HttpApi
+                        Path: /data
+                        Method: POST
+                PatchData:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref HttpApi
+                        Path: /data
+                        Method: PATCH
+                # Redundant with the API-level CORS config above, but the pre-migration
+                # stack routed OPTIONS /data to the Lambda, so it is preserved.
+                OptionsData:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref HttpApi
+                        Path: /data
+                        Method: OPTIONS
+
+    ReadAloudFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: src/functions/flashcards-read-aloud/
+            Handler: index.handler
+            Description: Synthesizes card text to speech with Amazon Polly
+            Policies:
+                - Statement:
+                      - Effect: Allow
+                        Action:
+                            - polly:SynthesizeSpeech
+                        # Polly does not support resource-level permissions for this
+                        # action, so '*' is the only valid form.
+                        Resource: '*'
+            Events:
+                ReadAloud:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref HttpApi
+                        Path: /read-aloud
+                        Method: POST
+
+Outputs:
+    ApiUrl:
+        Description: API Gateway endpoint URL - set as VITE_API_ENDPOINT in Amplify
+        Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
+
+    UserPoolId:
+        Description: Cognito User Pool ID - VITE_COGNITO_USER_POOL_ID
+        Value: !Ref UserPool
+
+    UserPoolClientId:
+        Description: Cognito User Pool Client ID - VITE_COGNITO_CLIENT_ID
+        Value: !Ref UserPoolClient
+
+    DataBucketName:
+        Description: S3 bucket holding per-user flashcard data
+        Value: !Ref FlashcardsDataBucket

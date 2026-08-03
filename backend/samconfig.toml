@@ -1,0 +1,14 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "flashcards"
+resolve_s3 = true
+s3_prefix = "flashcards"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+tags = "Project=flashcards"
+image_repositories = []
+
+[default.global.parameters]
+region = "us-east-1"

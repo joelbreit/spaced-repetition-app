@@ -84,33 +84,36 @@ Text-to-speech API using AWS Polly.
 
 ## Deployment
 
-Use the deployment scripts from the project root:
+Both functions are deployed by SAM as part of the `flashcards` stack:
 
 ```bash
-# Deploy all Lambda functions
-./scripts/deploy-lambdas.sh
-
-# Deploy specific Lambda
-./scripts/deploy-lambda.sh flashcards-api
-./scripts/deploy-lambda.sh flashcards-read-aloud
+cd backend
+sam build     # installs each function's package.json deps and stages them
+sam deploy    # review the changeset before confirming
 ```
 
-The deployment scripts:
+`sam build` reads the `CodeUri` of each `AWS::Serverless::Function` in
+`backend/template.yaml`, so a new function needs a template entry, not a script
+edit. See [`../../README.md`](../../README.md) for the constraints around the
+imported Cognito and S3 resources.
 
-1. Install dependencies in the function directory
-2. Create a ZIP archive
-3. Upload to AWS Lambda
-4. Clean up local files
+The old `scripts/deploy-lambda*.sh` scripts are superseded and should not be
+run — they push code straight to the live functions, bypassing CloudFormation,
+which puts the stack out of sync with reality.
 
 ## Local Development
 
-Lambda functions are Node.js ES modules. To test locally:
+Lambda functions are Node.js ES modules. To invoke one locally you need Docker
+and an event payload:
 
 ```bash
-cd src/functions/flashcards-api
-npm install
-# Then use AWS SAM or invoke manually with test events
+cd backend
+sam build
+sam local invoke DataFunction --event <path-to-event.json>
 ```
+
+Note that `DataFunction` verifies a real Cognito JWT, so a local invoke needs a
+valid token in the event's `headers.authorization` to get past the 401.
 
 ## CORS Configuration
 
@@ -191,9 +194,9 @@ console.log('Estimated cost: $', dollars.toFixed(4));
 
 ## Modifying Functions
 
-1. Edit the source in `src/functions/{function-name}/index.mjs`
+1. Edit the source in `backend/src/functions/{function-name}/index.mjs`
 2. Test locally if possible
-3. Deploy using the scripts
+3. Deploy with `cd backend && sam build && sam deploy`
 4. Monitor CloudWatch logs for errors
 
 ### Adding a New Endpoint
@@ -215,8 +218,8 @@ Update CORS headers if new methods are added.
 
 ### Adding a New Lambda
 
-1. Create directory: `src/functions/new-function/`
+1. Create directory: `backend/src/functions/new-function/`
 2. Create `index.mjs` with handler export
 3. Create `package.json` with dependencies
-4. Add to deployment scripts
-5. Configure API Gateway route (via AWS console or scripts)
+4. Add an `AWS::Serverless::Function` resource to `backend/template.yaml`
+5. Add its route under that resource's `Events:` — no console clicking, no scripts

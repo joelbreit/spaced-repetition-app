@@ -1,0 +1,6 @@
+# SAM build output
+.aws-sam/
+
+# Function dependencies (installed by `sam build`)
+node_modules/
+package-lock.json

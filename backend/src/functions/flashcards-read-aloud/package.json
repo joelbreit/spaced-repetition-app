@@ -1,0 +1,9 @@
+{
+	"name": "flashcards-read-aloud",
+	"version": "1.0.0",
+	"description": "Synthesizes card text to speech with Amazon Polly",
+	"type": "module",
+	"dependencies": {
+		"@aws-sdk/client-polly": "^3.965.0"
+	}
+}

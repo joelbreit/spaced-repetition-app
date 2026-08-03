@@ -1,0 +1,24 @@
+[
+	{
+		"ResourceType": "AWS::S3::Bucket",
+		"LogicalResourceId": "FlashcardsDataBucket",
+		"ResourceIdentifier": {
+			"BucketName": "spaced-rep-flashcards-data"
+		}
+	},
+	{
+		"ResourceType": "AWS::Cognito::UserPool",
+		"LogicalResourceId": "UserPool",
+		"ResourceIdentifier": {
+			"UserPoolId": "us-east-1_RtLlfMBtw"
+		}
+	},
+	{
+		"ResourceType": "AWS::Cognito::UserPoolClient",
+		"LogicalResourceId": "UserPoolClient",
+		"ResourceIdentifier": {
+			"UserPoolId": "us-east-1_RtLlfMBtw",
+			"ClientId": "3enq795nvhpdcnqubr7dt8l44k"
+		}
+	}
+]

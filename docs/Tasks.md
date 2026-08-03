@@ -26,6 +26,15 @@
 - [ ] Markdown support
 - [ ] Weekly leagues - other users are my other weeks from the past
 - [ ] Select lucid icons instead of emojis for folders/decks
+- [ ] Show all keyboard shortcuts when holding down Alt (or Option) key
+- [ ] Ability to undo card review
+- [ ] Ability to share a deck
+- [ ] Ability to make a deck public/private
+- [ ] Ability to move cards to different decks
+    - [ ] Deck selection modal
+- [ ] Ability to bulk select cards for actions
+    - [ ] Should be able to search -> select -> modify search -> select more -> (all selections still apply)
+    - [ ] Bulk edit actions modal with bulk edit options (for now, just the option to move to another deck)
 
 ### Account Management
 
@@ -85,13 +94,16 @@
 
 ## Clean Up
 
-- [ ] SAM deployment
-    - [ ] Tag resources with app name
-- [ ] Remove old AWS resources
-- [ ] Remove old scripts
+- [x] SAM deployment — stack `flashcards`, template in `backend/`
+    - [x] Tag resources with app name (`Project=flashcards`)
+- [ ] Point Amplify `VITE_API_ENDPOINT` at the SAM API, then remove old AWS
+      resources (old HTTP API `u89sb9y87b`, `flashcards-api` +
+      `flashcards-read-aloud` Lambdas, `flashcards-lambda-role`,
+      `flashcards-read-aloud-role`, and their policies)
+- [ ] Remove old scripts (`scripts/*.sh`, `src/tools/*.sh`) once cutover is done
 - [ ] `apiStorage.js` -> `apiCalls.js` or something
 - [ ] Update AWS documentation
-- [ ] Move Lambda functions (currently in `src/functions`)
+- [x] Move Lambda functions (now in `backend/src/functions`)
 - [ ] API Documentation
 - [ ] Data rehydration on front-end
 - [ ] Object-orientation

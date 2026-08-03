@@ -13,10 +13,19 @@ npm run format:check # Check formatting without writing
 npm run preview      # Preview production build
 ```
 
+Backend (from `backend/`):
+
+```bash
+sam validate --lint  # Validate the SAM template
+sam build            # Build both Lambda functions
+sam deploy           # Deploy the `flashcards` stack
+```
+
 ## Tech Stack
 
 - **Frontend**: React 19 + Tailwind CSS v4 + Vite 6
 - **Backend**: AWS Lambda (Node.js 20.x) + API Gateway + S3 + Cognito
+- **Infrastructure**: AWS SAM (`backend/template.yaml`, stack name `flashcards`)
 - **State**: React Context (Theme → Auth → Notification → AppData)
 - **Icons**: lucide-react only
 - **Charts**: Recharts
@@ -32,8 +41,9 @@ Key files:
 - `src/contexts/AuthContext.jsx` - Cognito auth, token refresh every 45 min
 - `src/services/cardCalculations.js` - Spaced repetition algorithm
 - `src/services/apiStorage.js` - API client (GET/POST/PATCH)
-- `src/functions/flashcards-api/index.mjs` - Lambda CRUD endpoint
-- `src/functions/flashcards-read-aloud/index.mjs` - AWS Polly TTS endpoint
+- `backend/template.yaml` - SAM template (all backend infrastructure)
+- `backend/src/functions/flashcards-api/index.mjs` - Lambda CRUD endpoint
+- `backend/src/functions/flashcards-read-aloud/index.mjs` - AWS Polly TTS endpoint
 
 ## Code Patterns
 

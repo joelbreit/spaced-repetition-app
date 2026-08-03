@@ -6,6 +6,7 @@ A modern React flashcards application with spaced repetition scheduling, built w
 
 - **Frontend**: React 19, Tailwind CSS v4, Vite
 - **Backend**: AWS Lambda + API Gateway + S3 + Cognito
+- **Infrastructure**: AWS SAM (`backend/`, stack name `flashcards`)
 - **State**: React Context (AuthContext, AppDataContext, ThemeContext, NotificationContext)
 
 ## Quick Start
@@ -37,17 +38,18 @@ User (Browser)
 
 ## Important Files & Directories
 
-| Path                                            | Purpose                                                 |
-| ----------------------------------------------- | ------------------------------------------------------- |
-| `src/App.jsx`                                   | Root component, context providers, routing              |
-| `src/contexts/AppDataContext.jsx`               | Central data state, save/load logic, PATCH optimization |
-| `src/contexts/AuthContext.jsx`                  | Cognito auth, token refresh, user state                 |
-| `src/services/apiStorage.js`                    | API client (GET/POST/PATCH/read-aloud)                  |
-| `src/services/cardCalculations.js`              | Spaced repetition algorithm                             |
-| `src/functions/flashcards-api/index.mjs`        | Lambda: CRUD for flashcard data                         |
-| `src/functions/flashcards-read-aloud/index.mjs` | Lambda: AWS Polly text-to-speech                        |
-| `docs/Data.md`                                  | Data schema documentation                               |
-| `docs/Design.md`                                | UI/UX design system (colors, components, animations)    |
+| Path                                                    | Purpose                                                 |
+| ------------------------------------------------------- | ------------------------------------------------------- |
+| `src/App.jsx`                                           | Root component, context providers, routing              |
+| `src/contexts/AppDataContext.jsx`                       | Central data state, save/load logic, PATCH optimization |
+| `src/contexts/AuthContext.jsx`                          | Cognito auth, token refresh, user state                 |
+| `src/services/apiStorage.js`                            | API client (GET/POST/PATCH/read-aloud)                  |
+| `src/services/cardCalculations.js`                      | Spaced repetition algorithm                             |
+| `backend/template.yaml`                                 | SAM template: all backend infrastructure                |
+| `backend/src/functions/flashcards-api/index.mjs`        | Lambda: CRUD for flashcard data                         |
+| `backend/src/functions/flashcards-read-aloud/index.mjs` | Lambda: AWS Polly text-to-speech                        |
+| `docs/Data.md`                                          | Data schema documentation                               |
+| `docs/Design.md`                                        | UI/UX design system (colors, components, animations)    |
 
 ## Data Structure
 
@@ -149,19 +151,30 @@ Required in `.env.local`:
 
 ```
 VITE_API_ENDPOINT=https://xxx.execute-api.us-east-1.amazonaws.com/prod
-VITE_USER_POOL_ID=us-east-1_xxx
-VITE_USER_POOL_CLIENT_ID=xxx
-VITE_AWS_REGION=us-east-1
+VITE_COGNITO_USER_POOL_ID=us-east-1_xxx
+VITE_COGNITO_CLIENT_ID=xxx
+VITE_COGNITO_REGION=us-east-1
 ```
+
+The same four variables are set as **Amplify app environment variables** for the
+deployed site. `cd backend && sam deploy` prints the current values as stack
+outputs.
 
 ## AWS Resources
 
-See `docs/AWS Architecture.md` for full details:
+Defined in `backend/template.yaml` (CloudFormation stack `flashcards`). See
+`backend/README.md` for deploy mechanics and `docs/AWS Architecture.md` for
+full details:
 
-- **S3 Bucket**: `spaced-rep-flashcards-data` (versioning enabled)
-- **Lambda**: `flashcards-api` (Node.js 20.x)
+- **S3 Bucket**: `spaced-rep-flashcards-data` (versioning enabled) — _imported_
+- **Cognito**: `flashcards-users` pool with email-based auth — _imported_
+- **Lambda**: data function (S3 CRUD) + read-aloud function (Polly), Node.js 20.x
 - **API Gateway**: HTTP API with `/data` and `/read-aloud` endpoints
-- **Cognito**: `flashcards-users` pool with email-based auth
+
+The bucket and user pool were created before CloudFormation and are managed via
+resource import. Their physical IDs are load-bearing — S3 keys are
+`users/{cognito sub}/data.json` — so replacing the pool would orphan all user
+data. Read `backend/README.md` before touching them.
 
 ## Common Tasks
 
@@ -174,9 +187,13 @@ See `docs/AWS Architecture.md` for full details:
 
 ### Modifying the API
 
-1. Update Lambda code in `src/functions/flashcards-api/index.mjs`
-2. Deploy using `scripts/deploy-lambdas.sh`
-3. Update `src/services/apiStorage.js` client if endpoints change
+1. Update Lambda code in `backend/src/functions/flashcards-api/index.mjs`
+2. If routes change, update `backend/template.yaml`
+3. Deploy with `cd backend && sam build && sam deploy`
+4. Update `src/services/apiStorage.js` client if endpoints change
+
+The legacy `scripts/*.sh` deploy scripts are superseded by SAM and should not be
+used — see `backend/README.md`.
 
 ### Adding New Card/Deck Properties
 

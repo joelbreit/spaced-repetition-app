@@ -1,0 +1,6 @@
+dist
+node_modules
+exclude
+
+# SAM build output
+backend/.aws-sam
