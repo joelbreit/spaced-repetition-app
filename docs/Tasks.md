@@ -89,20 +89,45 @@
 
 ## Infrastructure
 
-- [ ] Create an AWS tag for all resources associated with this app
-- [ ] Remove version tracking from S3 bucket
+- [x] Create an AWS tag for all resources associated with this app
+      (`Project=flashcards`, applied by the SAM stack)
+- [x] ~~Remove version tracking from S3 bucket~~ — kept deliberately. Versioning
+      is the recovery path for the data-erasure race fixed in `2363cf3`. Instead
+      a lifecycle rule now expires noncurrent versions after 30 days (keeping the
+      newest 10), which was the actual problem: 16,074 versions / 32.3 GB against
+      4.6 MiB of live data.
+- [ ] Add a gateway JWT authorizer for `/data` (replacing in-handler
+      verification) — see `backend/README.md`
+- [ ] Add API Gateway access logging on the `prod` stage
+- [ ] Bump Lambda runtime to Node 22 before January 2027 (AWS SDK deprecation
+      warning is already appearing in logs)
 
 ## Clean Up
 
 - [x] SAM deployment — stack `flashcards`, template in `backend/`
     - [x] Tag resources with app name (`Project=flashcards`)
-- [ ] Point Amplify `VITE_API_ENDPOINT` at the SAM API, then remove old AWS
-      resources (old HTTP API `u89sb9y87b`, `flashcards-api` +
+- [x] Point Amplify `VITE_API_ENDPOINT` at the SAM API (now `3u15oyvpok`)
+- [x] Remove old AWS resources — old HTTP API `u89sb9y87b`, `flashcards-api` +
       `flashcards-read-aloud` Lambdas, `flashcards-lambda-role`,
-      `flashcards-read-aloud-role`, and their policies)
-- [ ] Remove old scripts (`scripts/*.sh`, `src/tools/*.sh`) once cutover is done
+      `flashcards-read-aloud-role`, `flashcards-s3-access`,
+      `flashcards-read-aloud-polly-policy`
+    - [ ] Delete 4 orphaned log groups — needs to be run manually:
+          `/aws/lambda/flashcards-api` (894 MB, contains user data in
+          plaintext), `/aws/lambda/flashcards-read-aloud` (3.7 MB), and the two
+          auto-created `/aws/lambda/flashcards-DataFunction-*` /
+          `-ReadAloudFunction-*` groups now superseded by the managed ones
+- [x] Remove old scripts (`scripts/*.sh`, `src/tools/setup-aws.sh`,
+      `src/tools/cleanup-aws.sh`). `src/tools/convert-flashcards.cjs` kept.
+- [x] Delete the legacy `flashcards-app-user` IAM user, its access key
+      `AKIAY3Y3NUL3RJCYJC4V`, and `FlashcardsS3Policy`
+- [x] Delete dead `src/services/s3Storage.js` and drop the unused
+      `@aws-sdk/client-s3` frontend dependency
+- [x] Remove legacy S3 objects (`flashcards-data.json`, `test.json`); the old
+      blob is archived at `exclude/legacy-flashcards-data-2025-10-29.json`
+- [x] Enable Cognito deletion protection
+- [x] Set CloudWatch log retention (30 days) and stop logging full request bodies
 - [ ] `apiStorage.js` -> `apiCalls.js` or something
-- [ ] Update AWS documentation
+- [x] Update AWS documentation (`docs/AWS Architecture.md`, `backend/README.md`)
 - [x] Move Lambda functions (now in `backend/src/functions`)
 - [ ] API Documentation
 - [ ] Data rehydration on front-end

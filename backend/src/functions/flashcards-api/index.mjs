@@ -42,10 +42,16 @@ async function verifyToken(authHeader) {
 }
 
 export const handler = async (event) => {
-	console.log('Event:', JSON.stringify(event, null, 2));
-
 	try {
 		const method = event.requestContext?.http?.method || event.httpMethod;
+
+		// Log the request line only. This used to be
+		// `JSON.stringify(event, null, 2)`, which wrote every user's entire
+		// flashcard dataset into CloudWatch in plaintext on every save - 894 MB
+		// of it by the time it was caught. Never log the body here.
+		console.log(
+			`${method} ${event.requestContext?.http?.path ?? event.path ?? '?'}`
+		);
 
 		// Handle OPTIONS preflight
 		if (method === 'OPTIONS') {

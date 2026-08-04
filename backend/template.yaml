@@ -47,25 +47,27 @@ Resources:
             OwnershipControls:
                 Rules:
                     - ObjectOwnership: BucketOwnerEnforced
-            # Legacy: dates from the abandoned browser-writes-to-S3-directly design.
-            # Nothing uses it now (the Lambda calls S3 server-side, where CORS does
-            # not apply). Kept here so the migration is behaviour-preserving; slated
-            # for removal, along with a NoncurrentVersionExpiration lifecycle rule.
-            CorsConfiguration:
-                CorsRules:
-                    - AllowedHeaders:
-                          - '*'
-                      AllowedMethods:
-                          - GET
-                          - PUT
-                          - POST
-                      AllowedOrigins:
-                          - http://localhost:5173
-                          - https://*.netlify.app
-                          - https://*.vercel.app
-                      ExposedHeaders:
-                          - ETag
-                      MaxAge: 3000
+            # No CorsConfiguration: browsers never talk to this bucket directly.
+            # The Lambda calls S3 server-side, where CORS does not apply. The old
+            # rules (localhost:5173, *.netlify.app, *.vercel.app) were leftovers
+            # from an abandoned design and were removed 2026-08.
+            #
+            # Versioning is kept - it is the recovery path for the data-erasure
+            # race fixed in 2363cf3 - but noncurrent versions are expired. Without
+            # this rule the bucket had grown to 16,074 versions / 32.3 GB against
+            # 4.6 MiB of live data, because AppDataContext rewrites the whole
+            # dataset on a 10s debounce and every save left a permanent version.
+            LifecycleConfiguration:
+                Rules:
+                    - Id: expire-noncurrent-versions
+                      Status: Enabled
+                      NoncurrentVersionExpiration:
+                          NoncurrentDays: 30
+                          NewerNoncurrentVersions: 10
+                    - Id: abort-incomplete-multipart-uploads
+                      Status: Enabled
+                      AbortIncompleteMultipartUpload:
+                          DaysAfterInitiation: 7
 
     UserPool:
         Type: AWS::Cognito::UserPool
@@ -78,7 +80,10 @@ Resources:
             AutoVerifiedAttributes:
                 - email
             MfaConfiguration: 'OFF'
-            DeletionProtection: INACTIVE
+            # ACTIVE since 2026-08: an accidental pool deletion would lock out
+            # every account irrecoverably, and would orphan all S3 data, since
+            # object keys are derived from each user's Cognito sub.
+            DeletionProtection: ACTIVE
             Policies:
                 PasswordPolicy:
                     MinimumLength: 8
@@ -167,13 +172,43 @@ Resources:
                 Project: flashcards
 
     # ==========================================================================
+    # Log groups
+    #
+    # Declared explicitly so retention is enforced by the template rather than
+    # left at "never expire". Lambda would otherwise auto-create
+    # /aws/lambda/<function-name> outside CloudFormation, where retention has to
+    # be set out of band and silently reverts to infinite for any new function.
+    #
+    # The names are namespaced under /aws/lambda/flashcards/ rather than matching
+    # the function names, so they cannot collide with the auto-created groups
+    # from before this change.
+    # ==========================================================================
+
+    DataFunctionLogGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: /aws/lambda/flashcards/data
+            RetentionInDays: 30
+            Tags:
+                - Key: Project
+                  Value: flashcards
+
+    ReadAloudFunctionLogGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: /aws/lambda/flashcards/read-aloud
+            RetentionInDays: 30
+            Tags:
+                - Key: Project
+                  Value: flashcards
+
+    # ==========================================================================
     # Functions
     #
     # FunctionName is intentionally omitted so CloudFormation auto-names these.
-    # The legacy flashcards-api / flashcards-read-aloud functions still exist
-    # outside the stack, and explicit names would collide during cutover. Once
-    # the legacy functions are deleted you can pin FunctionName if you prefer
-    # (it forces a replacement, which is harmless here).
+    # It could now be pinned (the legacy functions that would have collided are
+    # deleted), but doing so forces a replacement and would also orphan the
+    # log groups below, so it is not worth the churn.
     # ==========================================================================
 
     DataFunction:
@@ -182,6 +217,8 @@ Resources:
             CodeUri: src/functions/flashcards-api/
             Handler: index.handler
             Description: Reads and writes per-user flashcard data in S3
+            LoggingConfig:
+                LogGroup: !Ref DataFunctionLogGroup
             Environment:
                 Variables:
                     S3_BUCKET: !Ref FlashcardsDataBucket
@@ -235,6 +272,8 @@ Resources:
             CodeUri: src/functions/flashcards-read-aloud/
             Handler: index.handler
             Description: Synthesizes card text to speech with Amazon Polly
+            LoggingConfig:
+                LogGroup: !Ref ReadAloudFunctionLogGroup
             Policies:
                 - Statement:
                       - Effect: Allow
