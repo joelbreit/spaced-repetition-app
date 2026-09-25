@@ -24,6 +24,20 @@ export function prettyPrintInterval(interval) {
 	return `${roundedSeconds} second${roundedSeconds !== 1 ? 's' : ''}`;
 }
 
+// Compact form for tight spaces like the grade buttons: "10m", "5h", "12d", "3.5mo", "1.2y"
+export function formatIntervalShort(interval) {
+	const minutes = interval / (1000 * 60);
+	if (minutes < 60) return `${Math.max(1, Math.round(minutes))}m`;
+	const hours = minutes / 60;
+	if (hours < 24) return `${Math.round(hours)}h`;
+	const days = hours / 24;
+	if (days < 30) return `${Math.round(days)}d`;
+	const oneDecimal = (n) =>
+		n < 10 ? Math.round(n * 10) / 10 : Math.round(n);
+	if (days < 365) return `${oneDecimal(days / 30)}mo`;
+	return `${oneDecimal(days / 365)}y`;
+}
+
 export function prettyPrintDueDateAsInterval(dueDate) {
 	const interval = dueDate - Date.now();
 	return `Due in ${prettyPrintInterval(interval)}`;

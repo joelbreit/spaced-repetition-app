@@ -107,6 +107,25 @@ export default function CardEditView({
 		}
 	};
 
+	// Escape cancels, Ctrl/Cmd+Enter saves, from anywhere in the editor.
+	// Re-subscribed each render so it always sees the latest text.
+	useEffect(() => {
+		const handleKeyDown = (event) => {
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				onCancel();
+			} else if (
+				event.key === 'Enter' &&
+				(event.ctrlKey || event.metaKey)
+			) {
+				event.preventDefault();
+				handleSave();
+			}
+		};
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	});
+
 	const handleToggleStar = () => {
 		if (cardId && onToggleStar) {
 			onToggleStar(deckId, cardId);
@@ -374,6 +393,7 @@ export default function CardEditView({
 								<textarea
 									value={front}
 									onChange={(e) => setFront(e.target.value)}
+									autoFocus={!cardId}
 									placeholder="Enter the front of the card"
 									rows={5}
 									className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 resize-y min-h-[120px] font-medium"
@@ -459,6 +479,9 @@ export default function CardEditView({
 							{cardId ? 'Update Card' : 'Create Card'}
 						</button>
 					</div>
+					<p className="hidden pointer-fine:block text-center text-xs text-gray-400 dark:text-slate-500">
+						Ctrl/⌘ + Enter to save · Esc to cancel
+					</p>
 				</div>
 			</div>
 		</div>

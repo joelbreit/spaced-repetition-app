@@ -1,8 +1,10 @@
+import { useEffect, useRef } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
 
 const ConfirmationDialog = ({
 	isOpen,
 	onClose,
+	onCancel,
 	onConfirm,
 	title,
 	message,
@@ -10,6 +12,32 @@ const ConfirmationDialog = ({
 	cancelText = 'Cancel',
 	type = 'warning',
 }) => {
+	const dialogRef = useRef(null);
+
+	// Enter confirms, Escape dismisses. A focused button inside the dialog keeps
+	// its own Enter, so tabbing to Cancel and pressing Enter still cancels; one
+	// outside it (like the trash icon that opened the dialog) must not.
+	useEffect(() => {
+		if (!isOpen) return;
+		const handleKeyDown = (event) => {
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				onClose();
+			} else if (
+				event.key === 'Enter' &&
+				!(
+					event.target.tagName === 'BUTTON' &&
+					dialogRef.current?.contains(event.target)
+				)
+			) {
+				event.preventDefault();
+				onConfirm();
+			}
+		};
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, [isOpen, onClose, onConfirm]);
+
 	if (!isOpen) return null;
 
 	const handleBackdropClick = (e) => {
@@ -43,7 +71,12 @@ const ConfirmationDialog = ({
 			className="fixed inset-0 bg-black/20 flex items-center justify-center z-50"
 			onClick={handleBackdropClick}
 		>
-			<div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full mx-4 animate-scale-in border border-gray-200 dark:border-slate-700">
+			<div
+				ref={dialogRef}
+				role="alertdialog"
+				aria-modal="true"
+				className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full mx-4 animate-scale-in border border-gray-200 dark:border-slate-700"
+			>
 				<div className="flex items-start p-6">
 					<div className="shrink-0">{getIcon()}</div>
 					<div className="ml-3 w-0 flex-1">
@@ -70,19 +103,20 @@ const ConfirmationDialog = ({
 					<button
 						type="button"
 						className="bg-white dark:bg-slate-800 py-2 px-4 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-						onClick={onClose}
+						onClick={onCancel ?? onClose}
 					>
 						{cancelText}
 					</button>
 					<button
 						type="button"
 						className={`py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${getConfirmButtonStyle()}`}
-						onClick={() => {
-							onConfirm();
-							onClose();
-						}}
+						onClick={onConfirm}
+						autoFocus
 					>
 						{confirmText}
+						<span className="ml-2 hidden pointer-fine:inline text-xs opacity-75">
+							↵
+						</span>
 					</button>
 				</div>
 			</div>

@@ -61,6 +61,12 @@ export default function SortableContainerItem({
 		disabled: !isDraggable || isEditing,
 	});
 
+	const cancelEditing = () => {
+		setEditingId(null);
+		setEditingName('');
+		setEditingSymbol('');
+	};
+
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
@@ -190,6 +196,19 @@ export default function SortableContainerItem({
 							type="text"
 							value={editingName}
 							onChange={(e) => setEditingName(e.target.value)}
+							onKeyDown={(e) => {
+								if (
+									e.key === 'Enter' &&
+									!e.nativeEvent.isComposing
+								) {
+									e.preventDefault();
+									handleUpdate();
+								} else if (e.key === 'Escape') {
+									e.preventDefault();
+									cancelEditing();
+								}
+							}}
+							autoFocus
 							placeholder={
 								isFolder ? 'Folder name...' : 'Deck name...'
 							}
@@ -204,11 +223,7 @@ export default function SortableContainerItem({
 							Save
 						</button>
 						<button
-							onClick={() => {
-								setEditingId(null);
-								setEditingName('');
-								setEditingSymbol('');
-							}}
+							onClick={cancelEditing}
 							className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 						>
 							Cancel

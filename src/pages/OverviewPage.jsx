@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import AuthView from '../components/AuthView';
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import FolderBrowserView from '../components/FolderBrowserView';
 import DeckCardsView from '../components/DeckCardsView';
@@ -15,6 +15,7 @@ import DemoBanner from '../components/DemoBanner';
 import { useAppData } from '../contexts/AppDataContext';
 import { useDeckOperations } from '../hooks/useDeckOperations';
 import { calculateNextInterval } from '../services/cardCalculations';
+import { calculateStreakStats } from '../services/streak';
 
 function OverviewPage() {
 	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -29,6 +30,11 @@ function OverviewPage() {
 	const [isFlipped, setIsFlipped] = useState(false);
 	const [reviewSections, setReviewSections] = useState([]);
 	const [sessionReviews, setSessionReviews] = useState([]);
+	// One entry per review this session, holding what's needed to take it back
+	const [undoStack, setUndoStack] = useState([]);
+	// Whether the summary was reached by working through the due and new cards
+	// (celebrate) rather than by ending early
+	const [isSessionComplete, setIsSessionComplete] = useState(false);
 	const cardsCollectionBeforeReviewRef = useRef(null);
 
 	// View state for edit/review overlays
@@ -45,6 +51,8 @@ function OverviewPage() {
 				JSON.stringify(deck)
 			);
 			setSessionReviews([]);
+			setUndoStack([]);
+			setIsSessionComplete(false);
 
 			const cards = deck.cards.slice();
 			const now = Date.now();
@@ -151,6 +159,8 @@ function OverviewPage() {
 		);
 		cardsCollectionBeforeReviewRef.current = decksBefore;
 		setSessionReviews([]);
+		setUndoStack([]);
+		setIsSessionComplete(false);
 
 		const now = Date.now();
 
@@ -220,8 +230,6 @@ function OverviewPage() {
 		const interval = calculateNextInterval(result, card, timestamp);
 		const nextDue = timestamp + interval;
 
-		console.log('reviewDuration', reviewDuration);
-
 		const review = {
 			reviewId: `${timestamp}-${Math.random().toString(36).slice(2, 11)}`,
 			timestamp: timestamp,
@@ -233,6 +241,16 @@ function OverviewPage() {
 		setSessionReviews((prev) => [
 			...prev,
 			{ cardId: card.cardId, result, timestamp, reviewDuration },
+		]);
+		setUndoStack((prev) => [
+			...prev,
+			{
+				cardIndex: currentCardIndex,
+				deckId,
+				cardId: card.cardId,
+				reviews: card.reviews,
+				whenDue: card.whenDue,
+			},
 		]);
 
 		const updatedCard = {
@@ -269,12 +287,51 @@ function OverviewPage() {
 		// so the back side isn't visible. This prevents seeing the next card's back
 		// during the flip-back animation.
 		setTimeout(() => {
-			if (currentCardIndex < currentDeckForReview.cards.length - 1) {
-				setCurrentCardIndex(currentCardIndex + 1);
-			} else {
+			const nextIndex = currentCardIndex + 1;
+			setCurrentCardIndex(nextIndex);
+			if (nextIndex >= currentDeckForReview.cards.length) {
+				setIsSessionComplete(true);
+				setCurrentView('summary');
+				return;
+			}
+			// Due and new cards are done and only not-yet-due ones remain:
+			// pause to celebrate and offer to study ahead instead of rolling on.
+			if (nextIndex === dueAndNewCount && dueAndNewCount > 0) {
+				setIsSessionComplete(true);
 				setCurrentView('summary');
 			}
 		}, 200);
+	};
+
+	const undoLastReview = () => {
+		const last = undoStack[undoStack.length - 1];
+		if (!last || !currentDeckForReview) return;
+
+		// Only scheduling is rolled back; edits, stars and flags made since are kept
+		const restore = (c) =>
+			c.cardId === last.cardId
+				? { ...c, reviews: last.reviews, whenDue: last.whenDue }
+				: c;
+
+		setAppData((prev) => ({
+			...prev,
+			decks: (prev.decks || []).map((deck) =>
+				deck.deckId === last.deckId
+					? { ...deck, cards: deck.cards.map(restore) }
+					: deck
+			),
+		}));
+		setCurrentDeckForReview((prev) => ({
+			...prev,
+			cards: prev.cards.map(restore),
+		}));
+		setSessionReviews((prev) => prev.slice(0, -1));
+		setUndoStack((prev) => prev.slice(0, -1));
+		setIsSessionComplete(false);
+		setCurrentCardIndex(last.cardIndex);
+		// Come back answer-side up, ready to be graded again
+		setIsFlipped(true);
+		setCurrentView('review');
 	};
 
 	const handleEditCard = (deckId, cardId) => {
@@ -317,6 +374,15 @@ function OverviewPage() {
 		setEditingDeckId(null);
 	};
 
+	const dueAndNewCount = reviewSections
+		.filter((section) => section.type === 'due' || section.type === 'new')
+		.reduce((sum, section) => sum + section.total, 0);
+
+	const { streak } = useMemo(
+		() => calculateStreakStats(appData.decks),
+		[appData.decks]
+	);
+
 	const handleEndReview = () => {
 		if (sessionReviews.length > 0) {
 			setCurrentView('summary');
@@ -332,6 +398,8 @@ function OverviewPage() {
 		setReviewSections([]);
 		setIsFlipped(false);
 		setSessionReviews([]);
+		setUndoStack([]);
+		setIsSessionComplete(false);
 		cardsCollectionBeforeReviewRef.current = null;
 	};
 
@@ -366,7 +434,7 @@ function OverviewPage() {
 			/>
 
 			{/* Main content */}
-			<main className="flex-1 mx-auto max-w-7xl px-6 py-8">
+			<main className="flex-1 mx-auto max-w-7xl px-6 py-8 w-full">
 				{currentView === null && (
 					<Routes>
 						<Route
@@ -437,6 +505,8 @@ function OverviewPage() {
 							handleEditCard(deckId, cardId);
 						}}
 						onEndReview={handleEndReview}
+						onUndo={undoLastReview}
+						canUndo={undoStack.length > 0}
 						onToggleFlag={(cardId) => {
 							const card = currentDeckForReview.cards.find(
 								(c) => c.cardId === cardId
@@ -522,6 +592,17 @@ function OverviewPage() {
 									)
 						}
 						onClose={handleCloseSummary}
+						isComplete={isSessionComplete}
+						studyAheadCount={
+							isSessionComplete
+								? currentDeckForReview.cards.length -
+									currentCardIndex
+								: 0
+						}
+						onStudyAhead={() => setCurrentView('review')}
+						onUndo={undoLastReview}
+						canUndo={undoStack.length > 0}
+						streak={streak}
 					/>
 				)}
 			</main>

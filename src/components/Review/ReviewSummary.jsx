@@ -9,19 +9,105 @@ import {
 	Award,
 	ArrowRight,
 	Clock,
+	Flame,
+	FastForward,
+	Undo2,
 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import {
 	calculateAverageMastery,
 	calculateReviewedCardsBurden,
 	calculateCardCounts,
 } from '../../services/cardCalculations';
 
+const CONFETTI_COLORS = ['#14b8a6', '#06b6d4', '#10b981', '#f59e0b'];
+
+function celebrate() {
+	const fire = (options) =>
+		confetti({
+			particleCount: 70,
+			spread: 65,
+			startVelocity: 55,
+			colors: CONFETTI_COLORS,
+			disableForReducedMotion: true,
+			...options,
+		});
+	fire({ angle: 60, origin: { x: 0, y: 0.75 } });
+	fire({ angle: 120, origin: { x: 1, y: 0.75 } });
+}
+
+function getRecallMessage(recallPercent) {
+	if (recallPercent >= 90)
+		return `Outstanding recall: ${recallPercent}% right.`;
+	if (recallPercent >= 70) return `Solid session: ${recallPercent}% right.`;
+	return "The tough ones will come back sooner. That's how they stick.";
+}
+
 export default function ReviewSummary({
 	sessionReviews,
 	cardsCollectionBefore,
 	cardsCollectionAfter,
 	onClose,
+	isComplete = false,
+	studyAheadCount = 0,
+	onStudyAhead,
+	onUndo,
+	canUndo = false,
+	streak = 0,
 }) {
+	// Fire once per summary, even under StrictMode's double effects
+	const hasCelebratedRef = useRef(false);
+	useEffect(() => {
+		if (
+			isComplete &&
+			sessionReviews.length > 0 &&
+			!hasCelebratedRef.current
+		) {
+			hasCelebratedRef.current = true;
+			celebrate();
+		}
+	}, [isComplete, sessionReviews.length]);
+
+	// Enter finishes, Z takes back the last card
+	const summaryRef = useRef(null);
+	useEffect(() => {
+		const handleKeyDown = (event) => {
+			const { tagName, isContentEditable } = event.target;
+			if (
+				tagName === 'INPUT' ||
+				tagName === 'TEXTAREA' ||
+				tagName === 'SELECT' ||
+				isContentEditable
+			) {
+				return;
+			}
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				onClose();
+			} else if (event.key === 'Enter') {
+				// A focused button in the summary handles its own Enter
+				if (
+					tagName === 'BUTTON' &&
+					summaryRef.current?.contains(event.target)
+				) {
+					return;
+				}
+				event.preventDefault();
+				onClose();
+			} else if (
+				(event.key === 'z' || event.key === 'Z') &&
+				!event.altKey &&
+				canUndo
+			) {
+				event.preventDefault();
+				onUndo?.();
+			}
+		};
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, [onClose, onUndo, canUndo]);
+
 	// Calculate session statistics
 	const totalReviewed = sessionReviews.length;
 	const resultCounts = {
@@ -84,6 +170,27 @@ export default function ReviewSummary({
 	const masteryChange = metricsAfter.avgMastery - metricsBefore.avgMastery;
 	const burdenChange = metricsAfter.totalBurden - metricsBefore.totalBurden;
 
+	const recallPercent = getPercentage(resultCounts.good + resultCounts.easy);
+	const cardsWord = `card${totalReviewed !== 1 ? 's' : ''}`;
+	const timeText =
+		totalReviewTime > 0 ? ` in ${formatReviewTime(totalReviewTime)}` : '';
+
+	let headline;
+	let subheadline;
+	if (isComplete && metricsAfter.dueCount === 0) {
+		headline = 'All caught up!';
+		subheadline = `${totalReviewed} ${cardsWord}${timeText}. Nothing else is due right now.`;
+	} else if (isComplete) {
+		headline = 'Session complete!';
+		subheadline = `${totalReviewed} ${cardsWord} reviewed${timeText}.`;
+	} else {
+		headline = totalReviewed > 0 ? 'Nice work!' : 'See you soon';
+		subheadline =
+			metricsAfter.dueCount > 0
+				? `${totalReviewed} ${cardsWord}${timeText}. ${metricsAfter.dueCount} still due whenever you're ready.`
+				: `${totalReviewed} ${cardsWord} reviewed${timeText}.`;
+	}
+
 	// Trend indicator component
 	const TrendIndicator = ({ value, suffix = '', invertColors = false }) => {
 		if (Math.abs(value) < 0.01) {
@@ -119,16 +226,62 @@ export default function ReviewSummary({
 	};
 
 	return (
-		<div className="mx-auto max-w-5xl animate-scale-in">
-			{/* Done Button */}
+		<div ref={summaryRef} className="mx-auto max-w-5xl animate-scale-in">
+			{/* Hero */}
 			<div className="text-center">
-				<button
-					onClick={onClose}
-					className="inline-flex items-center gap-3 px-8 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+				<div
+					className="text-5xl sm:text-6xl mb-3 animate-pop-in"
+					aria-hidden="true"
 				>
-					<CheckCircle className="h-6 w-6" />
-					Done
-				</button>
+					{isComplete ? '🎉' : '👏'}
+				</div>
+				<h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+					{headline}
+				</h2>
+				<p className="mt-2 text-gray-600 dark:text-slate-300">
+					{subheadline}
+				</p>
+				{totalReviewed > 0 && (
+					<p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+						{getRecallMessage(recallPercent)}
+					</p>
+				)}
+				{streak > 0 && (
+					<div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 text-sm font-medium text-orange-700 dark:text-orange-300">
+						<Flame className="h-4 w-4 text-orange-500" />
+						{streak}-day streak
+					</div>
+				)}
+
+				<div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+					<button
+						onClick={onClose}
+						className="inline-flex items-center gap-3 px-8 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+					>
+						<CheckCircle className="h-6 w-6" />
+						Done
+					</button>
+					{studyAheadCount > 0 && onStudyAhead && (
+						<button
+							onClick={onStudyAhead}
+							className="inline-flex items-center gap-2 px-6 py-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+							title="Review cards that aren't due yet"
+						>
+							<FastForward className="h-5 w-5" />
+							Study ahead ({studyAheadCount} not due yet)
+						</button>
+					)}
+				</div>
+				{canUndo && onUndo && (
+					<button
+						onClick={onUndo}
+						className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-slate-200 rounded-lg transition-colors"
+						title="Undo last review (Z)"
+					>
+						<Undo2 className="h-4 w-4" />
+						Undo last card
+					</button>
+				)}
 			</div>
 
 			{/* Main content: Cards Reviewed + Deck Metrics in responsive grid */}
