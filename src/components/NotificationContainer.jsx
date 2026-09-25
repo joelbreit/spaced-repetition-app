@@ -7,6 +7,7 @@ const NotificationContainer = () => {
 		notifications,
 		confirmationDialog,
 		removeNotification,
+		resolveConfirmation,
 		closeConfirmation,
 	} = useNotification();
 
@@ -27,7 +28,8 @@ const NotificationContainer = () => {
 			<ConfirmationDialog
 				isOpen={confirmationDialog.isOpen}
 				onClose={closeConfirmation}
-				onConfirm={confirmationDialog.onConfirm}
+				onCancel={() => resolveConfirmation(false)}
+				onConfirm={() => resolveConfirmation(true)}
 				title={confirmationDialog.title}
 				message={confirmationDialog.message}
 				confirmText={confirmationDialog.confirmText}

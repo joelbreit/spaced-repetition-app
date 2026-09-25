@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
 	Plus,
@@ -44,6 +44,8 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 
 	const [newCardFront, setNewCardFront] = useState('');
 	const [newCardBack, setNewCardBack] = useState('');
+	const newCardFrontRef = useRef(null);
+	const newCardBackRef = useRef(null);
 	const [showNewCardForm, setShowNewCardForm] = useState(false);
 	const [cardSearchTerm, setCardSearchTerm] = useState('');
 	const [sortBy, setSortBy] = useState('default');
@@ -154,12 +156,39 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const hasActiveFilters =
 		cardSearchTerm || sortBy !== 'default' || filterBy !== 'all';
 
-	const handleAddCard = () => {
+	const handleAddCard = ({ keepOpen = false } = {}) => {
 		if (newCardFront.trim() && newCardBack.trim()) {
 			addCard(deckId, newCardFront.trim(), newCardBack.trim());
 			setNewCardFront('');
 			setNewCardBack('');
-			setShowNewCardForm(false);
+			if (keepOpen) {
+				newCardFrontRef.current?.focus();
+			} else {
+				setShowNewCardForm(false);
+			}
+		}
+	};
+
+	const cancelNewCard = () => {
+		setShowNewCardForm(false);
+		setNewCardFront('');
+		setNewCardBack('');
+	};
+
+	// Enter on the front moves to the back; Ctrl/Cmd+Enter adds the card and
+	// starts the next one, so a batch can be typed without touching the mouse
+	const handleNewCardKeyDown = (e) => {
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			cancelNewCard();
+		} else if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+			if (e.ctrlKey || e.metaKey) {
+				e.preventDefault();
+				handleAddCard({ keepOpen: true });
+			} else if (e.target === newCardFrontRef.current) {
+				e.preventDefault();
+				newCardBackRef.current?.focus();
+			}
 		}
 	};
 
@@ -607,38 +636,42 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 						</h3>
 						<div className="space-y-4">
 							<input
+								ref={newCardFrontRef}
 								type="text"
 								placeholder="Front of card..."
 								value={newCardFront}
 								onChange={(e) =>
 									setNewCardFront(e.target.value)
 								}
+								onKeyDown={handleNewCardKeyDown}
+								autoFocus
 								className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 							/>
 							<textarea
+								ref={newCardBackRef}
 								placeholder="Back of card..."
 								value={newCardBack}
 								onChange={(e) => setNewCardBack(e.target.value)}
+								onKeyDown={handleNewCardKeyDown}
 								rows={4}
 								className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none transition-all duration-200"
 							/>
 							<div className="flex gap-3">
 								<button
-									onClick={handleAddCard}
+									onClick={() => handleAddCard()}
 									className="px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 								>
 									Add Card
 								</button>
 								<button
-									onClick={() => {
-										setShowNewCardForm(false);
-										setNewCardFront('');
-										setNewCardBack('');
-									}}
+									onClick={cancelNewCard}
 									className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 								>
 									Cancel
 								</button>
+								<span className="hidden pointer-fine:flex items-center ml-auto text-xs text-gray-400 dark:text-slate-500">
+									Ctrl/⌘ + Enter adds and starts the next card
+								</span>
 							</div>
 						</div>
 					</div>

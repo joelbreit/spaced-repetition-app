@@ -54,15 +54,17 @@ The app wraps contexts in this order (outermost to innermost):
 
 ### `ThemeContext.jsx`
 
-- **Purpose**: Dark/light theme toggle
-- **Key exports**: `useTheme()` hook
-- **Persists**: to localStorage
+- **Purpose**: Theme preference — `system` (follows the OS), `light` or `dark`
+- **Key exports**: `useTheme()` hook → `{ isDark, preference, setPreference, toggleTheme }`
+- **Persists**: `themePreference` in localStorage. An inline script in `index.html` applies it before first paint
+- **Styling**: Tailwind's `dark:` variant is bound to the `.dark` class (`@custom-variant` in `index.css`), so the OS setting only matters through `system`
 
 ### `NotificationContext.jsx`
 
 - **Purpose**: Toast notifications
 - **Key exports**: `useNotification()` hook via `hooks/useNotification.js`
-- **Methods**: `showSuccess()`, `showError()`, `showInfo()`
+- **Methods**: `showSuccess()`, `showError()`, `showInfo()`, `showConfirmation()`
+- **`showConfirmation()`** resolves `true` (confirm), `false` (cancel button) or `null` (dismissed with Escape, the X or the backdrop). Enter confirms
 
 ## Component Organization
 
@@ -89,14 +91,15 @@ The app wraps contexts in this order (outermost to innermost):
 
 ### Review Components (`components/Review/`)
 
-| Component               | Purpose                                |
-| ----------------------- | -------------------------------------- |
-| `CardReviewView.jsx`    | Main review interface, card flip logic |
-| `CardSide.jsx`          | Renders front or back of card          |
-| `CardActionButtons.jsx` | Again/Hard/Good/Easy buttons           |
-| `ReviewSummary.jsx`     | Session results after review ends      |
-| `ReadAloudButton.jsx`   | Text-to-speech via AWS Polly           |
-| `AnimationOverlay.jsx`  | Confetti and visual feedback           |
+| Component                    | Purpose                                        |
+| ---------------------------- | ---------------------------------------------- |
+| `CardReviewView.jsx`         | Main review interface, card flip logic         |
+| `CardSide.jsx`               | Renders front or back of card                  |
+| `CardActionButtons.jsx`      | Again/Hard/Good/Easy buttons                   |
+| `ReviewSummary.jsx`          | Session results, celebration, study-ahead/undo |
+| `KeyboardShortcutsModal.jsx` | `?` overlay listing review shortcuts           |
+| `ReadAloudButton.jsx`        | Text-to-speech via AWS Polly                   |
+| `AnimationOverlay.jsx`       | Confetti and visual feedback                   |
 
 ### Profile Components (`components/Profile/`)
 
@@ -127,6 +130,10 @@ Spaced repetition logic:
 - Calculate next due date based on review result
 - Determine card status (new, learning, struggling, mastered)
 - Sort cards by review priority
+
+### `streak.js`
+
+`calculateStreakStats(decks)` → `{ streak, reviewsToday }`, shared by the header and review summary.
 
 ### `repairCreatedAt.js`
 

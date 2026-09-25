@@ -156,6 +156,29 @@ export default function FolderBrowserView({
 		}
 	};
 
+	const cancelNewDeck = () => {
+		setShowNewDeckForm(false);
+		setNewDeckName('');
+		setNewDeckSymbol('📚');
+	};
+
+	const cancelNewFolder = () => {
+		setShowNewFolderForm(false);
+		setNewFolderName('');
+		setNewFolderSymbol('📁');
+	};
+
+	// Enter submits, Escape backs out (ignoring Enter mid-IME composition)
+	const submitOnEnter = (onSubmit, onCancel) => (e) => {
+		if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+			e.preventDefault();
+			onSubmit();
+		} else if (e.key === 'Escape') {
+			e.preventDefault();
+			onCancel();
+		}
+	};
+
 	const handleAddFolder = () => {
 		if (newFolderName.trim()) {
 			addFolder(
@@ -308,6 +331,11 @@ export default function FolderBrowserView({
 								onChange={(e) =>
 									setNewFolderName(e.target.value)
 								}
+								onKeyDown={submitOnEnter(
+									handleAddFolder,
+									cancelNewFolder
+								)}
+								autoFocus
 								className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 							/>
 							<button
@@ -317,11 +345,7 @@ export default function FolderBrowserView({
 								Create
 							</button>
 							<button
-								onClick={() => {
-									setShowNewFolderForm(false);
-									setNewFolderName('');
-									setNewFolderSymbol('📁');
-								}}
+								onClick={cancelNewFolder}
 								className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 							>
 								Cancel
@@ -361,6 +385,11 @@ export default function FolderBrowserView({
 								placeholder="Deck name..."
 								value={newDeckName}
 								onChange={(e) => setNewDeckName(e.target.value)}
+								onKeyDown={submitOnEnter(
+									handleAddDeck,
+									cancelNewDeck
+								)}
+								autoFocus
 								className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
 							/>
 							<button
@@ -370,11 +399,7 @@ export default function FolderBrowserView({
 								Create
 							</button>
 							<button
-								onClick={() => {
-									setShowNewDeckForm(false);
-									setNewDeckName('');
-									setNewDeckSymbol('📚');
-								}}
+								onClick={cancelNewDeck}
 								className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 							>
 								Cancel

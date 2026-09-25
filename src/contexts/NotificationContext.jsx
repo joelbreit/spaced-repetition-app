@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { NotificationContext } from './NotificationContext.js';
 
 export const NotificationProvider = ({ children }) => {
@@ -7,11 +7,11 @@ export const NotificationProvider = ({ children }) => {
 		isOpen: false,
 		title: '',
 		message: '',
-		onConfirm: null,
 		confirmText: 'Confirm',
 		cancelText: 'Cancel',
 		type: 'warning',
 	});
+	const confirmationResolverRef = useRef(null);
 
 	const addNotification = useCallback((notification) => {
 		const id = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
@@ -59,8 +59,13 @@ export const NotificationProvider = ({ children }) => {
 		[addNotification]
 	);
 
+	// Resolves true (confirm button), false (cancel button), or null (dismissed
+	// via Escape, the X, or the backdrop). Callers whose cancel button is itself
+	// an action, like "Delete Only This Card", tell false and null apart.
 	const showConfirmation = useCallback((options) => {
 		return new Promise((resolve) => {
+			confirmationResolverRef.current?.(null);
+			confirmationResolverRef.current = resolve;
 			setConfirmationDialog({
 				isOpen: true,
 				title: options.title || 'Confirm Action',
@@ -68,18 +73,20 @@ export const NotificationProvider = ({ children }) => {
 				confirmText: options.confirmText || 'Confirm',
 				cancelText: options.cancelText || 'Cancel',
 				type: options.type || 'warning',
-				onConfirm: () => resolve(true),
 			});
 		});
 	}, []);
 
-	const closeConfirmation = useCallback(() => {
-		setConfirmationDialog((prev) => ({
-			...prev,
-			isOpen: false,
-			onConfirm: null,
-		}));
+	const resolveConfirmation = useCallback((result) => {
+		confirmationResolverRef.current?.(result);
+		confirmationResolverRef.current = null;
+		setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
 	}, []);
+
+	const closeConfirmation = useCallback(
+		() => resolveConfirmation(null),
+		[resolveConfirmation]
+	);
 
 	const value = {
 		notifications,
@@ -91,6 +98,7 @@ export const NotificationProvider = ({ children }) => {
 		showWarning,
 		showInfo,
 		showConfirmation,
+		resolveConfirmation,
 		closeConfirmation,
 	};
 

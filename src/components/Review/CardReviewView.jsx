@@ -12,19 +12,67 @@ import {
 	Volume2,
 	Loader2,
 	Pause,
+	Undo2,
+	Keyboard,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import SegmentedProgressBar from '../SegmentedProgressBar';
 import CardSide from './CardSide';
 import ReadAloudSettingsModal from './ReadAloudSettingsModal';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import {
 	calculateNextInterval,
 	getInterval,
 	calculateLearningStrength,
 	getPerDayReviewRate,
+	formatIntervalShort,
+	prettyPrintInterval,
 } from '../../services/cardCalculations';
 import { useAppData } from '../../contexts/AppDataContext';
 import { readAloudAPI } from '../../services/apiStorage';
+
+const GRADES = [
+	{
+		result: 'again',
+		label: 'Again',
+		hint: '←',
+		button: 'bg-red-500 hover:bg-red-600 focus:ring-red-500',
+		selected: 'ring-red-300 dark:ring-red-400',
+	},
+	{
+		result: 'hard',
+		label: 'Hard',
+		hint: '↓',
+		button: 'bg-orange-500 hover:bg-orange-600 focus:ring-orange-500',
+		selected: 'ring-orange-300 dark:ring-orange-400',
+	},
+	{
+		result: 'good',
+		label: 'Good',
+		hint: '→',
+		button: 'bg-green-500 hover:bg-green-600 focus:ring-green-500',
+		selected: 'ring-green-300 dark:ring-green-400',
+	},
+	{
+		result: 'easy',
+		label: 'Easy',
+		hint: '↑',
+		button: 'bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 focus:ring-teal-500',
+		selected: 'ring-teal-300 dark:ring-teal-400',
+	},
+];
+
+// Arrow keys (existing muscle memory) plus 1-4 (the Anki convention)
+const GRADE_KEYS = {
+	ArrowLeft: 'again',
+	1: 'again',
+	ArrowDown: 'hard',
+	2: 'hard',
+	ArrowRight: 'good',
+	3: 'good',
+	ArrowUp: 'easy',
+	4: 'easy',
+};
 
 export default function CardReviewView({
 	deck,
@@ -37,6 +85,8 @@ export default function CardReviewView({
 	onEndReview,
 	onToggleFlag,
 	onToggleStar,
+	onUndo,
+	canUndo = false,
 }) {
 	const { appData } = useAppData();
 	const currentCard = deck.cards[currentCardIndex];
@@ -111,6 +161,7 @@ export default function CardReviewView({
 
 	// Settings modal state
 	const [showSettingsModal, setShowSettingsModal] = useState(false);
+	const [showShortcuts, setShowShortcuts] = useState(false);
 
 	// Initialize timer on mount and reset hasBeenFlipped and start timer when card changes
 	useEffect(() => {
@@ -205,7 +256,11 @@ export default function CardReviewView({
 			for (const text of [card.front, card.back]) {
 				if (!text?.trim()) continue;
 				const key = `${voiceId}|${engine}|${text}`;
-				if (audioCacheRef.current.has(key) || prefetchInFlightRef.current.has(key)) continue;
+				if (
+					audioCacheRef.current.has(key) ||
+					prefetchInFlightRef.current.has(key)
+				)
+					continue;
 
 				prefetchInFlightRef.current.add(key);
 				readAloudAPI(text, voiceId, engine)
@@ -214,14 +269,22 @@ export default function CardReviewView({
 							audioCacheRef.current.set(key, blob);
 						}
 					})
-					.catch(() => {/* silent fail — prefetch is best-effort */})
+					.catch(() => {
+						/* silent fail — prefetch is best-effort */
+					})
 					.finally(() => {
 						prefetchInFlightRef.current.delete(key);
 					});
 			}
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [currentCardIndex, readAloudSettings.prefetchAudio, readAloudSettings.voiceId, readAloudSettings.engine, deck.cards]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		currentCardIndex,
+		readAloudSettings.prefetchAudio,
+		readAloudSettings.voiceId,
+		readAloudSettings.engine,
+		deck.cards,
+	]);
 
 	// Stop audio when card changes or flips
 	useEffect(() => {
@@ -411,18 +474,49 @@ export default function CardReviewView({
 	// Keyboard shortcuts
 	useEffect(() => {
 		const handleKeyDown = (event) => {
+			const { tagName, isContentEditable } = event.target;
 			if (
-				event.target.tagName === 'INPUT' ||
-				event.target.tagName === 'TEXTAREA' ||
-				event.target.isContentEditable
+				tagName === 'INPUT' ||
+				tagName === 'TEXTAREA' ||
+				tagName === 'SELECT' ||
+				isContentEditable
 			) {
 				return;
 			}
 
-			// Escape: end review (unless settings modal is open)
-			if (event.key === 'Escape' && !showSettingsModal) {
+			// While a modal is open, the only key handled here is Escape to close it
+			if (showSettingsModal || showShortcuts) {
+				if (event.key === 'Escape') {
+					event.preventDefault();
+					setShowSettingsModal(false);
+					setShowShortcuts(false);
+				}
+				return;
+			}
+
+			if (event.key === 'Escape') {
 				event.preventDefault();
 				onEndReview();
+				return;
+			}
+
+			// Undo: Z, or Ctrl/Cmd+Z
+			if ((event.key === 'z' || event.key === 'Z') && !event.altKey) {
+				event.preventDefault();
+				if (canUndo && !animationResult) {
+					onUndo?.();
+				}
+				return;
+			}
+
+			// Leave other browser/OS shortcuts alone
+			if (event.ctrlKey || event.metaKey || event.altKey) {
+				return;
+			}
+
+			if (event.key === '?') {
+				event.preventDefault();
+				setShowShortcuts(true);
 				return;
 			}
 
@@ -444,28 +538,30 @@ export default function CardReviewView({
 				return;
 			}
 
-			// Arrow keys: review actions (only when card is flipped)
-			if (!hasBeenFlipped || animationResult) {
+			if (!currentCard || animationResult) {
 				return;
 			}
 
-			switch (event.key) {
-				case 'ArrowLeft':
+			switch (event.key.toLowerCase()) {
+				case 'e':
 					event.preventDefault();
-					handleReview('again');
-					break;
-				case 'ArrowDown':
+					onEditCard(currentCard.cardId);
+					return;
+				case 's':
 					event.preventDefault();
-					handleReview('hard');
-					break;
-				case 'ArrowRight':
+					onToggleStar(currentCard.cardId);
+					return;
+				case 'f':
 					event.preventDefault();
-					handleReview('good');
-					break;
-				case 'ArrowUp':
-					event.preventDefault();
-					handleReview('easy');
-					break;
+					onToggleFlag(currentCard.cardId);
+					return;
+			}
+
+			// Grades only count once the answer has been seen
+			const result = GRADE_KEYS[event.key];
+			if (result && hasBeenFlipped) {
+				event.preventDefault();
+				handleReview(result);
 			}
 		};
 
@@ -474,13 +570,19 @@ export default function CardReviewView({
 			window.removeEventListener('keydown', handleKeyDown);
 		};
 	}, [
-		isFlipped,
+		currentCard,
 		hasBeenFlipped,
 		animationResult,
 		handleReadAloud,
 		handleReview,
 		onFlip,
+		onEditCard,
+		onToggleStar,
+		onToggleFlag,
+		onUndo,
+		canUndo,
 		showSettingsModal,
+		showShortcuts,
 		onEndReview,
 	]);
 
@@ -556,6 +658,14 @@ export default function CardReviewView({
 		if (daysUntilDue === 0) return 'text-orange-600 dark:text-orange-400';
 		return 'text-gray-600 dark:text-gray-400';
 	};
+
+	// What each grade would schedule, shown on the buttons before choosing
+	const previewIntervals = Object.fromEntries(
+		GRADES.map(({ result }) => [
+			result,
+			calculateNextInterval(result, currentCard),
+		])
+	);
 
 	// Build stats array for CardSide
 	const cardStats = [
@@ -658,80 +768,48 @@ export default function CardReviewView({
 			<div className="space-y-6">
 				{hasBeenFlipped ? (
 					<div>
-						<h3 className="mb-6 text-center text-xl font-semibold text-gray-700 dark:text-gray-300">
+						<h3 className="mb-3 text-center text-base font-medium text-gray-500 dark:text-slate-400">
 							How did you do?
 						</h3>
-						<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-							<button
-								onClick={() => handleReview('again')}
-								disabled={!!animationResult}
-								className={`px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
-									selectedReview === 'again'
-										? 'ring-4 ring-red-300 dark:ring-red-400 scale-105 shadow-2xl'
-										: ''
-								}`}
-							>
-								<div className="text-lg font-semibold">
-									Again
-								</div>
-								<div className="text-sm opacity-90">Poor</div>
-							</button>
-							<button
-								onClick={() => handleReview('hard')}
-								disabled={!!animationResult}
-								className={`px-6 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
-									selectedReview === 'hard'
-										? 'ring-4 ring-orange-300 dark:ring-orange-400 scale-105 shadow-2xl'
-										: ''
-								}`}
-							>
-								<div className="text-lg font-semibold">
-									Hard
-								</div>
-								<div className="text-sm opacity-90">
-									Difficult
-								</div>
-							</button>
-							<button
-								onClick={() => handleReview('good')}
-								disabled={!!animationResult}
-								className={`px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
-									selectedReview === 'good'
-										? 'ring-4 ring-green-300 dark:ring-green-400 scale-105 shadow-2xl'
-										: ''
-								}`}
-							>
-								<div className="text-lg font-semibold">
-									Good
-								</div>
-								<div className="text-sm opacity-90">
-									Correct
-								</div>
-							</button>
-							<button
-								onClick={() => handleReview('easy')}
-								disabled={!!animationResult}
-								className={`px-6 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
-									selectedReview === 'easy'
-										? 'ring-4 ring-teal-300 dark:ring-teal-400 scale-105 shadow-2xl'
-										: ''
-								}`}
-							>
-								<div className="text-lg font-semibold">
-									Easy
-								</div>
-								<div className="text-sm opacity-90">Simple</div>
-							</button>
+						<div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+							{GRADES.map((grade) => (
+								<button
+									key={grade.result}
+									onClick={() => handleReview(grade.result)}
+									disabled={!!animationResult}
+									title={`${grade.label} — next review in ${prettyPrintInterval(previewIntervals[grade.result])}`}
+									className={`relative px-6 py-3 sm:py-4 ${grade.button} text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed ${
+										selectedReview === grade.result
+											? `ring-4 ${grade.selected} scale-105 shadow-2xl`
+											: 'disabled:opacity-50'
+									}`}
+								>
+									<span className="absolute top-1.5 right-2 hidden pointer-fine:inline-flex items-center justify-center min-w-5 h-5 px-1 rounded bg-white/20 text-[11px] font-semibold leading-none">
+										{grade.hint}
+									</span>
+									<div className="text-lg font-semibold">
+										{grade.label}
+									</div>
+									<div className="text-sm opacity-90 tabular-nums">
+										{formatIntervalShort(
+											previewIntervals[grade.result]
+										)}
+									</div>
+								</button>
+							))}
 						</div>
 					</div>
 				) : (
 					<div className="text-center">
 						<button
 							onClick={onFlip}
-							className="inline-flex items-center gap-3 px-8 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+							className="inline-flex items-center gap-3 px-8 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
 						>
 							<RotateCcw className="h-6 w-6" />
 							Show Answer
+							<span className="hidden pointer-fine:inline-flex items-center h-5 px-1.5 rounded bg-white/20 text-[11px] font-semibold">
+								Enter
+							</span>
 						</button>
 					</div>
 				)}
@@ -770,6 +848,23 @@ export default function CardReviewView({
 						<span className="hidden sm:inline">Settings</span>
 					</button>
 					<button
+						onClick={onUndo}
+						disabled={!canUndo || !!animationResult}
+						className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-40 disabled:cursor-not-allowed"
+						title="Undo last review (Z)"
+					>
+						<Undo2 className="h-5 w-5" />
+						<span className="hidden sm:inline">Undo</span>
+					</button>
+					<button
+						onClick={() => setShowShortcuts(true)}
+						className="hidden pointer-fine:flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+						title="Keyboard shortcuts (?)"
+						aria-label="Keyboard shortcuts"
+					>
+						<Keyboard className="h-5 w-5" />
+					</button>
+					<button
 						onClick={onEndReview}
 						className="flex items-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
 					>
@@ -788,7 +883,12 @@ export default function CardReviewView({
 				currentEngine={readAloudSettings.engine}
 				currentAutoRead={readAloudSettings.autoRead}
 				currentPlaybackSpeed={readAloudSettings.playbackSpeed}
-			currentPrefetchAudio={readAloudSettings.prefetchAudio}
+				currentPrefetchAudio={readAloudSettings.prefetchAudio}
+			/>
+
+			<KeyboardShortcutsModal
+				isOpen={showShortcuts}
+				onClose={() => setShowShortcuts(false)}
 			/>
 		</div>
 	);

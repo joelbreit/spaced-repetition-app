@@ -8,11 +8,22 @@ import {
 	Flame,
 	BookOpen,
 	LogIn,
+	Sun,
+	Moon,
+	Monitor,
 } from 'lucide-react';
 import { useAppData } from '../contexts/AppDataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { loadFromAPI } from '../services/apiStorage';
 import { useNotification } from '../hooks/useNotification';
+import { calculateStreakStats } from '../services/streak';
+import { useTheme } from '../contexts/ThemeContext';
+
+const THEME_OPTIONS = {
+	system: { Icon: Monitor, label: 'System theme' },
+	light: { Icon: Sun, label: 'Light theme' },
+	dark: { Icon: Moon, label: 'Dark theme' },
+};
 
 function Header({ user, isSaving, isOnline, onSignInClick }) {
 	const { isAuthenticated, authToken, refreshToken } = useAuth();
@@ -21,62 +32,14 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 	const navigate = useNavigate();
 	const { appData, setAppData } = useAppData();
 	const { showSuccess, showError } = useNotification();
+	const { preference: themePreference, toggleTheme } = useTheme();
+	const { Icon: ThemeIcon, label: themeLabel } =
+		THEME_OPTIONS[themePreference];
 
-	// Format date as YYYY-MM-DD in local timezone
-	const formatDateKey = (date) => {
-		const year = date.getFullYear();
-		const month = String(date.getMonth() + 1).padStart(2, '0');
-		const day = String(date.getDate()).padStart(2, '0');
-		return `${year}-${month}-${day}`;
-	};
-
-	// Calculate streak and reviews today
-	const { streak, reviewsToday } = useMemo(() => {
-		if (!appData || !appData.decks) {
-			return { streak: 0, reviewsToday: 0 };
-		}
-
-		// Build activity map
-		const activityMap = new Map();
-		appData.decks.forEach((deck) => {
-			deck.cards?.forEach((card) => {
-				card.reviews?.forEach((review) => {
-					const date = new Date(review.timestamp);
-					date.setHours(0, 0, 0, 0);
-					const dateStr = formatDateKey(date);
-
-					if (!activityMap.has(dateStr)) {
-						activityMap.set(dateStr, 0);
-					}
-					activityMap.set(dateStr, activityMap.get(dateStr) + 1);
-				});
-			});
-		});
-
-		// Calculate streak
-		let streak = 0;
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
-
-		for (let i = 0; i < 365; i++) {
-			const date = new Date(today);
-			date.setDate(date.getDate() - i);
-			const dateStr = formatDateKey(date);
-
-			if (activityMap.has(dateStr)) {
-				streak++;
-			} else if (i > 0) {
-				// Only break streak if it's not today (allow for no activity yet today)
-				break;
-			}
-		}
-
-		// Calculate reviews today
-		const todayStr = formatDateKey(today);
-		const reviewsToday = activityMap.get(todayStr) || 0;
-
-		return { streak, reviewsToday };
-	}, [appData]);
+	const { streak, reviewsToday } = useMemo(
+		() => calculateStreakStats(appData?.decks),
+		[appData]
+	);
 
 	const handleSync = async () => {
 		if (!isAuthenticated || !authToken) {
@@ -208,6 +171,16 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 							)}
 						</button>
 
+						{/* Theme - Desktop only (mobile has it in the menu) */}
+						<button
+							onClick={toggleTheme}
+							className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-600 dark:text-slate-300 transition-colors"
+							title={`${themeLabel} (click to change)`}
+							aria-label={`${themeLabel}. Click to change.`}
+						>
+							<ThemeIcon className="h-4 w-4" />
+						</button>
+
 						{/* Profile or Sign In Button - Desktop only */}
 						{isAuthenticated ? (
 							<button
@@ -290,6 +263,14 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 											Sign In
 										</button>
 									)}
+
+									<button
+										onClick={toggleTheme}
+										className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
+									>
+										<ThemeIcon className="h-4 w-4" />
+										{themeLabel}
+									</button>
 								</div>
 							</>
 						)}

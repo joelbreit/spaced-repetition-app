@@ -7,15 +7,15 @@
 - [ ] **Search and filtering in all group views**
 - [ ] **Cloze deletions**
 - [ ] **Review should fit better on page**
-- [ ] Show keyboard shortcuts somehow
+- [x] Show keyboard shortcuts somehow (`?` during review, plus key hints on the buttons)
     - [ ] Cards should stretch to fill the height allowed
-    - [ ] Cards too big for that height should be scrollable
+    - [x] Cards too big for that height should be scrollable
 - [ ] cf. support for vocab
 - [ ] Add notes to card sides
 - [ ] Configurable minimum interval +1
 - [ ] Replace `alert("Account confirmed! Please log in.");`
-- [ ] Allow confirmation of prompts / form submissions with 'Enter'
-    - [ ] Delete deck dialog
+- [x] Allow confirmation of prompts / form submissions with 'Enter'
+    - [x] Delete deck dialog
 - [ ] Show count of search results
 - [ ] When text from a search is found in deck titles and in card contents, prioritize decks that have that search text in the title
 - [ ] Track related cards
@@ -27,7 +27,7 @@
 - [ ] Weekly leagues - other users are my other weeks from the past
 - [ ] Select lucid icons instead of emojis for folders/decks
 - [ ] Show all keyboard shortcuts when holding down Alt (or Option) key
-- [ ] Ability to undo card review
+- [x] Ability to undo card review
 - [ ] Ability to share a deck
 - [ ] Ability to make a deck public/private
 - [ ] Ability to move cards to different decks

@@ -11,6 +11,22 @@
 		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 		<meta name="apple-mobile-web-app-title" content="Flashcards" />
 		<title>Spaced Repetition Flashcards</title>
+		<script>
+			// Apply the theme before first paint so dark mode doesn't flash light.
+			// Mirrors ThemeContext, which takes over once React mounts.
+			try {
+				var preference = localStorage.getItem('themePreference');
+				var dark =
+					preference === 'dark' ||
+					(preference !== 'light' &&
+						window.matchMedia('(prefers-color-scheme: dark)')
+							.matches);
+				document.documentElement.classList.toggle('dark', dark);
+				document.documentElement.style.colorScheme = dark
+					? 'dark'
+					: 'light';
+			} catch (e) {}
+		</script>
 	</head>
 
 	<body>

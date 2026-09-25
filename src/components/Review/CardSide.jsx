@@ -2,6 +2,20 @@ import { forwardRef } from 'react';
 import { Star, Flag, BookOpen } from 'lucide-react';
 import AnimationOverlay from './AnimationOverlay';
 
+// Short prompts read best big and centered; paragraphs and lists read best
+// smaller and left-aligned, so size the text to fit what's on the card.
+function getTextClasses(text = '') {
+	const length = text.length;
+	const lineCount = text.split('\n').length;
+	const align = lineCount > 2 || length > 400 ? 'text-left' : 'text-center';
+	if (length <= 40 && lineCount <= 2) {
+		return `text-3xl sm:text-4xl leading-snug ${align}`;
+	}
+	if (length <= 150) return `text-xl sm:text-2xl leading-relaxed ${align}`;
+	if (length <= 400) return `text-lg sm:text-xl leading-relaxed ${align}`;
+	return `text-base sm:text-lg leading-relaxed ${align}`;
+}
+
 const CardSide = forwardRef(function CardSide(
 	{
 		side,
@@ -100,8 +114,11 @@ const CardSide = forwardRef(function CardSide(
 			</div>
 
 			{/* Content */}
-			<div className="flex-1 flex items-center justify-center p-6 min-h-[180px]">
-				<div className="text-2xl font-medium text-gray-900 dark:text-white leading-relaxed text-center">
+			{/* m-auto centers short content but lets long content scroll from the top */}
+			<div className="flex-1 flex min-h-[180px] max-h-[55vh] overflow-y-auto overscroll-contain p-6">
+				<div
+					className={`m-auto w-full max-w-prose whitespace-pre-wrap break-words font-medium text-gray-900 dark:text-white ${getTextClasses(text)}`}
+				>
 					{text}
 				</div>
 			</div>
