@@ -32,7 +32,7 @@ import {
 	DEFAULT_DECK_ICON,
 	DEFAULT_FOLDER_ICON,
 } from '../config/containerIcons';
-import { DEFAULT_FOLDER_COLOR } from '../config/folderColors';
+import { DEFAULT_CONTAINER_COLOR } from '../config/containerColors';
 
 export default function FolderBrowserView({
 	onStartReview,
@@ -60,8 +60,11 @@ export default function FolderBrowserView({
 	const [editingId, setEditingId] = useState(null);
 	const [editingName, setEditingName] = useState('');
 	const [editingSymbol, setEditingSymbol] = useState('');
-	const [newFolderColor, setNewFolderColor] = useState(DEFAULT_FOLDER_COLOR);
-	const [editingColor, setEditingColor] = useState(DEFAULT_FOLDER_COLOR);
+	const [newDeckColor, setNewDeckColor] = useState(DEFAULT_CONTAINER_COLOR);
+	const [newFolderColor, setNewFolderColor] = useState(
+		DEFAULT_CONTAINER_COLOR
+	);
+	const [editingColor, setEditingColor] = useState(DEFAULT_CONTAINER_COLOR);
 	const [showNewDeckForm, setShowNewDeckForm] = useState(false);
 	const [showNewFolderForm, setShowNewFolderForm] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
@@ -164,10 +167,12 @@ export default function FolderBrowserView({
 			addDeck(
 				newDeckName.trim(),
 				newDeckSymbol || DEFAULT_DECK_ICON,
-				folderId || null
+				folderId || null,
+				newDeckColor
 			);
 			setNewDeckName('');
 			setNewDeckSymbol(DEFAULT_DECK_ICON);
+			setNewDeckColor(DEFAULT_CONTAINER_COLOR);
 			setShowNewDeckForm(false);
 		}
 	};
@@ -176,13 +181,14 @@ export default function FolderBrowserView({
 		setShowNewDeckForm(false);
 		setNewDeckName('');
 		setNewDeckSymbol(DEFAULT_DECK_ICON);
+		setNewDeckColor(DEFAULT_CONTAINER_COLOR);
 	};
 
 	const cancelNewFolder = () => {
 		setShowNewFolderForm(false);
 		setNewFolderName('');
 		setNewFolderSymbol(DEFAULT_FOLDER_ICON);
-		setNewFolderColor(DEFAULT_FOLDER_COLOR);
+		setNewFolderColor(DEFAULT_CONTAINER_COLOR);
 	};
 
 	// Enter submits, Escape backs out (ignoring Enter mid-IME composition)
@@ -206,8 +212,7 @@ export default function FolderBrowserView({
 			);
 			setNewFolderName('');
 			setNewFolderSymbol(DEFAULT_FOLDER_ICON);
-			setNewFolderColor(DEFAULT_FOLDER_COLOR);
-			setNewFolderColor(DEFAULT_FOLDER_COLOR);
+			setNewFolderColor(DEFAULT_CONTAINER_COLOR);
 			setShowNewFolderForm(false);
 		}
 	};
@@ -229,7 +234,8 @@ export default function FolderBrowserView({
 			updateDeck(
 				editingId,
 				editingName.trim(),
-				editingSymbol || DEFAULT_DECK_ICON
+				editingSymbol || DEFAULT_DECK_ICON,
+				editingColor
 			);
 		}
 
@@ -400,6 +406,8 @@ export default function FolderBrowserView({
 								<IconPicker
 									value={newDeckSymbol}
 									onChange={setNewDeckSymbol}
+									color={newDeckColor}
+									onColorChange={setNewDeckColor}
 								/>
 								<input
 									type="text"

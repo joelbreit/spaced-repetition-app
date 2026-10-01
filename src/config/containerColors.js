@@ -1,7 +1,8 @@
-// Folder colors are stored as one of these keys (folderColor). Keys are
+// Deck and folder colors are stored as one of these keys (deckColor /
+// folderColor). Keys are
 // persisted in user data, so never rename or remove one. Class strings are
 // written out in full so Tailwind can find them.
-export const FOLDER_COLORS = {
+export const CONTAINER_COLORS = {
 	teal: {
 		label: 'Teal',
 		swatch: 'bg-teal-500',
@@ -74,14 +75,14 @@ export const FOLDER_COLORS = {
 	},
 };
 
-export const DEFAULT_FOLDER_COLOR = 'teal';
+export const DEFAULT_CONTAINER_COLOR = 'teal';
 
 // Unknown values (including the hex placeholder from the original schema)
 // fall back to the default color
-export function normalizeFolderColor(color) {
-	return FOLDER_COLORS[color] ? color : DEFAULT_FOLDER_COLOR;
+export function normalizeContainerColor(color) {
+	return CONTAINER_COLORS[color] ? color : DEFAULT_CONTAINER_COLOR;
 }
 
-export function getFolderColor(color) {
-	return FOLDER_COLORS[normalizeFolderColor(color)];
+export function getContainerColor(color) {
+	return CONTAINER_COLORS[normalizeContainerColor(color)];
 }

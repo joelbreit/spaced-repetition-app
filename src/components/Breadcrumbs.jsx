@@ -1,15 +1,15 @@
 import { Link } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
 import { useAppData } from '../contexts/AppDataContext';
-import { getFolderColor } from '../config/folderColors';
+import { getContainerColor } from '../config/containerColors';
 import ContainerIcon from './ContainerIcon';
 
-function FolderCrumbIcon({ folder }) {
+function CrumbIcon({ icon }) {
 	return (
 		<ContainerIcon
-			name={folder.folderSymbol}
-			isFolder
-			className={`h-4 w-4 shrink-0 ${getFolderColor(folder.folderColor).icon}`}
+			name={icon.symbol}
+			isFolder={icon.isFolder}
+			className={`h-4 w-4 shrink-0 ${getContainerColor(icon.color).icon}`}
 		/>
 	);
 }
@@ -29,7 +29,16 @@ export default function Breadcrumbs({ folderId, deckId, deckName }) {
 				const folderPath = getFolderPath(deck.parentFolderId);
 				path.push(...folderPath);
 			}
-			path.push({ name: deckName, url: `/deck/${deckId}`, id: deckId });
+			path.push({
+				name: deckName,
+				url: `/deck/${deckId}`,
+				id: deckId,
+				icon: deck && {
+					symbol: deck.deckSymbol,
+					color: deck.deckColor,
+					isFolder: false,
+				},
+			});
 		} else if (folderId) {
 			// If we're viewing a folder, build its path
 			const folderPath = getFolderPath(folderId);
@@ -57,7 +66,11 @@ export default function Breadcrumbs({ folderId, deckId, deckName }) {
 				name: folder.folderName,
 				url: `/folder/${folder.folderId}`,
 				id: folder.folderId,
-				folder,
+				icon: {
+					symbol: folder.folderSymbol,
+					color: folder.folderColor,
+					isFolder: true,
+				},
 			});
 
 			currentId = folder.parentFolderId;
@@ -88,9 +101,7 @@ export default function Breadcrumbs({ folderId, deckId, deckName }) {
 						</Link>
 					) : isLast(index) ? (
 						<span className="flex items-center gap-1.5 text-gray-900 dark:text-slate-100 font-medium">
-							{item.folder && (
-								<FolderCrumbIcon folder={item.folder} />
-							)}
+							{item.icon && <CrumbIcon icon={item.icon} />}
 							{item.name}
 						</span>
 					) : (
@@ -98,9 +109,7 @@ export default function Breadcrumbs({ folderId, deckId, deckName }) {
 							to={item.url}
 							className="flex items-center gap-1.5 text-gray-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
 						>
-							{item.folder && (
-								<FolderCrumbIcon folder={item.folder} />
-							)}
+							{item.icon && <CrumbIcon icon={item.icon} />}
 							{item.name}
 						</Link>
 					)}

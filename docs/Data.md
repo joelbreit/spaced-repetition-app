@@ -12,7 +12,7 @@
 			"folderId": "unique-id",
 			"folderName": "Folder Name",
 			"folderDescription": "Optional description",
-			"folderColor": "blue", // optional key from src/config/folderColors.js, defaults to "teal"
+			"folderColor": "blue", // optional key from src/config/containerColors.js, defaults to "teal"
 			"folderSymbol": "folder", // lucide icon key from src/config/containerIcons.js
 			"parentFolderId": null, // null or missing = root level, otherwise references another folderId
 			"createdAt": 1234567890,
@@ -24,6 +24,7 @@
 		"deckId": "unique-id",
 		"deckName": "Deck Name",
 		"deckSymbol": "book-open", // optional lucide icon key from src/config/containerIcons.js; unknown values (e.g. legacy emoji) render the default
+		"deckColor": "violet", // optional key from src/config/containerColors.js, defaults to "teal"
 		"parentFolderId": null, // v2, null or missing = root level, otherwise references another folderId
 		"isArchived": false, // optional, defaults to false. Archived decks are excluded from folder stats and Study All, but still viewable and studyable directly
 		"createdAt": 1234567890, // added later, may be missing

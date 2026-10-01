@@ -29,7 +29,7 @@ import {
 import CardListItem from './CardListItem';
 import Breadcrumbs from './Breadcrumbs';
 import ContainerIcon from './ContainerIcon';
-import { getFolderColor } from '../config/folderColors';
+import { getContainerColor } from '../config/containerColors';
 
 export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const { deckId } = useParams();
@@ -352,19 +352,16 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 		}
 	};
 
+	// Missing parentFolderId means the deck is at the root
+	const currentFolderId = selectedDeck?.parentFolderId ?? null;
+
 	// Build folder tree for selection (excluding current deck's folder to prevent circular moves)
 	const buildFolderOptions = () => {
 		const options = [{ id: null, name: 'Root (No Folder)', level: 0 }];
 
-		const addFolderRecursive = (
-			folderId,
-			level = 0,
-			excludeFolderId = null
-		) => {
+		const addFolderRecursive = (folderId, level = 0) => {
 			const folders = (appData.folders || []).filter(
-				(f) =>
-					f.parentFolderId === folderId &&
-					f.folderId !== excludeFolderId
+				(f) => f.parentFolderId === folderId
 			);
 
 			folders.forEach((folder) => {
@@ -374,18 +371,18 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 					level: level + 1,
 					folder,
 				});
-				addFolderRecursive(folder.folderId, level + 1, excludeFolderId);
+				addFolderRecursive(folder.folderId, level + 1);
 			});
 		};
 
-		// Start from root, excluding current folder if deck is in one
-		addFolderRecursive(null, 0, selectedDeck?.parentFolderId);
+		// The deck's current folder stays listed but is marked Current and disabled
+		addFolderRecursive(null, 0);
 
 		return options;
 	};
 
 	const handleMoveDeck = async (targetFolderId) => {
-		if (targetFolderId === selectedDeck?.parentFolderId) {
+		if (targetFolderId === currentFolderId) {
 			showError('Deck is already in this folder.', 'Move Failed');
 			setShowMoveDialog(false);
 			return;
@@ -439,7 +436,9 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 			<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-6 hover:shadow-xl transition-shadow duration-300">
 				<div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 					<div className="flex items-center gap-3">
-						<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400">
+						<div
+							className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${getContainerColor(selectedDeck.deckColor).tile}`}
+						>
 							<ContainerIcon
 								name={selectedDeck.deckSymbol}
 								className="h-6 w-6"
@@ -757,15 +756,11 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 									key={option.id || 'root'}
 									onClick={() => handleMoveDeck(option.id)}
 									className={`w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border-b border-gray-100 dark:border-slate-700 last:border-b-0 ${
-										option.id ===
-										selectedDeck?.parentFolderId
+										option.id === currentFolderId
 											? 'bg-teal-50 dark:bg-teal-900/20'
 											: ''
 									}`}
-									disabled={
-										option.id ===
-										selectedDeck?.parentFolderId
-									}
+									disabled={option.id === currentFolderId}
 								>
 									<div
 										className="flex items-center gap-2"
@@ -779,7 +774,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 													option.folder.folderSymbol
 												}
 												isFolder
-												className={`h-4 w-4 shrink-0 ${getFolderColor(option.folder.folderColor).icon}`}
+												className={`h-4 w-4 shrink-0 ${getContainerColor(option.folder.folderColor).icon}`}
 											/>
 										) : (
 											<Folder className="h-4 w-4 text-gray-500 dark:text-slate-400 shrink-0" />
@@ -787,8 +782,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 										<span className="text-gray-900 dark:text-slate-100 font-medium">
 											{option.name}
 										</span>
-										{option.id ===
-											selectedDeck?.parentFolderId && (
+										{option.id === currentFolderId && (
 											<span className="ml-auto text-xs text-teal-600 dark:text-teal-400">
 												Current
 											</span>

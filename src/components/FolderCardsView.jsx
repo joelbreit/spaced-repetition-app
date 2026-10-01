@@ -25,7 +25,7 @@ import {
 import CardListItem from './CardListItem';
 import Breadcrumbs from './Breadcrumbs';
 import ContainerIcon from './ContainerIcon';
-import { getFolderColor } from '../config/folderColors';
+import { getContainerColor } from '../config/containerColors';
 
 export default function FolderCardsView({ onEditCard }) {
 	const { folderId } = useParams();
@@ -91,6 +91,7 @@ export default function FolderCardsView({ onEditCard }) {
 			sourceDeckId: deck.deckId,
 			sourceDeckName: deck.deckName,
 			sourceDeckSymbol: deck.deckSymbol,
+			sourceDeckColor: deck.deckColor,
 		}))
 	);
 
@@ -296,7 +297,7 @@ export default function FolderCardsView({ onEditCard }) {
 				<div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 					<div className="flex items-center gap-3">
 						<div
-							className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${getFolderColor(folder?.folderColor).tile}`}
+							className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${getContainerColor(folder?.folderColor).tile}`}
 						>
 							{folder ? (
 								<ContainerIcon
@@ -484,6 +485,7 @@ export default function FolderCardsView({ onEditCard }) {
 								onToggleCardFlag={toggleCardFlag}
 								deckName={card.sourceDeckName}
 								deckSymbol={card.sourceDeckSymbol}
+								deckColor={card.sourceDeckColor}
 							/>
 						))
 					)}

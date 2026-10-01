@@ -146,16 +146,12 @@ export function AppDataProvider({ children }) {
 			try {
 				const cloudData = await loadFromAPI(authToken, refreshToken);
 
-				let finalData;
-				if (
-					!cloudData ||
-					!cloudData.decks ||
-					cloudData.decks.length === 0
-				) {
-					finalData = { folders: [], decks: [] };
-				} else {
-					finalData = cloudData;
-				}
+				// Keep folders even when there are no decks yet
+				const finalData = {
+					...cloudData,
+					folders: cloudData?.folders || [],
+					decks: cloudData?.decks || [],
+				};
 
 				setAppData(finalData);
 				lastSavedStateRef.current = JSON.parse(
@@ -190,8 +186,13 @@ export function AppDataProvider({ children }) {
 			return null; // No previous state, need full save
 		}
 
-		const currentDecks = currentData.decks || [];
-		const savedDecks = lastSavedState.decks || [];
+		// Everything outside the decks array (folders, etc.) is small, so any
+		// change there - including folder icons and colors - gets a full save
+		const { decks: currentDecks = [], ...currentRest } = currentData;
+		const { decks: savedDecks = [], ...savedRest } = lastSavedState;
+		if (JSON.stringify(currentRest) !== JSON.stringify(savedRest)) {
+			return null;
+		}
 
 		// Track which decks have changes
 		const changedDecks = [];
@@ -210,10 +211,12 @@ export function AppDataProvider({ children }) {
 				continue;
 			}
 
-			// Check if deck name changed
-			if (savedDeck.deckName !== currentDeck.deckName) {
+			// Check deck-level fields (name, icon, color, folder, archived...)
+			const { cards: _currentCards, ...currentMeta } = currentDeck;
+			const { cards: _savedCards, ...savedMeta } = savedDeck;
+			if (JSON.stringify(currentMeta) !== JSON.stringify(savedMeta)) {
 				changedDecks.push(currentDeck);
-				changedCardsByDeck[currentDeck.deckId] = 'deck-name-changed';
+				changedCardsByDeck[currentDeck.deckId] = 'deck-meta-changed';
 				continue;
 			}
 

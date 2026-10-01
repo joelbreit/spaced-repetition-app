@@ -12,6 +12,7 @@ import {
 	getPerDayReviewRate,
 } from '../services/cardCalculations';
 import ContainerIcon from './ContainerIcon';
+import { getContainerColor } from '../config/containerColors';
 
 function getMasteryBadgeColors(mastery) {
 	if (mastery < 25)
@@ -32,6 +33,7 @@ export default function CardListItem({
 	onToggleCardFlag,
 	deckName = null,
 	deckSymbol = null,
+	deckColor = null,
 }) {
 	const isFlagged = card.isFlagged || false;
 	const isStarred = card.isStarred || false;
@@ -52,7 +54,7 @@ export default function CardListItem({
 				<div className="flex items-center gap-1.5 mb-2 text-xs text-gray-500 dark:text-slate-400">
 					<ContainerIcon
 						name={deckSymbol}
-						className="h-3.5 w-3.5 text-teal-500 shrink-0"
+						className={`h-3.5 w-3.5 shrink-0 ${getContainerColor(deckColor).icon}`}
 					/>
 					<span>{deckName}</span>
 				</div>

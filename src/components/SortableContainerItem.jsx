@@ -12,7 +12,10 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { calculateCardStats } from '../services/cardCalculations';
 import { normalizeContainerIcon } from '../config/containerIcons';
-import { getFolderColor, normalizeFolderColor } from '../config/folderColors';
+import {
+	getContainerColor,
+	normalizeContainerColor,
+} from '../config/containerColors';
 import ContainerIcon from './ContainerIcon';
 import IconPicker from './IconPicker';
 
@@ -54,7 +57,8 @@ export default function SortableContainerItem({
 	const isDeck = type === 'deck';
 	const isEditing = editingId === item.id;
 	const isArchived = isDeck && (item.isArchived || false);
-	const folderColor = isFolder ? getFolderColor(item.folderColor) : null;
+	const itemColorKey = isFolder ? item.folderColor : item.deckColor;
+	const itemColor = getContainerColor(itemColorKey);
 
 	const {
 		attributes,
@@ -182,9 +186,7 @@ export default function SortableContainerItem({
 			style={style}
 			className={`bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 dark:border-slate-700 p-6 transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group animate-slide-up ${
 				isArchived ? 'opacity-60' : ''
-			} ${isEditing ? 'relative z-30' : ''} ${
-				folderColor ? `border-l-4 ${folderColor.accent}` : ''
-			}`}
+			} ${isEditing ? 'relative z-30' : ''} border-l-4 ${itemColor.accent}`}
 		>
 			{isEditing ? (
 				<div>
@@ -193,10 +195,8 @@ export default function SortableContainerItem({
 							value={editingSymbol}
 							onChange={setEditingSymbol}
 							isFolder={isFolder}
-							color={isFolder ? editingColor : undefined}
-							onColorChange={
-								isFolder ? setEditingColor : undefined
-							}
+							color={editingColor}
+							onColorChange={setEditingColor}
 						/>
 						<input
 							type="text"
@@ -252,11 +252,7 @@ export default function SortableContainerItem({
 								</button>
 							)}
 							<div
-								className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
-									folderColor
-										? folderColor.tile
-										: 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
-								}`}
+								className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${itemColor.tile}`}
 							>
 								<ContainerIcon
 									name={item.symbol}
@@ -586,11 +582,9 @@ export default function SortableContainerItem({
 										isFolder
 									)
 								);
-								if (isFolder) {
-									setEditingColor(
-										normalizeFolderColor(item.folderColor)
-									);
-								}
+								setEditingColor(
+									normalizeContainerColor(itemColorKey)
+								);
 							}}
 							className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
 						>

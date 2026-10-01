@@ -3,7 +3,7 @@ import {
 	DEFAULT_DECK_ICON,
 	DEFAULT_FOLDER_ICON,
 } from '../config/containerIcons';
-import { DEFAULT_FOLDER_COLOR } from '../config/folderColors';
+import { DEFAULT_CONTAINER_COLOR } from '../config/containerColors';
 
 export function useDeckOperations() {
 	const { setAppData } = useAppData();
@@ -11,12 +11,14 @@ export function useDeckOperations() {
 	const addDeck = (
 		deckName,
 		deckSymbol = DEFAULT_DECK_ICON,
-		parentFolderId = null
+		parentFolderId = null,
+		deckColor = DEFAULT_CONTAINER_COLOR
 	) => {
 		const newDeck = {
 			deckId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
 			deckName,
 			deckSymbol,
+			deckColor,
 			parentFolderId,
 			createdAt: Date.now(),
 			cards: [],
@@ -27,12 +29,12 @@ export function useDeckOperations() {
 		}));
 	};
 
-	const updateDeck = (deckId, deckName, deckSymbol) => {
+	const updateDeck = (deckId, deckName, deckSymbol, deckColor) => {
 		setAppData((prev) => ({
 			...prev,
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
-					? { ...deck, deckName, deckSymbol }
+					? { ...deck, deckName, deckSymbol, deckColor }
 					: deck
 			),
 		}));
@@ -240,7 +242,7 @@ export function useDeckOperations() {
 		folderName,
 		folderSymbol = DEFAULT_FOLDER_ICON,
 		parentFolderId = null,
-		folderColor = DEFAULT_FOLDER_COLOR
+		folderColor = DEFAULT_CONTAINER_COLOR
 	) => {
 		const newFolder = {
 			folderId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,

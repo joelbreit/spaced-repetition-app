@@ -4,13 +4,13 @@ import {
 	normalizeContainerIcon,
 } from '../config/containerIcons';
 import {
-	FOLDER_COLORS,
-	getFolderColor,
-	normalizeFolderColor,
-} from '../config/folderColors';
+	CONTAINER_COLORS,
+	getContainerColor,
+	normalizeContainerColor,
+} from '../config/containerColors';
 import ContainerIcon from './ContainerIcon';
 
-// Pass `color` + `onColorChange` (folders) to also show a color row
+// Pass `color` + `onColorChange` to also show a color row
 export default function IconPicker({
 	value,
 	onChange,
@@ -22,8 +22,8 @@ export default function IconPicker({
 	const containerRef = useRef(null);
 	const selected = normalizeContainerIcon(value, isFolder);
 	const showColors = Boolean(onColorChange);
-	const selectedColor = normalizeFolderColor(color);
-	const tileClasses = getFolderColor(color).tile;
+	const selectedColor = normalizeContainerColor(color);
+	const tileClasses = getContainerColor(color).tile;
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -85,9 +85,9 @@ export default function IconPicker({
 							<div
 								className="grid grid-cols-10 justify-items-center px-1 pb-1"
 								role="radiogroup"
-								aria-label="Folder color"
+								aria-label="Color"
 							>
-								{Object.entries(FOLDER_COLORS).map(
+								{Object.entries(CONTAINER_COLORS).map(
 									([key, { label, swatch }]) => {
 										const isSelected =
 											key === selectedColor;

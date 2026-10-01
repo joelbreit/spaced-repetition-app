@@ -63,7 +63,7 @@ User data is stored as JSON in S3 at `users/{userId}/data.json`:
 			"folderName": "Name",
 			"parentFolderId": null, // null = root level
 			"folderSymbol": "folder", // lucide icon key from src/config/containerIcons.js
-			"folderColor": "blue" // key from src/config/folderColors.js
+			"folderColor": "blue" // key from src/config/containerColors.js
 		}
 	],
 	"decks": [
@@ -71,6 +71,7 @@ User data is stored as JSON in S3 at `users/{userId}/data.json`:
 			"deckId": "uuid",
 			"deckName": "Deck Name",
 			"deckSymbol": "book-open",
+			"deckColor": "violet", // key from src/config/containerColors.js
 			"parentFolderId": null, // null = root level
 			"cards": [
 				{

@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { Star, Flag } from 'lucide-react';
 import AnimationOverlay from './AnimationOverlay';
 import ContainerIcon from '../ContainerIcon';
-import { getFolderColor } from '../../config/folderColors';
+import { getContainerColor } from '../../config/containerColors';
 
 // Short prompts read best big and centered; paragraphs and lists read best
 // smaller and left-aligned, so size the text to fit what's on the card.
@@ -33,7 +33,7 @@ const CardSide = forwardRef(function CardSide(
 		transform,
 		deckName,
 		deckSymbol,
-		folderColor,
+		deckColor,
 		stats,
 	},
 	ref
@@ -59,7 +59,7 @@ const CardSide = forwardRef(function CardSide(
 				{/* Deck Name */}
 				<div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 min-w-0 flex-1">
 					<span
-						className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${getFolderColor(folderColor).tile}`}
+						className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${getContainerColor(deckColor).tile}`}
 					>
 						<ContainerIcon
 							name={deckSymbol}
