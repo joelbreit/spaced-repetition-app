@@ -332,38 +332,42 @@ export default function FolderBrowserView({
 						<h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-slate-100">
 							Create New Folder
 						</h3>
-						<div className="flex gap-3">
-							<IconPicker
-								value={newFolderSymbol}
-								onChange={setNewFolderSymbol}
-								isFolder
-							/>
-							<input
-								type="text"
-								placeholder="Folder name..."
-								value={newFolderName}
-								onChange={(e) =>
-									setNewFolderName(e.target.value)
-								}
-								onKeyDown={submitOnEnter(
-									handleAddFolder,
-									cancelNewFolder
-								)}
-								autoFocus
-								className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-							/>
-							<button
-								onClick={handleAddFolder}
-								className="px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-							>
-								Create
-							</button>
-							<button
-								onClick={cancelNewFolder}
-								className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-							>
-								Cancel
-							</button>
+						<div className="flex flex-wrap gap-3">
+							<div className="flex flex-1 min-w-[12rem] gap-3">
+								<IconPicker
+									value={newFolderSymbol}
+									onChange={setNewFolderSymbol}
+									isFolder
+								/>
+								<input
+									type="text"
+									placeholder="Folder name..."
+									value={newFolderName}
+									onChange={(e) =>
+										setNewFolderName(e.target.value)
+									}
+									onKeyDown={submitOnEnter(
+										handleAddFolder,
+										cancelNewFolder
+									)}
+									autoFocus
+									className="flex-1 min-w-0 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+								/>
+							</div>
+							<div className="flex gap-3 ml-auto">
+								<button
+									onClick={handleAddFolder}
+									className="px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+								>
+									Create
+								</button>
+								<button
+									onClick={cancelNewFolder}
+									className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+								>
+									Cancel
+								</button>
+							</div>
 						</div>
 					</div>
 				) : (
@@ -381,35 +385,41 @@ export default function FolderBrowserView({
 						<h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-slate-100">
 							Create New Deck
 						</h3>
-						<div className="flex gap-3">
-							<IconPicker
-								value={newDeckSymbol}
-								onChange={setNewDeckSymbol}
-							/>
-							<input
-								type="text"
-								placeholder="Deck name..."
-								value={newDeckName}
-								onChange={(e) => setNewDeckName(e.target.value)}
-								onKeyDown={submitOnEnter(
-									handleAddDeck,
-									cancelNewDeck
-								)}
-								autoFocus
-								className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-							/>
-							<button
-								onClick={handleAddDeck}
-								className="px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-							>
-								Create
-							</button>
-							<button
-								onClick={cancelNewDeck}
-								className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-							>
-								Cancel
-							</button>
+						<div className="flex flex-wrap gap-3">
+							<div className="flex flex-1 min-w-[12rem] gap-3">
+								<IconPicker
+									value={newDeckSymbol}
+									onChange={setNewDeckSymbol}
+								/>
+								<input
+									type="text"
+									placeholder="Deck name..."
+									value={newDeckName}
+									onChange={(e) =>
+										setNewDeckName(e.target.value)
+									}
+									onKeyDown={submitOnEnter(
+										handleAddDeck,
+										cancelNewDeck
+									)}
+									autoFocus
+									className="flex-1 min-w-0 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+								/>
+							</div>
+							<div className="flex gap-3 ml-auto">
+								<button
+									onClick={handleAddDeck}
+									className="px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+								>
+									Create
+								</button>
+								<button
+									onClick={cancelNewDeck}
+									className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+								>
+									Cancel
+								</button>
+							</div>
 						</div>
 					</div>
 				) : (
