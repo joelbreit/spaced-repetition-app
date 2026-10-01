@@ -100,6 +100,12 @@ export default function CardReviewView({
 		: null;
 	const displayDeckName = sourceDeck?.deckName || deck.deckName;
 	const displayDeckSymbol = sourceDeck?.deckSymbol || deck.deckSymbol;
+	// Tint the deck icon with the color of the folder the deck lives in
+	const parentFolderId = (sourceDeck || deck).parentFolderId;
+	const parentFolder = parentFolderId
+		? appData.folders?.find((f) => f.folderId === parentFolderId)
+		: null;
+	const displayFolderColor = parentFolder?.folderColor;
 
 	// Animation state for review result
 	const [animationResult, setAnimationResult] = useState(null);
@@ -741,6 +747,7 @@ export default function CardReviewView({
 						transform="rotateY(0deg)"
 						deckName={displayDeckName}
 						deckSymbol={displayDeckSymbol}
+						folderColor={displayFolderColor}
 						stats={cardStats}
 					/>
 
@@ -759,6 +766,7 @@ export default function CardReviewView({
 						transform="rotateY(180deg)"
 						deckName={displayDeckName}
 						deckSymbol={displayDeckSymbol}
+						folderColor={displayFolderColor}
 						stats={cardStats}
 					/>
 				</div>

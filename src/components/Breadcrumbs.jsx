@@ -1,6 +1,18 @@
 import { Link } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
 import { useAppData } from '../contexts/AppDataContext';
+import { getFolderColor } from '../config/folderColors';
+import ContainerIcon from './ContainerIcon';
+
+function FolderCrumbIcon({ folder }) {
+	return (
+		<ContainerIcon
+			name={folder.folderSymbol}
+			isFolder
+			className={`h-4 w-4 shrink-0 ${getFolderColor(folder.folderColor).icon}`}
+		/>
+	);
+}
 
 export default function Breadcrumbs({ folderId, deckId, deckName }) {
 	const { appData } = useAppData();
@@ -45,6 +57,7 @@ export default function Breadcrumbs({ folderId, deckId, deckName }) {
 				name: folder.folderName,
 				url: `/folder/${folder.folderId}`,
 				id: folder.folderId,
+				folder,
 			});
 
 			currentId = folder.parentFolderId;
@@ -74,14 +87,20 @@ export default function Breadcrumbs({ folderId, deckId, deckName }) {
 							</span>
 						</Link>
 					) : isLast(index) ? (
-						<span className="text-gray-900 dark:text-slate-100 font-medium">
+						<span className="flex items-center gap-1.5 text-gray-900 dark:text-slate-100 font-medium">
+							{item.folder && (
+								<FolderCrumbIcon folder={item.folder} />
+							)}
 							{item.name}
 						</span>
 					) : (
 						<Link
 							to={item.url}
-							className="text-gray-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
+							className="flex items-center gap-1.5 text-gray-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200"
 						>
+							{item.folder && (
+								<FolderCrumbIcon folder={item.folder} />
+							)}
 							{item.name}
 						</Link>
 					)}

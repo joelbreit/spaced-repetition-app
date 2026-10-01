@@ -25,6 +25,7 @@ import {
 import CardListItem from './CardListItem';
 import Breadcrumbs from './Breadcrumbs';
 import ContainerIcon from './ContainerIcon';
+import { getFolderColor } from '../config/folderColors';
 
 export default function FolderCardsView({ onEditCard }) {
 	const { folderId } = useParams();
@@ -294,7 +295,9 @@ export default function FolderCardsView({ onEditCard }) {
 			<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-6 hover:shadow-xl transition-shadow duration-300">
 				<div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 					<div className="flex items-center gap-3">
-						<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400">
+						<div
+							className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${getFolderColor(folder?.folderColor).tile}`}
+						>
 							{folder ? (
 								<ContainerIcon
 									name={folder.folderSymbol}

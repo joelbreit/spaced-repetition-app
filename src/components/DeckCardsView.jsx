@@ -29,6 +29,7 @@ import {
 import CardListItem from './CardListItem';
 import Breadcrumbs from './Breadcrumbs';
 import ContainerIcon from './ContainerIcon';
+import { getFolderColor } from '../config/folderColors';
 
 export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const { deckId } = useParams();
@@ -367,11 +368,11 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 			);
 
 			folders.forEach((folder) => {
-				const indent = '  '.repeat(level);
 				options.push({
 					id: folder.folderId,
-					name: `${indent}${folder.folderName}`,
+					name: folder.folderName,
 					level: level + 1,
+					folder,
 				});
 				addFolderRecursive(folder.folderId, level + 1, excludeFolderId);
 			});
@@ -766,8 +767,23 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 										selectedDeck?.parentFolderId
 									}
 								>
-									<div className="flex items-center gap-2">
-										<Folder className="h-4 w-4 text-gray-500 dark:text-slate-400 shrink-0" />
+									<div
+										className="flex items-center gap-2"
+										style={{
+											paddingLeft: `${Math.max(0, option.level - 1)}rem`,
+										}}
+									>
+										{option.folder ? (
+											<ContainerIcon
+												name={
+													option.folder.folderSymbol
+												}
+												isFolder
+												className={`h-4 w-4 shrink-0 ${getFolderColor(option.folder.folderColor).icon}`}
+											/>
+										) : (
+											<Folder className="h-4 w-4 text-gray-500 dark:text-slate-400 shrink-0" />
+										)}
 										<span className="text-gray-900 dark:text-slate-100 font-medium">
 											{option.name}
 										</span>

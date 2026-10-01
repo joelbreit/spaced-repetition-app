@@ -12,7 +12,7 @@
 			"folderId": "unique-id",
 			"folderName": "Folder Name",
 			"folderDescription": "Optional description",
-			"folderColor": "#3b82f6",
+			"folderColor": "blue", // optional key from src/config/folderColors.js, defaults to "teal"
 			"folderSymbol": "folder", // lucide icon key from src/config/containerIcons.js
 			"parentFolderId": null, // null or missing = root level, otherwise references another folderId
 			"createdAt": 1234567890,

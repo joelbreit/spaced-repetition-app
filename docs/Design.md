@@ -550,6 +550,7 @@ import { Flame, TrendingUp, CheckCircle } from 'lucide-react';
 Use lucide icons instead of emoji everywhere in the interface.
 
 - Deck/folder icons: `<ContainerIcon name={deck.deckSymbol} />` in a `h-12 w-12` teal tile. Users pick from `src/config/containerIcons.js` via `<IconPicker />`
+- Folder colors: `folderColor` picks a palette entry from `src/config/folderColors.js`, which tints the icon tile and adds a `border-l-4` stripe to the folder card. Pass `color`/`onColorChange` to `<IconPicker />` to show swatches
 - Empty states: `h-16 w-16` icon, `text-gray-300 dark:text-slate-600`
 - Celebration moments: `PartyPopper` / `ThumbsUp` in teal
 

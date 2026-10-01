@@ -3,6 +3,7 @@ import {
 	DEFAULT_DECK_ICON,
 	DEFAULT_FOLDER_ICON,
 } from '../config/containerIcons';
+import { DEFAULT_FOLDER_COLOR } from '../config/folderColors';
 
 export function useDeckOperations() {
 	const { setAppData } = useAppData();
@@ -238,12 +239,14 @@ export function useDeckOperations() {
 	const addFolder = (
 		folderName,
 		folderSymbol = DEFAULT_FOLDER_ICON,
-		parentFolderId = null
+		parentFolderId = null,
+		folderColor = DEFAULT_FOLDER_COLOR
 	) => {
 		const newFolder = {
 			folderId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
 			folderName,
 			folderSymbol,
+			folderColor,
 			parentFolderId,
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
@@ -254,7 +257,7 @@ export function useDeckOperations() {
 		}));
 	};
 
-	const updateFolder = (folderId, folderName, folderSymbol) => {
+	const updateFolder = (folderId, folderName, folderSymbol, folderColor) => {
 		setAppData((prev) => ({
 			...prev,
 			folders: (prev.folders || []).map((folder) =>
@@ -263,6 +266,7 @@ export function useDeckOperations() {
 							...folder,
 							folderName,
 							folderSymbol,
+							folderColor,
 							updatedAt: Date.now(),
 						}
 					: folder

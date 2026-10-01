@@ -32,6 +32,7 @@ import {
 	DEFAULT_DECK_ICON,
 	DEFAULT_FOLDER_ICON,
 } from '../config/containerIcons';
+import { DEFAULT_FOLDER_COLOR } from '../config/folderColors';
 
 export default function FolderBrowserView({
 	onStartReview,
@@ -59,6 +60,8 @@ export default function FolderBrowserView({
 	const [editingId, setEditingId] = useState(null);
 	const [editingName, setEditingName] = useState('');
 	const [editingSymbol, setEditingSymbol] = useState('');
+	const [newFolderColor, setNewFolderColor] = useState(DEFAULT_FOLDER_COLOR);
+	const [editingColor, setEditingColor] = useState(DEFAULT_FOLDER_COLOR);
 	const [showNewDeckForm, setShowNewDeckForm] = useState(false);
 	const [showNewFolderForm, setShowNewFolderForm] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
@@ -179,6 +182,7 @@ export default function FolderBrowserView({
 		setShowNewFolderForm(false);
 		setNewFolderName('');
 		setNewFolderSymbol(DEFAULT_FOLDER_ICON);
+		setNewFolderColor(DEFAULT_FOLDER_COLOR);
 	};
 
 	// Enter submits, Escape backs out (ignoring Enter mid-IME composition)
@@ -197,10 +201,13 @@ export default function FolderBrowserView({
 			addFolder(
 				newFolderName.trim(),
 				newFolderSymbol || DEFAULT_FOLDER_ICON,
-				folderId || null
+				folderId || null,
+				newFolderColor
 			);
 			setNewFolderName('');
 			setNewFolderSymbol(DEFAULT_FOLDER_ICON);
+			setNewFolderColor(DEFAULT_FOLDER_COLOR);
+			setNewFolderColor(DEFAULT_FOLDER_COLOR);
 			setShowNewFolderForm(false);
 		}
 	};
@@ -215,7 +222,8 @@ export default function FolderBrowserView({
 			updateFolder(
 				editingId,
 				editingName.trim(),
-				editingSymbol || DEFAULT_FOLDER_ICON
+				editingSymbol || DEFAULT_FOLDER_ICON,
+				editingColor
 			);
 		} else {
 			updateDeck(
@@ -338,6 +346,8 @@ export default function FolderBrowserView({
 									value={newFolderSymbol}
 									onChange={setNewFolderSymbol}
 									isFolder
+									color={newFolderColor}
+									onColorChange={setNewFolderColor}
 								/>
 								<input
 									type="text"
@@ -477,6 +487,8 @@ export default function FolderBrowserView({
 									setEditingId={setEditingId}
 									setEditingName={setEditingName}
 									setEditingSymbol={setEditingSymbol}
+									editingColor={editingColor}
+									setEditingColor={setEditingColor}
 									handleUpdate={handleUpdate}
 									handleDelete={(id) =>
 										handleDelete(id, item.type)
