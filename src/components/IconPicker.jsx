@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import {
-	CONTAINER_ICONS,
+	CONTAINER_ICON_GROUPS,
 	normalizeContainerIcon,
 } from '../config/containerIcons';
 import ContainerIcon from './ContainerIcon';
@@ -51,38 +51,52 @@ export default function IconPicker({ value, onChange, isFolder = false }) {
 			</button>
 			{isOpen && (
 				<div
-					className="absolute left-0 top-full z-20 mt-2 grid w-72 grid-cols-6 gap-1 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 shadow-xl animate-fade-in"
+					className="absolute left-0 top-full z-20 mt-2 w-72 max-h-80 overflow-y-auto rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 shadow-xl animate-fade-in"
 					role="listbox"
 					aria-label="Icons"
 					onClick={(e) => e.stopPropagation()}
 				>
-					{Object.keys(CONTAINER_ICONS).map((name) => {
-						const isSelected = name === selected;
-						return (
-							<button
-								key={name}
-								type="button"
-								role="option"
-								aria-selected={isSelected}
-								aria-label={name.replace(/-/g, ' ')}
-								title={name.replace(/-/g, ' ')}
-								onClick={() => {
-									onChange(name);
-									setIsOpen(false);
-								}}
-								className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-									isSelected
-										? 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300'
-										: 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'
-								}`}
-							>
-								<ContainerIcon
-									name={name}
-									className="h-5 w-5"
-								/>
-							</button>
-						);
-					})}
+					{CONTAINER_ICON_GROUPS.map((group) => (
+						<div
+							key={group.label}
+							role="group"
+							aria-label={group.label}
+						>
+							<div className="px-1 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+								{group.label}
+							</div>
+							<div className="grid grid-cols-6 gap-1">
+								{Object.keys(group.icons).map((name) => {
+									const isSelected = name === selected;
+									const label = name.replace(/-/g, ' ');
+									return (
+										<button
+											key={name}
+											type="button"
+											role="option"
+											aria-selected={isSelected}
+											aria-label={label}
+											title={label}
+											onClick={() => {
+												onChange(name);
+												setIsOpen(false);
+											}}
+											className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+												isSelected
+													? 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300'
+													: 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+											}`}
+										>
+											<ContainerIcon
+												name={name}
+												className="h-5 w-5"
+											/>
+										</button>
+									);
+								})}
+							</div>
+						</div>
+					))}
 				</div>
 			)}
 		</div>
