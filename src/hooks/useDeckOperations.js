@@ -1,9 +1,17 @@
 import { useAppData } from '../contexts/AppDataContext';
+import {
+	DEFAULT_DECK_ICON,
+	DEFAULT_FOLDER_ICON,
+} from '../config/containerIcons';
 
 export function useDeckOperations() {
 	const { setAppData } = useAppData();
 
-	const addDeck = (deckName, deckSymbol = '📚', parentFolderId = null) => {
+	const addDeck = (
+		deckName,
+		deckSymbol = DEFAULT_DECK_ICON,
+		parentFolderId = null
+	) => {
 		const newDeck = {
 			deckId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
 			deckName,
@@ -229,7 +237,7 @@ export function useDeckOperations() {
 
 	const addFolder = (
 		folderName,
-		folderSymbol = '📁',
+		folderSymbol = DEFAULT_FOLDER_ICON,
 		parentFolderId = null
 	) => {
 		const newFolder = {

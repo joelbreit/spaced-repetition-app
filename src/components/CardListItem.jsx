@@ -11,6 +11,7 @@ import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
 } from '../services/cardCalculations';
+import ContainerIcon from './ContainerIcon';
 
 function getMasteryBadgeColors(mastery) {
 	if (mastery < 25)
@@ -49,7 +50,10 @@ export default function CardListItem({
 			{/* Deck info badge (when viewing cards across multiple decks) */}
 			{deckName && (
 				<div className="flex items-center gap-1.5 mb-2 text-xs text-gray-500 dark:text-slate-400">
-					<span>{deckSymbol || '📚'}</span>
+					<ContainerIcon
+						name={deckSymbol}
+						className="h-3.5 w-3.5 text-teal-500 shrink-0"
+					/>
 					<span>{deckName}</span>
 				</div>
 			)}

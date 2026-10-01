@@ -99,7 +99,7 @@ export default function CardReviewView({
 		? appData.decks?.find((d) => d.deckId === currentCard.sourceDeckId)
 		: null;
 	const displayDeckName = sourceDeck?.deckName || deck.deckName;
-	const displayDeckSymbol = sourceDeck?.deckSymbol || deck.deckSymbol || '📚';
+	const displayDeckSymbol = sourceDeck?.deckSymbol || deck.deckSymbol;
 
 	// Animation state for review result
 	const [animationResult, setAnimationResult] = useState(null);

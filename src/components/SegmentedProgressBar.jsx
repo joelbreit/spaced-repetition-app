@@ -1,3 +1,5 @@
+import { Check } from 'lucide-react';
+
 /**
  * Segmented Progress Bar for spaced repetition review sessions
  * Shows up to 3 progress bars (Due, New, Learned) with the active one expanded
@@ -131,9 +133,14 @@ export default function SegmentedProgressBar({
 									</>
 								) : (
 									<span
-										className={`font-medium ${colors.text} text-xs w-full text-center`}
+										className={`font-medium ${colors.text} text-xs w-full inline-flex items-center justify-center gap-1`}
 									>
-										{isCompleted ? '✓ ' : ''}
+										{isCompleted && (
+											<Check
+												className="h-3 w-3"
+												aria-hidden="true"
+											/>
+										)}
 										{section.total} {section.label}
 									</span>
 								)}

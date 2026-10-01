@@ -10,6 +10,7 @@ import CardReviewView from '../components/Review/CardReviewView';
 import ReviewSummary from '../components/Review/ReviewSummary';
 import Header from '../components/Header';
 import NotificationContainer from '../components/NotificationContainer';
+import { normalizeContainerIcon } from '../config/containerIcons';
 import Footer from '../components/Footer.jsx';
 import DemoBanner from '../components/DemoBanner';
 import { useAppData } from '../contexts/AppDataContext';
@@ -202,7 +203,7 @@ function OverviewPage() {
 		const virtualDeck = {
 			deckId: folderId || 'root-folder', // Use folderId or special ID for root
 			deckName: folder ? `${folder.folderName} (All Decks)` : 'All Decks',
-			deckSymbol: folder?.folderSymbol || '📁',
+			deckSymbol: normalizeContainerIcon(folder?.folderSymbol, true),
 			cards: orderedCards,
 			isFolderReview: true, // Flag to indicate this is a folder review
 		};

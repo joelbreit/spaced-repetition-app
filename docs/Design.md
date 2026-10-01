@@ -545,21 +545,22 @@ import { Flame, TrendingUp, CheckCircle } from 'lucide-react';
 <CheckCircle className="text-blue-500" size={18} />
 ```
 
-**Emoji Usage**
+**No Emoji in UI**
 
-- Deck icons: Large emoji (text-4xl)
-- Celebration moments: Medium emoji (text-2xl)
-- Inline emphasis: Small emoji (text-base)
+Use lucide icons instead of emoji everywhere in the interface.
+
+- Deck/folder icons: `<ContainerIcon name={deck.deckSymbol} />` in a `h-12 w-12` teal tile. Users pick from `src/config/containerIcons.js` via `<IconPicker />`
+- Empty states: `h-16 w-16` icon, `text-gray-300 dark:text-slate-600`
+- Celebration moments: `PartyPopper` / `ThumbsUp` in teal
 
 ```jsx
 // Deck icon
-<span className="text-4xl">💻</span>
+<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400">
+	<ContainerIcon name={deck.deckSymbol} className="h-6 w-6" />
+</div>
 
-// Celebration
-<span className="text-2xl">🎉</span>
-
-// Inline
-<p>Keep your streak alive! 🔥</p>
+// Empty state
+<FileText className="mx-auto h-16 w-16 mb-4 text-gray-300 dark:text-slate-600" />
 ```
 
 ---

@@ -11,6 +11,9 @@ import {
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { calculateCardStats } from '../services/cardCalculations';
+import { normalizeContainerIcon } from '../config/containerIcons';
+import ContainerIcon from './ContainerIcon';
+import IconPicker from './IconPicker';
 
 function getMasteryColor(mastery) {
 	if (mastery < 25) return 'text-red-500 dark:text-red-400';
@@ -175,22 +178,15 @@ export default function SortableContainerItem({
 			style={style}
 			className={`bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 dark:border-slate-700 p-6 transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group animate-slide-up ${
 				isArchived ? 'opacity-60' : ''
-			}`}
+			} ${isEditing ? 'relative z-30' : ''}`}
 		>
 			{isEditing ? (
 				<div>
 					<div className="flex gap-3 mb-4">
-						<input
-							type="text"
+						<IconPicker
 							value={editingSymbol}
-							onChange={(e) => {
-								const value = e.target.value;
-								const firstChar = [...value][0] || '';
-								setEditingSymbol(firstChar);
-							}}
-							placeholder={isFolder ? '📁' : '📚'}
-							className="w-16 px-3 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-							title="Enter an emoji or single character"
+							onChange={setEditingSymbol}
+							isFolder={isFolder}
 						/>
 						<input
 							type="text"
@@ -245,11 +241,13 @@ export default function SortableContainerItem({
 									<GripVertical className="h-5 w-5" />
 								</button>
 							)}
-							<span className="text-4xl">
-								{isFolder
-									? item.symbol || '📁'
-									: item.symbol || '📚'}
-							</span>
+							<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400">
+								<ContainerIcon
+									name={item.symbol}
+									isFolder={isFolder}
+									className="h-6 w-6"
+								/>
+							</div>
 							<div className="flex-1">
 								<div className="flex items-center gap-2">
 									<h3
@@ -567,9 +565,10 @@ export default function SortableContainerItem({
 								setEditingId(item.id);
 								setEditingName(item.name);
 								setEditingSymbol(
-									isFolder
-										? item.symbol || '📁'
-										: item.symbol || '📚'
+									normalizeContainerIcon(
+										item.symbol,
+										isFolder
+									)
 								);
 							}}
 							className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"

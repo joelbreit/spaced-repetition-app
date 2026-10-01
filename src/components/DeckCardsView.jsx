@@ -17,6 +17,7 @@ import {
 	FolderPlus,
 	Folder,
 	FileUp,
+	FileText,
 } from 'lucide-react';
 import { useNotification } from '../hooks/useNotification';
 import { useAppData } from '../contexts/AppDataContext';
@@ -27,6 +28,7 @@ import {
 } from '../services/cardCalculations';
 import CardListItem from './CardListItem';
 import Breadcrumbs from './Breadcrumbs';
+import ContainerIcon from './ContainerIcon';
 
 export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const { deckId } = useParams();
@@ -368,9 +370,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 				const indent = '  '.repeat(level);
 				options.push({
 					id: folder.folderId,
-					name: `${indent}${folder.folderSymbol || '📁'} ${
-						folder.folderName
-					}`,
+					name: `${indent}${folder.folderName}`,
 					level: level + 1,
 				});
 				addFolderRecursive(folder.folderId, level + 1, excludeFolderId);
@@ -407,7 +407,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	if (!selectedDeck) {
 		return (
 			<div className="py-12 text-center">
-				<div className="text-6xl mb-4">📚</div>
+				<BookOpen className="mx-auto h-16 w-16 mb-4 text-gray-300 dark:text-slate-600" />
 				<p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
 					Deck not found
 				</p>
@@ -438,9 +438,12 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 			<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-6 hover:shadow-xl transition-shadow duration-300">
 				<div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 					<div className="flex items-center gap-3">
-						<span className="text-4xl">
-							{selectedDeck.deckSymbol || '📚'}
-						</span>
+						<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400">
+							<ContainerIcon
+								name={selectedDeck.deckSymbol}
+								className="h-6 w-6"
+							/>
+						</div>
 						<div>
 							<h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
 								{selectedDeck.deckName}
@@ -689,7 +692,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 				<div className="space-y-4">
 					{selectedDeck.cards.length === 0 ? (
 						<div className="py-12 text-center">
-							<div className="text-6xl mb-4">📝</div>
+							<FileText className="mx-auto h-16 w-16 mb-4 text-gray-300 dark:text-slate-600" />
 							<p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
 								No cards yet
 							</p>
@@ -699,7 +702,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 						</div>
 					) : sortedAndFilteredCards.length === 0 ? (
 						<div className="py-12 text-center">
-							<div className="text-6xl mb-4">🔍</div>
+							<Search className="mx-auto h-16 w-16 mb-4 text-gray-300 dark:text-slate-600" />
 							<p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
 								No cards match your filters
 							</p>

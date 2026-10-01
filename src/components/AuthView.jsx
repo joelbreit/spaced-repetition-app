@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, Lock, X, AlertCircle } from 'lucide-react';
+import { Mail, Lock, X, AlertCircle, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppData } from '../contexts/AppDataContext';
 
@@ -118,7 +118,7 @@ export default function AuthView({ onClose }) {
 
 				{/* Logo/Title */}
 				<div className="text-center mb-8">
-					<div className="text-6xl mb-4">📚</div>
+					<BookOpen className="mx-auto h-16 w-16 mb-4 text-white" />
 					<h1 className="text-4xl font-bold text-white mb-2">
 						Spaced Repetition
 					</h1>

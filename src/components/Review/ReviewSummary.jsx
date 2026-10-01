@@ -12,6 +12,8 @@ import {
 	Flame,
 	FastForward,
 	Undo2,
+	PartyPopper,
+	ThumbsUp,
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
@@ -229,11 +231,12 @@ export default function ReviewSummary({
 		<div ref={summaryRef} className="mx-auto max-w-5xl animate-scale-in">
 			{/* Hero */}
 			<div className="text-center">
-				<div
-					className="text-5xl sm:text-6xl mb-3 animate-pop-in"
-					aria-hidden="true"
-				>
-					{isComplete ? '🎉' : '👏'}
+				<div className="mb-3 animate-pop-in" aria-hidden="true">
+					{isComplete ? (
+						<PartyPopper className="mx-auto h-14 w-14 sm:h-16 sm:w-16 text-teal-500 dark:text-teal-400" />
+					) : (
+						<ThumbsUp className="mx-auto h-14 w-14 sm:h-16 sm:w-16 text-teal-500 dark:text-teal-400" />
+					)}
 				</div>
 				<h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
 					{headline}

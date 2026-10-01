@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { useAuth } from './AuthContext';
 import { useNotification } from '../hooks/useNotification';
+import { DEFAULT_DECK_ICON } from '../config/containerIcons';
 import {
 	loadFromAPI,
 	saveToAPI,
@@ -24,7 +25,7 @@ const demoData = {
 		{
 			deckId: 'demo-getting-started',
 			deckName: 'Getting Started',
-			deckSymbol: '📚',
+			deckSymbol: DEFAULT_DECK_ICON,
 			cards: [
 				{
 					cardId: 'demo-1',

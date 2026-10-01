@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Search, FolderOpen, Play, Eye } from 'lucide-react';
+import {
+	Plus,
+	Search,
+	FolderOpen,
+	Play,
+	Eye,
+	Library,
+	Folder,
+} from 'lucide-react';
 import {
 	DndContext,
 	closestCenter,
@@ -19,6 +27,11 @@ import { useDeckOperations } from '../hooks/useDeckOperations';
 import StudyStatistics from './StudyStatistics';
 import SortableContainerItem from './SortableContainerItem';
 import Breadcrumbs from './Breadcrumbs';
+import IconPicker from './IconPicker';
+import {
+	DEFAULT_DECK_ICON,
+	DEFAULT_FOLDER_ICON,
+} from '../config/containerIcons';
 
 export default function FolderBrowserView({
 	onStartReview,
@@ -40,9 +53,9 @@ export default function FolderBrowserView({
 	const { showConfirmation } = useNotification();
 
 	const [newDeckName, setNewDeckName] = useState('');
-	const [newDeckSymbol, setNewDeckSymbol] = useState('📚');
+	const [newDeckSymbol, setNewDeckSymbol] = useState(DEFAULT_DECK_ICON);
 	const [newFolderName, setNewFolderName] = useState('');
-	const [newFolderSymbol, setNewFolderSymbol] = useState('📁');
+	const [newFolderSymbol, setNewFolderSymbol] = useState(DEFAULT_FOLDER_ICON);
 	const [editingId, setEditingId] = useState(null);
 	const [editingName, setEditingName] = useState('');
 	const [editingSymbol, setEditingSymbol] = useState('');
@@ -147,11 +160,11 @@ export default function FolderBrowserView({
 		if (newDeckName.trim()) {
 			addDeck(
 				newDeckName.trim(),
-				newDeckSymbol || '📚',
+				newDeckSymbol || DEFAULT_DECK_ICON,
 				folderId || null
 			);
 			setNewDeckName('');
-			setNewDeckSymbol('📚');
+			setNewDeckSymbol(DEFAULT_DECK_ICON);
 			setShowNewDeckForm(false);
 		}
 	};
@@ -159,13 +172,13 @@ export default function FolderBrowserView({
 	const cancelNewDeck = () => {
 		setShowNewDeckForm(false);
 		setNewDeckName('');
-		setNewDeckSymbol('📚');
+		setNewDeckSymbol(DEFAULT_DECK_ICON);
 	};
 
 	const cancelNewFolder = () => {
 		setShowNewFolderForm(false);
 		setNewFolderName('');
-		setNewFolderSymbol('📁');
+		setNewFolderSymbol(DEFAULT_FOLDER_ICON);
 	};
 
 	// Enter submits, Escape backs out (ignoring Enter mid-IME composition)
@@ -183,11 +196,11 @@ export default function FolderBrowserView({
 		if (newFolderName.trim()) {
 			addFolder(
 				newFolderName.trim(),
-				newFolderSymbol || '📁',
+				newFolderSymbol || DEFAULT_FOLDER_ICON,
 				folderId || null
 			);
 			setNewFolderName('');
-			setNewFolderSymbol('📁');
+			setNewFolderSymbol(DEFAULT_FOLDER_ICON);
 			setShowNewFolderForm(false);
 		}
 	};
@@ -199,9 +212,17 @@ export default function FolderBrowserView({
 		if (!item) return;
 
 		if (item.type === 'folder') {
-			updateFolder(editingId, editingName.trim(), editingSymbol || '📁');
+			updateFolder(
+				editingId,
+				editingName.trim(),
+				editingSymbol || DEFAULT_FOLDER_ICON
+			);
 		} else {
-			updateDeck(editingId, editingName.trim(), editingSymbol || '📚');
+			updateDeck(
+				editingId,
+				editingName.trim(),
+				editingSymbol || DEFAULT_DECK_ICON
+			);
 		}
 
 		setEditingId(null);
@@ -312,17 +333,10 @@ export default function FolderBrowserView({
 							Create New Folder
 						</h3>
 						<div className="flex gap-3">
-							<input
-								type="text"
-								placeholder="📁"
+							<IconPicker
 								value={newFolderSymbol}
-								onChange={(e) => {
-									const value = e.target.value;
-									const firstChar = [...value][0] || '';
-									setNewFolderSymbol(firstChar);
-								}}
-								className="w-16 px-3 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-								title="Enter an emoji or single character"
+								onChange={setNewFolderSymbol}
+								isFolder
 							/>
 							<input
 								type="text"
@@ -368,17 +382,9 @@ export default function FolderBrowserView({
 							Create New Deck
 						</h3>
 						<div className="flex gap-3">
-							<input
-								type="text"
-								placeholder="📚"
+							<IconPicker
 								value={newDeckSymbol}
-								onChange={(e) => {
-									const value = e.target.value;
-									const firstChar = [...value][0] || '';
-									setNewDeckSymbol(firstChar);
-								}}
-								className="w-16 px-3 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-								title="Enter an emoji or single character"
+								onChange={setNewDeckSymbol}
 							/>
 							<input
 								type="text"
@@ -420,9 +426,13 @@ export default function FolderBrowserView({
 			{/* Items Grid */}
 			{filteredItems.length === 0 ? (
 				<div className="col-span-full py-12 text-center animate-fade-in">
-					<div className="text-6xl mb-4">
-						{searchTerm ? '🔍' : isRoot ? '📚' : '📁'}
-					</div>
+					{searchTerm ? (
+						<Search className="mx-auto h-16 w-16 mb-4 text-gray-300 dark:text-slate-600" />
+					) : isRoot ? (
+						<Library className="mx-auto h-16 w-16 mb-4 text-gray-300 dark:text-slate-600" />
+					) : (
+						<Folder className="mx-auto h-16 w-16 mb-4 text-gray-300 dark:text-slate-600" />
+					)}
 					<p className="text-lg text-gray-500 dark:text-gray-400 mb-2">
 						{searchTerm
 							? 'No folders or decks found matching your search.'
