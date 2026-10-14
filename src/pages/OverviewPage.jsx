@@ -392,6 +392,44 @@ function OverviewPage() {
 		}
 	};
 
+	// Cards whose most recent grade this session was Again or Hard
+	const missedCardIds = useMemo(() => {
+		const latestResult = new Map();
+		sessionReviews.forEach((r) => latestResult.set(r.cardId, r.result));
+		return [...latestResult]
+			.filter(([, result]) => result === 'again' || result === 'hard')
+			.map(([cardId]) => cardId);
+	}, [sessionReviews]);
+
+	// Another round over just the missed cards. Session stats keep accumulating,
+	// but undo starts fresh since its card indexes belong to the previous round.
+	const startMissedReview = () => {
+		if (!currentDeckForReview || missedCardIds.length === 0) return;
+
+		const missedCards = missedCardIds
+			.map((cardId) =>
+				currentDeckForReview.cards.find((c) => c.cardId === cardId)
+			)
+			.filter(Boolean);
+		for (let i = missedCards.length - 1; i > 0; i -= 1) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[missedCards[i], missedCards[j]] = [missedCards[j], missedCards[i]];
+		}
+
+		setCurrentDeckForReview({
+			...currentDeckForReview,
+			cards: missedCards,
+		});
+		setReviewSections([
+			{ type: 'missed', label: 'Missed', total: missedCards.length },
+		]);
+		setUndoStack([]);
+		setIsSessionComplete(false);
+		setCurrentCardIndex(0);
+		setIsFlipped(false);
+		setCurrentView('review');
+	};
+
 	const handleCloseSummary = () => {
 		setCurrentView(null);
 		setCurrentDeckForReview(null);
@@ -601,6 +639,8 @@ function OverviewPage() {
 								: 0
 						}
 						onStudyAhead={() => setCurrentView('review')}
+						missedCount={missedCardIds.length}
+						onReviewMissed={startMissedReview}
 						onUndo={undoLastReview}
 						canUndo={undoStack.length > 0}
 						streak={streak}

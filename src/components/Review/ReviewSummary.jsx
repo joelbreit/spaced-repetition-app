@@ -14,6 +14,7 @@ import {
 	Undo2,
 	PartyPopper,
 	ThumbsUp,
+	RotateCcw,
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
@@ -54,6 +55,8 @@ export default function ReviewSummary({
 	isComplete = false,
 	studyAheadCount = 0,
 	onStudyAhead,
+	missedCount = 0,
+	onReviewMissed,
 	onUndo,
 	canUndo = false,
 	streak = 0,
@@ -264,6 +267,16 @@ export default function ReviewSummary({
 						<CheckCircle className="h-6 w-6" />
 						Done
 					</button>
+					{missedCount > 0 && onReviewMissed && (
+						<button
+							onClick={onReviewMissed}
+							className="inline-flex items-center gap-2 px-6 py-4 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-700 dark:text-red-300 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-300"
+							title="Go through the cards you marked Again or Hard"
+						>
+							<RotateCcw className="h-5 w-5" />
+							Review missed ({missedCount})
+						</button>
+					)}
 					{studyAheadCount > 0 && onStudyAhead && (
 						<button
 							onClick={onStudyAhead}

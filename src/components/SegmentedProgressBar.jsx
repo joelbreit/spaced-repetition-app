@@ -65,6 +65,16 @@ export default function SegmentedProgressBar({
 				text: 'text-green-600 dark:text-green-400',
 				label: 'text-green-700 dark:text-green-300',
 			},
+			missed: {
+				bg: isActive
+					? 'bg-gradient-to-r from-red-500 to-rose-500'
+					: 'bg-red-400/60',
+				track: isActive
+					? 'bg-red-200 dark:bg-red-900/40'
+					: 'bg-red-200/50 dark:bg-red-900/30',
+				text: 'text-red-600 dark:text-red-400',
+				label: 'text-red-700 dark:text-red-300',
+			},
 		};
 		return colors[type] || colors.new;
 	};
