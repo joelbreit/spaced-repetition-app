@@ -62,6 +62,19 @@ const GRADES = [
 	},
 ];
 
+const GRADE_LABELS = Object.fromEntries(
+	GRADES.map(({ result, label }) => [result, label])
+);
+
+const GRADE_DOT_COLORS = {
+	again: 'bg-red-500',
+	hard: 'bg-orange-500',
+	good: 'bg-green-500',
+	easy: 'bg-teal-500',
+};
+
+const RECENT_GRADE_COUNT = 5;
+
 // Arrow keys (existing muscle memory) plus 1-4 (the Anki convention)
 const GRADE_KEYS = {
 	ArrowLeft: 'again',
@@ -669,6 +682,24 @@ export default function CardReviewView({
 		])
 	);
 
+	// Last few grades as dots, oldest to newest
+	const recentReviews = reviews.slice(-RECENT_GRADE_COUNT);
+	const recentGrades = recentReviews.length > 0 && (
+		<span
+			className="flex items-center gap-1"
+			title={`Last ${recentReviews.length === 1 ? 'grade' : `${recentReviews.length} grades`}: ${recentReviews
+				.map((r) => GRADE_LABELS[r.result] || r.result)
+				.join(', ')}`}
+		>
+			{recentReviews.map((r, i) => (
+				<span
+					key={r.reviewId || i}
+					className={`h-1.5 w-1.5 rounded-full ${GRADE_DOT_COLORS[r.result] || 'bg-gray-400'}`}
+				/>
+			))}
+		</span>
+	);
+
 	// Build stats array for CardSide
 	const cardStats = [
 		{
@@ -676,6 +707,7 @@ export default function CardReviewView({
 			value: reviewCount,
 			label: 'reviews',
 		},
+		...(recentGrades ? [{ value: recentGrades }] : []),
 		{
 			icon: <Clock className="h-3 w-3 text-blue-500" />,
 			value: formatTimeAgo(timeSinceLastReview),
