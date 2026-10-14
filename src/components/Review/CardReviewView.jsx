@@ -651,7 +651,8 @@ export default function CardReviewView({
 		const hours = Math.floor(interval / (1000 * 60 * 60));
 		if (hours > 0) return `${hours}h`;
 		const minutes = Math.floor(interval / (1000 * 60));
-		return `${minutes}m`;
+		if (minutes > 0) return `${minutes}m`;
+		return `${Math.floor(interval / 1000)}s`;
 	};
 
 	const getDueColor = () => {

@@ -1,5 +1,5 @@
-// 10 minutes
-const MIN_INTERVAL = 10 * 60 * 1000;
+// 10 seconds
+const MIN_INTERVAL = 10 * 1000;
 
 export function prettyPrintInterval(interval) {
 	// days
@@ -24,10 +24,12 @@ export function prettyPrintInterval(interval) {
 	return `${roundedSeconds} second${roundedSeconds !== 1 ? 's' : ''}`;
 }
 
-// Compact form for tight spaces like the grade buttons: "10m", "5h", "12d", "3.5mo", "1.2y"
+// Compact form for tight spaces like the grade buttons: "10s", "10m", "5h", "12d", "3.5mo", "1.2y"
 export function formatIntervalShort(interval) {
-	const minutes = interval / (1000 * 60);
-	if (minutes < 60) return `${Math.max(1, Math.round(minutes))}m`;
+	const seconds = interval / 1000;
+	if (seconds < 60) return `${Math.max(1, Math.round(seconds))}s`;
+	const minutes = seconds / 60;
+	if (minutes < 60) return `${Math.round(minutes)}m`;
 	const hours = minutes / 60;
 	if (hours < 24) return `${Math.round(hours)}h`;
 	const days = hours / 24;
