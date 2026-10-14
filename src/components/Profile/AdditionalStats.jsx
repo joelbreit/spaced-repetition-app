@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { BarChart3, RefreshCw, Calculator, Wrench } from 'lucide-react';
+import {
+	BarChart3,
+	RefreshCw,
+	Calculator,
+	Wrench,
+	ChevronDown,
+} from 'lucide-react';
 import { useAppData } from '../../contexts/AppDataContext';
 import { useNotification } from '../../hooks/useNotification';
 import { repairCreatedAtValues } from '../../services/repairCreatedAt';
@@ -440,28 +446,6 @@ export default function AdditionalStats({ appData }) {
 						</div>
 					</div>
 
-					{/* Cards with Review Duration */}
-					<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
-									Cards with Review Duration
-								</span>
-								<span className="text-lg font-semibold text-teal-600 dark:text-teal-400">
-									{stats.cardsWithDurationCount.toLocaleString()}
-								</span>
-							</div>
-							<div className="flex items-center justify-between">
-								<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
-									Cards without Review Duration
-								</span>
-								<span className="text-lg font-semibold text-gray-500 dark:text-slate-500">
-									{stats.cardsWithoutDurationCount.toLocaleString()}
-								</span>
-							</div>
-						</div>
-					</div>
-
 					{/* Average Review Duration */}
 					<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
 						<div className="flex items-center justify-between">
@@ -623,142 +607,161 @@ export default function AdditionalStats({ appData }) {
 							</div>
 						)}
 
-					{/* Missing Values */}
-					{(stats.foldersWithoutCreatedAt > 0 ||
-						stats.decksWithoutCreatedAt > 0 ||
-						stats.cardsWithoutCreatedAt > 0) && (
-						<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
-							<div className="flex items-center justify-between mb-3">
-								<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
-									Missing Values
-								</span>
-								<button
-									onClick={handleRepair}
-									disabled={isRepairing}
-									className="flex items-center gap-2 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-								>
-									<Wrench
-										className={`h-3.5 w-3.5 ${
-											isRepairing ? 'animate-spin' : ''
-										}`}
-									/>
-									{isRepairing ? 'Repairing...' : 'Repair'}
-								</button>
-							</div>
-							<div className="space-y-2">
-								{stats.totalFolders > 0 && (
-									<div className="flex items-center justify-between">
-										<span className="text-xs text-gray-600 dark:text-slate-400">
-											Folders without createdAt
-										</span>
-										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-											{stats.foldersWithoutCreatedAt.toLocaleString()}{' '}
-											/{' '}
-											{stats.totalFolders.toLocaleString()}
-										</span>
-									</div>
+					{/* Data Health: data-quality checks, collapsed by default */}
+					<details className="group rounded-xl border border-gray-200 dark:border-slate-700">
+						<summary className="flex items-center justify-between gap-2 p-4 cursor-pointer list-none text-sm font-medium text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200">
+							<span className="flex items-center gap-2">
+								Data health
+								{(stats.foldersWithoutCreatedAt > 0 ||
+									stats.decksWithoutCreatedAt > 0 ||
+									stats.cardsWithoutCreatedAt > 0 ||
+									stats.mismatchedPartners?.length > 0) && (
+									<span className="px-1.5 py-0.5 text-xs rounded-md bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
+										Issues found
+									</span>
 								)}
-								{stats.totalDecks > 0 && (
-									<div className="flex items-center justify-between">
-										<span className="text-xs text-gray-600 dark:text-slate-400">
-											Decks without createdAt
-										</span>
-										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-											{stats.decksWithoutCreatedAt.toLocaleString()}{' '}
-											/{' '}
-											{stats.totalDecks.toLocaleString()}
-										</span>
-									</div>
-								)}
-								{stats.totalCards > 0 && (
-									<div className="flex items-center justify-between">
-										<span className="text-xs text-gray-600 dark:text-slate-400">
-											Cards without createdAt
-										</span>
-										<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-											{stats.cardsWithoutCreatedAt.toLocaleString()}{' '}
-											/{' '}
-											{stats.totalCards.toLocaleString()}
-										</span>
-									</div>
-								)}
-							</div>
-						</div>
-					)}
-
-					{/* Mismatched Partner Cards */}
-					{stats.mismatchedPartners &&
-						stats.mismatchedPartners.length > 0 && (
+							</span>
+							<ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+						</summary>
+						<div className="space-y-4 px-4 pb-4">
+							{/* Cards with Review Duration */}
 							<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
-								<div className="mb-3">
-									<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
-										Mismatched Partner Cards
-									</span>
-									<span className="ml-2 text-xs text-orange-600 dark:text-orange-400">
-										({stats.mismatchedPartners.length}{' '}
-										found)
-									</span>
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+											Cards with Review Duration
+										</span>
+										<span className="text-lg font-semibold text-teal-600 dark:text-teal-400">
+											{stats.cardsWithDurationCount.toLocaleString()}
+										</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+											Cards without Review Duration
+										</span>
+										<span className="text-lg font-semibold text-gray-500 dark:text-slate-500">
+											{stats.cardsWithoutDurationCount.toLocaleString()}
+										</span>
+									</div>
 								</div>
-								<div className="space-y-3 max-h-64 overflow-y-auto">
-									{stats.mismatchedPartners.map(
-										(mismatch) => (
-											<div
-												key={mismatch.cardId}
-												className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-orange-200 dark:border-orange-800/50"
-											>
-												<div className="flex items-start justify-between gap-2 mb-2">
-													<span className="text-xs font-medium text-orange-600 dark:text-orange-400">
-														{mismatch.reason}
-													</span>
-													<span className="text-xs text-gray-500 dark:text-slate-500">
-														{mismatch.deckName}
-													</span>
-												</div>
-												<div className="space-y-1 text-xs">
-													<div>
-														<span className="text-gray-500 dark:text-slate-500">
-															Front:{' '}
-														</span>
-														<span className="text-gray-700 dark:text-slate-300">
-															{mismatch.front?.substring(
-																0,
-																50
-															) || '(empty)'}
-															{mismatch.front
-																?.length > 50 &&
-																'...'}
-														</span>
-													</div>
-													<div>
-														<span className="text-gray-500 dark:text-slate-500">
-															Back:{' '}
-														</span>
-														<span className="text-gray-700 dark:text-slate-300">
-															{mismatch.back?.substring(
-																0,
-																50
-															) || '(empty)'}
-															{mismatch.back
-																?.length > 50 &&
-																'...'}
-														</span>
-													</div>
-													{mismatch.partnerFront !==
-														null && (
-														<>
-															<div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-700">
+							</div>
+
+							{/* Missing Values */}
+							{(stats.foldersWithoutCreatedAt > 0 ||
+								stats.decksWithoutCreatedAt > 0 ||
+								stats.cardsWithoutCreatedAt > 0) && (
+								<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+									<div className="flex items-center justify-between mb-3">
+										<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+											Missing Values
+										</span>
+										<button
+											onClick={handleRepair}
+											disabled={isRepairing}
+											className="flex items-center gap-2 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+										>
+											<Wrench
+												className={`h-3.5 w-3.5 ${
+													isRepairing
+														? 'animate-spin'
+														: ''
+												}`}
+											/>
+											{isRepairing
+												? 'Repairing...'
+												: 'Repair'}
+										</button>
+									</div>
+									<div className="space-y-2">
+										{stats.totalFolders > 0 && (
+											<div className="flex items-center justify-between">
+												<span className="text-xs text-gray-600 dark:text-slate-400">
+													Folders without createdAt
+												</span>
+												<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+													{stats.foldersWithoutCreatedAt.toLocaleString()}{' '}
+													/{' '}
+													{stats.totalFolders.toLocaleString()}
+												</span>
+											</div>
+										)}
+										{stats.totalDecks > 0 && (
+											<div className="flex items-center justify-between">
+												<span className="text-xs text-gray-600 dark:text-slate-400">
+													Decks without createdAt
+												</span>
+												<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+													{stats.decksWithoutCreatedAt.toLocaleString()}{' '}
+													/{' '}
+													{stats.totalDecks.toLocaleString()}
+												</span>
+											</div>
+										)}
+										{stats.totalCards > 0 && (
+											<div className="flex items-center justify-between">
+												<span className="text-xs text-gray-600 dark:text-slate-400">
+													Cards without createdAt
+												</span>
+												<span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+													{stats.cardsWithoutCreatedAt.toLocaleString()}{' '}
+													/{' '}
+													{stats.totalCards.toLocaleString()}
+												</span>
+											</div>
+										)}
+									</div>
+								</div>
+							)}
+
+							{/* Mismatched Partner Cards */}
+							{stats.mismatchedPartners &&
+								stats.mismatchedPartners.length > 0 && (
+									<div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+										<div className="mb-3">
+											<span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+												Mismatched Partner Cards
+											</span>
+											<span className="ml-2 text-xs text-orange-600 dark:text-orange-400">
+												(
+												{
+													stats.mismatchedPartners
+														.length
+												}{' '}
+												found)
+											</span>
+										</div>
+										<div className="space-y-3 max-h-64 overflow-y-auto">
+											{stats.mismatchedPartners.map(
+												(mismatch) => (
+													<div
+														key={mismatch.cardId}
+														className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-orange-200 dark:border-orange-800/50"
+													>
+														<div className="flex items-start justify-between gap-2 mb-2">
+															<span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+																{
+																	mismatch.reason
+																}
+															</span>
+															<span className="text-xs text-gray-500 dark:text-slate-500">
+																{
+																	mismatch.deckName
+																}
+															</span>
+														</div>
+														<div className="space-y-1 text-xs">
+															<div>
 																<span className="text-gray-500 dark:text-slate-500">
-																	Partner
 																	Front:{' '}
 																</span>
 																<span className="text-gray-700 dark:text-slate-300">
-																	{mismatch.partnerFront?.substring(
+																	{mismatch.front?.substring(
 																		0,
 																		50
 																	) ||
 																		'(empty)'}
 																	{mismatch
-																		.partnerFront
+																		.front
 																		?.length >
 																		50 &&
 																		'...'}
@@ -766,31 +769,71 @@ export default function AdditionalStats({ appData }) {
 															</div>
 															<div>
 																<span className="text-gray-500 dark:text-slate-500">
-																	Partner
 																	Back:{' '}
 																</span>
 																<span className="text-gray-700 dark:text-slate-300">
-																	{mismatch.partnerBack?.substring(
+																	{mismatch.back?.substring(
 																		0,
 																		50
 																	) ||
 																		'(empty)'}
 																	{mismatch
-																		.partnerBack
+																		.back
 																		?.length >
 																		50 &&
 																		'...'}
 																</span>
 															</div>
-														</>
-													)}
-												</div>
-											</div>
-										)
-									)}
-								</div>
-							</div>
-						)}
+															{mismatch.partnerFront !==
+																null && (
+																<>
+																	<div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-700">
+																		<span className="text-gray-500 dark:text-slate-500">
+																			Partner
+																			Front:{' '}
+																		</span>
+																		<span className="text-gray-700 dark:text-slate-300">
+																			{mismatch.partnerFront?.substring(
+																				0,
+																				50
+																			) ||
+																				'(empty)'}
+																			{mismatch
+																				.partnerFront
+																				?.length >
+																				50 &&
+																				'...'}
+																		</span>
+																	</div>
+																	<div>
+																		<span className="text-gray-500 dark:text-slate-500">
+																			Partner
+																			Back:{' '}
+																		</span>
+																		<span className="text-gray-700 dark:text-slate-300">
+																			{mismatch.partnerBack?.substring(
+																				0,
+																				50
+																			) ||
+																				'(empty)'}
+																			{mismatch
+																				.partnerBack
+																				?.length >
+																				50 &&
+																				'...'}
+																		</span>
+																	</div>
+																</>
+															)}
+														</div>
+													</div>
+												)
+											)}
+										</div>
+									</div>
+								)}
+						</div>
+					</details>
 				</div>
 			) : (
 				<div className="text-center py-8 text-gray-500 dark:text-slate-400">

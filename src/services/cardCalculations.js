@@ -122,20 +122,23 @@ export function getInterval(card) {
 	return interval || MIN_INTERVAL;
 }
 
+// How well each grade shows a card was remembered, from 0 to 1. Used for
+// card mastery and the profile page's recall score.
+export const RESULT_SCORES = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
+
 export function calculateLearningStrength(card) {
 	const reviews = card.reviews || [];
 	if (reviews.length === 0) return 0;
 
 	const recentReviews = reviews.slice(-10);
 	const weights = Array.from({ length: 10 }, (_, i) => 1 / (i + 1));
-	const resultScores = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
 
 	let weightedSum = 0;
 	let totalWeight = 0;
 
 	recentReviews.forEach((review, index) => {
 		const weight = weights[recentReviews.length - 1 - index] || 0.25;
-		weightedSum += resultScores[review.result] * weight;
+		weightedSum += RESULT_SCORES[review.result] * weight;
 		totalWeight += weight;
 	});
 

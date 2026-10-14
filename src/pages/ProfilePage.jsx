@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../hooks/useNotification';
@@ -9,6 +9,14 @@ import NotificationContainer from '../components/NotificationContainer';
 import ActivityHeatmap from '../components/Profile/ActivityHeatmap';
 import ProgressChart from '../components/Profile/ProgressChart';
 import AdditionalStats from '../components/Profile/AdditionalStats';
+import StudyRecords from '../components/Profile/StudyRecords';
+import DueForecast from '../components/Profile/DueForecast';
+import CardMaturity from '../components/Profile/CardMaturity';
+import RetentionStats from '../components/Profile/RetentionStats';
+import StudyHabits from '../components/Profile/StudyHabits';
+import DeckBreakdown from '../components/Profile/DeckBreakdown';
+import HardestCards from '../components/Profile/HardestCards';
+import { computeStudyStats } from '../services/statsCalculations';
 import {
 	Download,
 	Upload,
@@ -25,6 +33,7 @@ function ProfilePage() {
 	const { showSuccess, showError } = useNotification();
 	const { appData, setAppData, isSaving, isOnline } = useAppData();
 	const fileInputRef = useRef(null);
+	const stats = useMemo(() => computeStudyStats(appData), [appData]);
 
 	// Password change form state
 	const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -211,13 +220,21 @@ function ProfilePage() {
 								</div>
 							</div>
 						</div>
+						<StudyRecords stats={stats} />
 						<ActivityHeatmap appData={appData} />
+						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+							<DueForecast stats={stats} />
+							<CardMaturity stats={stats} />
+						</div>
+						<RetentionStats stats={stats} />
+						<ProgressChart appData={appData} />
+						<StudyHabits stats={stats} />
+						<DeckBreakdown stats={stats} />
+						<HardestCards stats={stats} />
 					</div>
 
 					{/* Right Column */}
 					<div className="lg:col-span-1 space-y-6">
-						{/* Progress Chart */}
-						<ProgressChart appData={appData} />
 						{/* Additional Statistics */}
 						<AdditionalStats appData={appData} />
 						{/* Change Password Card */}

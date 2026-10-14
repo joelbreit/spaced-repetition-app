@@ -1,370 +1,384 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-	LineChart,
+	AreaChart,
+	Area,
+	ComposedChart,
+	Bar,
 	Line,
 	XAxis,
 	YAxis,
 	CartesianGrid,
+	ReferenceLine,
 	Tooltip,
-	Legend,
 	ResponsiveContainer,
 } from 'recharts';
-import { useTheme } from '../../contexts/ThemeContext';
+import { TrendingUp } from 'lucide-react';
+import StatsCard, {
+	ChartTooltip,
+	EmptyState,
+	SegmentedControl,
+} from './StatsCard';
+import { useChartColors } from './chartTheme';
+import {
+	computeDailyHistory,
+	describeOverdue,
+	formatShortDate,
+	startOfWeek,
+} from '../../services/statsCalculations';
 
-// Helper functions - defined outside component since they don't depend on component state
-const getWeekNumber = (date) => {
-	const d = new Date(
-		Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-	);
-	const dayNum = d.getUTCDay() || 7;
-	d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-	const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-	return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-};
+const RANGES = [
+	{ value: 30, label: '30d' },
+	{ value: 90, label: '90d' },
+	{ value: 365, label: '1y' },
+	{ value: Infinity, label: 'All' },
+];
 
-const getPeriodKey = (date, period) => {
-	if (period === 'day') {
-		return date.toISOString().split('T')[0];
-	} else if (period === 'week') {
-		const year = date.getFullYear();
-		const week = getWeekNumber(date);
-		return `${year}-W${week}`;
-	} else if (period === 'month') {
-		return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-			2,
-			'0'
-		)}`;
-	}
-	return date.toISOString().split('T')[0];
-};
+// Ranges longer than this show reviews per week instead of per day
+const MAX_DAILY_RANGE = 90;
 
-const formatPeriodLabel = (date, period) => {
-	if (period === 'day') {
-		return date.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-		});
-	} else if (period === 'week') {
-		return `Week ${getWeekNumber(date)}, ${date.getFullYear()}`;
-	} else if (period === 'month') {
-		return date.toLocaleDateString('en-US', {
-			month: 'short',
-			year: 'numeric',
-		});
-	}
-	return date.toLocaleDateString('en-US');
-};
+// Studied stages stack upward from the horizon line, top of the list on top.
+// Overdue cards sit right above the line, whatever stage they're in.
+const STUDIED_STAGES = [
+	{ key: 'mature', label: 'Mature', color: 'stageMature' },
+	{ key: 'young', label: 'Young', color: 'stageYoung' },
+	{ key: 'learning', label: 'Learning', color: 'stageLearning' },
+	{ key: 'overdue', label: 'Overdue', color: 'stageOverdue' },
+];
+
+const overdueBreakdown = (day) =>
+	describeOverdue({
+		learning: day.overdueLearning,
+		young: day.overdueYoung,
+		mature: day.overdueMature,
+	});
+
+// Weekly totals over the whole history, so the first week in a range is
+// complete. The average is the trailing 28 days scaled to a week, taken at
+// the week's last day (today, for the current week).
+function groupByWeek(days, fromTimestamp) {
+	const weeks = new Map();
+	days.forEach((day) => {
+		const weekStart = startOfWeek(day.timestamp).getTime();
+		if (weekStart < fromTimestamp) return;
+		const week = weeks.get(weekStart) || {
+			timestamp: weekStart,
+			reviews: 0,
+			dayCount: 0,
+		};
+		week.reviews += day.reviews;
+		week.dayCount++;
+		week.average = day.average28 * 7;
+		weeks.set(weekStart, week);
+	});
+	return [...weeks.values()];
+}
+
+const formatCount = (value) => Math.round(value).toLocaleString();
 
 /**
  * ProgressChart Component
  *
- * Displays study progress over time, showing:
- * - Total cards accumulated over time
- * - Reviews completed per time period
- * - Cards studied (cards with at least one review)
+ * Card maturity over time, drawn as an iceberg: new cards sit below the
+ * horizon line and studied cards stack above it by stage. Next to it,
+ * reviews per day (or week) with a rolling average.
  */
 export default function ProgressChart({ appData }) {
-	const { isDark } = useTheme();
+	const colors = useChartColors();
+	const [range, setRange] = useState(90);
 
-	const chartData = useMemo(() => {
-		// Safety check for appData
-		if (!appData || !appData.decks || !Array.isArray(appData.decks)) {
-			return [];
-		}
+	const daily = useMemo(() => computeDailyHistory(appData), [appData]);
 
-		// Collect all reviews with timestamps
-		const reviewTimestamps = [];
-		const cardCreationDates = [];
-
-		appData.decks.forEach((deck) => {
-			if (!deck.cards || !Array.isArray(deck.cards)) {
-				return;
-			}
-			deck.cards.forEach((card) => {
-				// Track when card was first created
-				// Use createdAt value if available
-				if (card.createdAt) {
-					cardCreationDates.push(card.createdAt);
-				} else {
-					// Fallback to first review or current time if no reviews
-					if (
-						card.reviews &&
-						Array.isArray(card.reviews) &&
-						card.reviews.length > 0
-					) {
-						const firstReview = card.reviews.reduce(
-							(earliest, review) =>
-								review.timestamp < earliest.timestamp
-									? review
-									: earliest
-						);
-						cardCreationDates.push(firstReview.timestamp);
-					} else {
-						// If no reviews, use a default date (could be improved with card creation date)
-						cardCreationDates.push(Date.now());
-					}
-				}
-
-				// Collect all review timestamps
-				if (card.reviews && Array.isArray(card.reviews)) {
-					card.reviews.forEach((review) => {
-						if (review && review.timestamp) {
-							reviewTimestamps.push(review.timestamp);
-						}
-					});
-				}
-			});
-		});
-
-		if (reviewTimestamps.length === 0 && cardCreationDates.length === 0) {
-			return [];
-		}
-
-		// Find the earliest date
-		const allDates = [...reviewTimestamps, ...cardCreationDates].filter(
-			Boolean
-		);
-		if (allDates.length === 0) return [];
-
-		const earliestDate = Math.min(...allDates);
-		const startDate = new Date(earliestDate);
-		startDate.setHours(0, 0, 0, 0);
-
-		const today = new Date();
-		today.setHours(23, 59, 59, 999);
-
-		// Determine time period based on data range
-		// const daysDiff = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
-		let period = 'day';
-		// let periodMs = 1000 * 60 * 60 * 24;
-
-		// if (daysDiff > 365) {
-		// 	period = "month";
-		// 	periodMs = 1000 * 60 * 60 * 24 * 30;
-		// } else if (daysDiff > 90) {
-		// 	period = "week";
-		// 	periodMs = 1000 * 60 * 60 * 24 * 7;
-		// }
-
-		// Group data by time period
-		const dataMap = new Map();
-
-		// Initialize all periods with zero values
-		let currentDate = new Date(startDate);
-		while (currentDate <= today) {
-			const key = getPeriodKey(currentDate, period);
-			if (!dataMap.has(key)) {
-				dataMap.set(key, {
-					period: formatPeriodLabel(currentDate, period),
-					totalCards: 0,
-					studiedCards: 0,
-					reviews: 0,
-					timestamp: currentDate.getTime(),
-				});
-			}
-
-			// Move to next period
-			if (period === 'day') {
-				currentDate.setDate(currentDate.getDate() + 1);
-			} else if (period === 'week') {
-				currentDate.setDate(currentDate.getDate() + 7);
-			} else if (period === 'month') {
-				currentDate.setMonth(currentDate.getMonth() + 1);
-			}
-		}
-
-		// Process card creation dates (cumulative total cards)
-		cardCreationDates.forEach((timestamp) => {
-			const date = new Date(timestamp);
-			const key = getPeriodKey(date, period);
-			const entry = dataMap.get(key);
-			if (entry) {
-				entry.totalCards += 1;
-			}
-		});
-
-		// Process reviews
-		reviewTimestamps.forEach((timestamp) => {
-			const date = new Date(timestamp);
-			const key = getPeriodKey(date, period);
-			const entry = dataMap.get(key);
-			if (entry) {
-				entry.reviews += 1;
-			}
-		});
-
-		// Process studied cards (cards with at least one review by this period)
-		const studiedCardsByPeriod = new Map();
-		appData.decks.forEach((deck) => {
-			if (!deck.cards || !Array.isArray(deck.cards)) {
-				return;
-			}
-			deck.cards.forEach((card) => {
-				if (
-					card.reviews &&
-					Array.isArray(card.reviews) &&
-					card.reviews.length > 0
-				) {
-					const firstReview = card.reviews.reduce(
-						(earliest, review) =>
-							review.timestamp < earliest.timestamp
-								? review
-								: earliest
-					);
-					const date = new Date(firstReview.timestamp);
-					const key = getPeriodKey(date, period);
-					studiedCardsByPeriod.set(
-						key,
-						(studiedCardsByPeriod.get(key) || 0) + 1
-					);
-				}
-			});
-		});
-
-		// Convert to cumulative values
-		const sortedEntries = Array.from(dataMap.entries()).sort(
-			(a, b) => a[1].timestamp - b[1].timestamp
-		);
-
-		let cumulativeCards = 0;
-		let cumulativeStudied = 0;
-
-		const result = sortedEntries.map(([key, entry]) => {
-			cumulativeCards += entry.totalCards;
-			cumulativeStudied += studiedCardsByPeriod.get(key) || 0;
-
-			return {
-				period: entry.period,
-				totalCards: cumulativeCards,
-				studiedCards: cumulativeStudied,
-				reviews: entry.reviews,
-			};
-		});
-
-		return result;
-	}, [appData]);
-
-	const axisColor = isDark ? 'rgb(148 163 184)' : 'rgb(75 85 99)';
-
-	if (chartData.length === 0) {
+	if (daily.length === 0) {
 		return (
-			<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
-				<h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
-					Study Progress
-				</h2>
-				<div className="flex items-center justify-center h-64 text-gray-500 dark:text-slate-400">
+			<StatsCard title="Study Progress" icon={TrendingUp}>
+				<EmptyState>
 					No data available yet. Start studying to see your progress!
-				</div>
-			</div>
+				</EmptyState>
+			</StatsCard>
 		);
 	}
 
+	const visibleDays = Number.isFinite(range) ? daily.slice(-range) : daily;
+	const isWeekly = visibleDays.length > MAX_DAILY_RANGE;
+	const reviewData = isWeekly
+		? groupByWeek(daily, startOfWeek(visibleDays[0].timestamp).getTime())
+		: visibleDays.map((day) => ({ ...day, average: day.average7 }));
+	const averageLabel = isWeekly ? '4-week average' : '7-day average';
+	const reviewsInRange = visibleDays.reduce((sum, d) => sum + d.reviews, 0);
+
+	const cardData = visibleDays.map((day) => ({
+		...day,
+		studied: day.learning + day.young + day.mature + day.overdue,
+		// Negative so it stacks below the horizon line
+		newBelow: -day.new,
+	}));
+	const last = cardData[cardData.length - 1];
+	// Count from the end of the day before the range, so cards created or
+	// first studied on its first day are included (nothing before history)
+	const before = daily[daily.length - visibleDays.length - 1];
+	const studiedOn = (day) =>
+		day ? day.learning + day.young + day.mature + day.overdue : 0;
+	const created =
+		last.studied + last.new - (studiedOn(before) + (before?.new || 0));
+	const newlyStudied = last.studied - studiedOn(before);
+
+	const axis = { fill: colors.axis, fontSize: 12 };
+	const xAxisProps = {
+		dataKey: 'timestamp',
+		type: 'number',
+		scale: 'time',
+		domain: ['dataMin', 'dataMax'],
+		tickFormatter: (t) => formatShortDate(t),
+		tick: axis,
+		tickLine: false,
+		axisLine: false,
+		minTickGap: 32,
+	};
+	const yAxisProps = {
+		tick: axis,
+		tickLine: false,
+		axisLine: false,
+		allowDecimals: false,
+		width: 44,
+	};
+
 	return (
-		<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
-			<h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
-				Study Progress
-			</h2>
-			<div className="h-80 w-full">
-				<ResponsiveContainer width="100%" height="100%">
-					<LineChart
-						data={chartData}
-						margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-					>
-						<CartesianGrid
-							strokeDasharray="3 3"
-							className="stroke-gray-200 dark:stroke-slate-700"
-						/>
-						<XAxis
-							dataKey="period"
-							tick={{
-								fill: axisColor,
-								fontSize: 12,
-							}}
-						/>
-						<YAxis
-							tick={{
-								fill: axisColor,
-								fontSize: 12,
-							}}
-						/>
-						<Tooltip
-							content={({ active, payload, label }) => {
-								if (active && payload && payload.length) {
-									return (
-										<div
-											className={`px-3 py-2 rounded-lg shadow-lg border ${
-												isDark
-													? 'bg-slate-800 border-slate-700 text-slate-100'
-													: 'bg-white border-gray-200 text-gray-900'
-											}`}
-										>
-											<p
-												className={`font-semibold mb-1 ${
-													isDark
-														? 'text-slate-200'
-														: 'text-gray-700'
-												}`}
-											>
-												{label}
-											</p>
-											{payload.map((entry, index) => (
-												<p
-													key={index}
-													className="text-sm"
-													style={{
-														color: entry.color,
-													}}
-												>
-													{entry.name}:{' '}
-													<span className="font-semibold">
-														{entry.value}
-													</span>
-												</p>
-											))}
-										</div>
-									);
-								}
-								return null;
-							}}
-						/>
-						<Legend
-							wrapperStyle={{
-								color: axisColor,
-							}}
-						/>
-						<Line
-							type="monotone"
-							dataKey="totalCards"
-							stroke="#14b8a6"
-							strokeWidth={2}
-							name="Total Cards"
-							dot={{ r: 3 }}
-						/>
-						<Line
-							type="monotone"
-							dataKey="studiedCards"
-							stroke="#06b6d4"
-							strokeWidth={2}
-							name="Studied Cards"
-							dot={{ r: 3 }}
-						/>
-						<Line
-							type="monotone"
-							dataKey="reviews"
-							stroke="#f59e0b"
-							strokeWidth={2}
-							name="Reviews"
-							dot={{ r: 3 }}
-						/>
-					</LineChart>
-				</ResponsiveContainer>
+		<StatsCard
+			title="Study Progress"
+			icon={TrendingUp}
+			action={
+				<SegmentedControl
+					label="Time range"
+					options={RANGES}
+					value={range}
+					onChange={setRange}
+				/>
+			}
+		>
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+				<div className="min-w-0">
+					<h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+						Cards by maturity
+					</h3>
+					<p className="text-xs text-gray-500 dark:text-slate-500 mb-3">
+						{created > 0
+							? `+${created.toLocaleString()} created, `
+							: ''}
+						{newlyStudied > 0
+							? `+${newlyStudied.toLocaleString()} studied for the first time`
+							: 'No new cards studied in this range'}
+					</p>
+					<div className="h-56">
+						<ResponsiveContainer width="100%" height="100%">
+							<AreaChart
+								data={cardData}
+								stackOffset="sign"
+								margin={{
+									top: 5,
+									right: 10,
+									left: 0,
+									bottom: 0,
+								}}
+							>
+								<CartesianGrid
+									vertical={false}
+									stroke={colors.grid}
+								/>
+								<XAxis {...xAxisProps} />
+								<YAxis
+									{...yAxisProps}
+									tickFormatter={(v) =>
+										Math.abs(v).toLocaleString()
+									}
+								/>
+								<Tooltip
+									cursor={{ stroke: colors.axis }}
+									content={
+										<ChartTooltip
+											title={(d) =>
+												formatShortDate(
+													d.timestamp,
+													true
+												)
+											}
+											rows={(d) => [
+												...STUDIED_STAGES.map(
+													(stage) => [
+														stage.label,
+														stage.key ===
+															'overdue' &&
+														d.overdue > 0
+															? `${d.overdue.toLocaleString()} (${overdueBreakdown(d)})`
+															: d[
+																	stage.key
+																].toLocaleString(),
+														colors[stage.color],
+													]
+												),
+												[
+													'New (below line)',
+													d.new.toLocaleString(),
+													colors.stageNew,
+												],
+												[
+													'Studied / total',
+													`${d.studied.toLocaleString()} / ${(d.studied + d.new).toLocaleString()}`,
+												],
+											]}
+										/>
+									}
+								/>
+								<Area
+									dataKey="newBelow"
+									stackId="cards"
+									type="linear"
+									fill={colors.stageNew}
+									fillOpacity={1}
+									stroke={colors.surface}
+									strokeWidth={1}
+									isAnimationActive={false}
+								/>
+								{[...STUDIED_STAGES].reverse().map((stage) => (
+									<Area
+										key={stage.key}
+										dataKey={stage.key}
+										stackId="cards"
+										type="linear"
+										fill={colors[stage.color]}
+										fillOpacity={1}
+										stroke={colors.surface}
+										strokeWidth={1}
+										isAnimationActive={false}
+									/>
+								))}
+								<ReferenceLine
+									y={0}
+									stroke={colors.ink}
+									strokeWidth={1.5}
+								/>
+							</AreaChart>
+						</ResponsiveContainer>
+					</div>
+					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-gray-500 dark:text-slate-400">
+						{STUDIED_STAGES.map((stage) => (
+							<span
+								key={stage.key}
+								className="flex items-center gap-1.5"
+							>
+								<span
+									className="w-2.5 h-2.5 rounded-sm"
+									style={{
+										backgroundColor: colors[stage.color],
+									}}
+								/>
+								{stage.label} (
+								{last[stage.key].toLocaleString()})
+							</span>
+						))}
+						<span className="flex items-center gap-1.5">
+							<span
+								className="w-2.5 h-2.5 rounded-sm"
+								style={{ backgroundColor: colors.stageNew }}
+							/>
+							New, below the line ({last.new.toLocaleString()})
+						</span>
+					</div>
+				</div>
+
+				<div className="min-w-0">
+					<h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+						Reviews per {isWeekly ? 'week' : 'day'}
+					</h3>
+					<p className="text-xs text-gray-500 dark:text-slate-500 mb-3">
+						{reviewsInRange.toLocaleString()} reviews in this range
+					</p>
+					<div className="h-56">
+						<ResponsiveContainer width="100%" height="100%">
+							<ComposedChart
+								data={reviewData}
+								margin={{
+									top: 5,
+									right: 10,
+									left: 0,
+									bottom: 0,
+								}}
+								barCategoryGap={1}
+							>
+								<CartesianGrid
+									vertical={false}
+									stroke={colors.grid}
+								/>
+								<XAxis
+									{...xAxisProps}
+									axisLine={{ stroke: colors.grid }}
+									scale="auto"
+									padding={{ left: 6, right: 6 }}
+								/>
+								<YAxis {...yAxisProps} />
+								<Tooltip
+									cursor={{ fill: colors.cursor }}
+									content={
+										<ChartTooltip
+											title={(d) =>
+												isWeekly
+													? `Week of ${formatShortDate(d.timestamp, true)}${d.dayCount < 7 ? ' (so far)' : ''}`
+													: formatShortDate(
+															d.timestamp,
+															true
+														)
+											}
+											rows={(d) => [
+												[
+													'Reviews',
+													d.reviews.toLocaleString(),
+													colors.primary,
+												],
+												[
+													averageLabel,
+													formatCount(d.average),
+													colors.ink,
+												],
+											]}
+										/>
+									}
+								/>
+								<Bar
+									dataKey="reviews"
+									fill={colors.primary}
+									fillOpacity={0.75}
+									radius={[2, 2, 0, 0]}
+									isAnimationActive={false}
+								/>
+								<Line
+									dataKey="average"
+									type="monotone"
+									stroke={colors.ink}
+									strokeWidth={2}
+									dot={false}
+									activeDot={{ r: 4 }}
+									isAnimationActive={false}
+								/>
+							</ComposedChart>
+						</ResponsiveContainer>
+					</div>
+					<div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-gray-500 dark:text-slate-400">
+						<span className="flex items-center gap-1.5">
+							<span
+								className="w-2.5 h-2.5 rounded-sm"
+								style={{ backgroundColor: colors.primary }}
+							/>
+							Reviews
+						</span>
+						<span className="flex items-center gap-1.5">
+							<span
+								className="w-4 h-0.5"
+								style={{ backgroundColor: colors.ink }}
+							/>
+							{averageLabel}
+						</span>
+					</div>
+				</div>
 			</div>
-			<div className="mt-4 text-sm text-gray-600 dark:text-slate-400">
-				<p>
-					Track your learning journey: total cards created, cards
-					you've studied, and reviews completed over time.
-				</p>
-			</div>
-		</div>
+		</StatsCard>
 	);
 }

@@ -103,11 +103,22 @@ The app wraps contexts in this order (outermost to innermost):
 
 ### Profile Components (`components/Profile/`)
 
-| Component             | Purpose                               |
-| --------------------- | ------------------------------------- |
-| `ActivityHeatmap.jsx` | GitHub-style review activity grid     |
-| `ProgressChart.jsx`   | Line chart of card progress over time |
-| `AdditionalStats.jsx` | Detailed statistics                   |
+Most sections take a `stats` prop computed once in `ProfilePage` by `computeStudyStats` (`services/statsCalculations.js`).
+
+| Component             | Purpose                                                        |
+| --------------------- | -------------------------------------------------------------- |
+| `StudyRecords.jsx`    | Streaks, best day/week, study time, sessions                   |
+| `ActivityHeatmap.jsx` | GitHub-style review activity grid                              |
+| `DueForecast.jsx`     | Cards coming due over the next 30 days                         |
+| `CardMaturity.jsx`    | New / learning / young / mature breakdown                      |
+| `RetentionStats.jsx`  | Recall rate by time since last review, and by week             |
+| `ProgressChart.jsx`   | Cards created/studied and reviews over time, with range toggle |
+| `StudyHabits.jsx`     | Weekday × hour grid and answer time by grade                   |
+| `DeckBreakdown.jsx`   | Per-deck reviews, recall, overdue share; most neglected deck   |
+| `HardestCards.jsx`    | Cards marked "Again" most often                                |
+| `AdditionalStats.jsx` | On-demand totals plus a collapsed "Data health" section        |
+| `StatsCard.jsx`       | Shared card, tile, tooltip and toggle building blocks          |
+| `chartTheme.js`       | Recharts colors for light/dark and grade colors                |
 
 ## Services (`services/`)
 
