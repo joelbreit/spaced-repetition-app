@@ -46,14 +46,16 @@ function formatAgo(timestamp, now) {
  *
  * Reviews, recall and overdue share per deck, plus the most neglected deck.
  */
-export default function DeckBreakdown({ stats }) {
+export default function DeckBreakdown({ stats, onCatchUp }) {
 	const [sort, setSort] = useState('reviews');
 	const [showAll, setShowAll] = useState(false);
+	const [showArchived, setShowArchived] = useState(false);
 	const [now] = useState(() => Date.now());
 
-	const decks = [...stats.decks].sort(
-		SORTS.find((s) => s.value === sort).compare
-	);
+	const archivedCount = stats.decks.filter((d) => d.isArchived).length;
+	const decks = stats.decks
+		.filter((d) => showArchived || !d.isArchived)
+		.sort(SORTS.find((s) => s.value === sort).compare);
 	const maxReviews = Math.max(...decks.map((d) => d.reviewCount), 1);
 	const neglected = stats.decks
 		.filter(
@@ -80,20 +82,20 @@ export default function DeckBreakdown({ stats }) {
 				)
 			}
 		>
-			{decks.length === 0 ? (
+			{stats.decks.length === 0 ? (
 				<EmptyState>No decks yet.</EmptyState>
 			) : (
 				<>
 					{neglected && (
-						<Link
-							to={`/deck/${neglected.deckId}`}
-							className="flex items-start gap-3 p-4 mb-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/50 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
-						>
+						<div className="flex flex-wrap sm:flex-nowrap items-start gap-3 p-4 mb-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/50">
 							<AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
-							<p className="text-sm text-gray-700 dark:text-slate-300">
-								<span className="font-semibold text-gray-900 dark:text-slate-100">
+							<p className="flex-1 min-w-0 text-sm text-gray-700 dark:text-slate-300">
+								<Link
+									to={`/deck/${neglected.deckId}`}
+									className="font-semibold text-gray-900 dark:text-slate-100 hover:underline"
+								>
 									{neglected.deckName}
-								</span>{' '}
+								</Link>{' '}
 								needs attention:{' '}
 								{formatPercent(neglected.overdueShare)} of its
 								studied cards are overdue, last studied{' '}
@@ -103,7 +105,13 @@ export default function DeckBreakdown({ stats }) {
 								).toLowerCase()}
 								.
 							</p>
-						</Link>
+							<button
+								onClick={() => onCatchUp(neglected.deckId)}
+								className="px-3 py-1 text-sm font-medium rounded-lg text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors shrink-0"
+							>
+								Catch up…
+							</button>
+						</div>
 					)}
 
 					<div className="overflow-x-auto -mx-6 px-6">
@@ -131,6 +139,16 @@ export default function DeckBreakdown({ stats }) {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-gray-100 dark:divide-slate-700/60">
+								{decks.length === 0 && (
+									<tr>
+										<td
+											colSpan={6}
+											className="py-6 text-center text-gray-500 dark:text-slate-400"
+										>
+											All your decks are archived.
+										</td>
+									</tr>
+								)}
 								{visible.map((deck) => {
 									const color = getContainerColor(
 										deck.deckColor
@@ -201,16 +219,33 @@ export default function DeckBreakdown({ stats }) {
 						</table>
 					</div>
 
-					{decks.length > COLLAPSED_ROWS && (
-						<button
-							onClick={() => setShowAll(!showAll)}
-							className="mt-3 text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300"
-						>
-							{showAll
-								? 'Show fewer'
-								: `Show all ${decks.length} decks`}
-						</button>
-					)}
+					<div className="flex flex-wrap items-center justify-between gap-3 mt-3">
+						{decks.length > COLLAPSED_ROWS ? (
+							<button
+								onClick={() => setShowAll(!showAll)}
+								className="text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300"
+							>
+								{showAll
+									? 'Show fewer'
+									: `Show all ${decks.length} decks`}
+							</button>
+						) : (
+							<span />
+						)}
+						{archivedCount > 0 && (
+							<label className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400 cursor-pointer select-none">
+								<input
+									type="checkbox"
+									checked={showArchived}
+									onChange={(e) =>
+										setShowArchived(e.target.checked)
+									}
+									className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 accent-teal-500"
+								/>
+								Include archived ({archivedCount})
+							</label>
+						)}
+					</div>
 				</>
 			)}
 		</StatsCard>

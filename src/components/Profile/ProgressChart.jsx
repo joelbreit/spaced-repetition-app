@@ -113,6 +113,7 @@ export default function ProgressChart({ appData }) {
 		newBelow: -day.new,
 	}));
 	const last = cardData[cardData.length - 1];
+	const hasCatchUp = cardData.some((day) => day.catchUps > 0);
 	// Count from the end of the day before the range, so cards created or
 	// first studied on its first day are included (nothing before history)
 	const before = daily[daily.length - visibleDays.length - 1];
@@ -174,7 +175,7 @@ export default function ProgressChart({ appData }) {
 								data={cardData}
 								stackOffset="sign"
 								margin={{
-									top: 5,
+									top: hasCatchUp ? 20 : 5,
 									right: 10,
 									left: 0,
 									bottom: 0,
@@ -220,6 +221,14 @@ export default function ProgressChart({ appData }) {
 													d.new.toLocaleString(),
 													colors.stageNew,
 												],
+												...(d.catchUps > 0
+													? [
+															[
+																'Catch-up',
+																`${d.catchUps.toLocaleString()} cards rescheduled`,
+															],
+														]
+													: []),
 												[
 													'Studied / total',
 													`${d.studied.toLocaleString()} / ${(d.studied + d.new).toLocaleString()}`,
@@ -256,6 +265,29 @@ export default function ProgressChart({ appData }) {
 									stroke={colors.ink}
 									strokeWidth={1.5}
 								/>
+								{cardData
+									.filter((day) => day.catchUps > 0)
+									.map((day) => (
+										<ReferenceLine
+											key={day.timestamp}
+											x={day.timestamp}
+											stroke={colors.ink}
+											strokeDasharray="3 3"
+											// Drawn by hand: ends at the line, above the plot,
+											// so it isn't clipped at the chart's right edge
+											label={({ viewBox }) => (
+												<text
+													x={viewBox.x}
+													y={viewBox.y - 6}
+													textAnchor="end"
+													fill={colors.axis}
+													fontSize={11}
+												>
+													Catch-up
+												</text>
+											)}
+										/>
+									))}
 							</AreaChart>
 						</ResponsiveContainer>
 					</div>

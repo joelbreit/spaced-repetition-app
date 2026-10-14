@@ -7,7 +7,7 @@ import {
 	Tooltip,
 	ResponsiveContainer,
 } from 'recharts';
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, LifeBuoy, Undo2 } from 'lucide-react';
 import StatsCard, { ChartTooltip, StatTile } from './StatsCard';
 import { useChartColors } from './chartTheme';
 import {
@@ -31,7 +31,12 @@ const formatDay = (date, index) => {
  * Studied cards coming due each day for the next 30 days. Cards already
  * overdue from before today are stacked onto today's bar.
  */
-export default function DueForecast({ stats }) {
+export default function DueForecast({
+	stats,
+	onCatchUp,
+	undoableCatchUp,
+	onUndoCatchUp,
+}) {
 	const colors = useChartColors();
 	const data = stats.forecast.map((day, index) => ({
 		...day,
@@ -49,7 +54,45 @@ export default function DueForecast({ stats }) {
 	const axis = { fill: colors.axis, fontSize: 12 };
 
 	return (
-		<StatsCard title="Coming Up" icon={CalendarClock}>
+		<StatsCard
+			title="Coming Up"
+			icon={CalendarClock}
+			action={
+				stats.maturity.overdue > 0 && (
+					<button
+						onClick={onCatchUp}
+						className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:hover:bg-orange-900/30 dark:text-orange-400 transition-colors shrink-0"
+					>
+						<LifeBuoy className="h-4 w-4" />
+						Catch up…
+					</button>
+				)
+			}
+		>
+			{undoableCatchUp && (
+				<div className="flex items-center justify-between gap-3 p-3 mb-4 rounded-xl bg-gray-50 dark:bg-slate-700/50 text-sm text-gray-600 dark:text-slate-400">
+					<span>
+						Caught up{' '}
+						<span className="font-semibold text-gray-900 dark:text-slate-100">
+							{undoableCatchUp.count.toLocaleString()}
+						</span>{' '}
+						overdue cards ·{' '}
+						{new Date(undoableCatchUp.at).toLocaleString('en-US', {
+							month: 'short',
+							day: 'numeric',
+							hour: 'numeric',
+							minute: '2-digit',
+						})}
+					</span>
+					<button
+						onClick={onUndoCatchUp}
+						className="flex items-center gap-1.5 font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 shrink-0"
+					>
+						<Undo2 className="h-4 w-4" />
+						Undo
+					</button>
+				</div>
+			)}
 			<div className="grid grid-cols-3 gap-3 mb-6">
 				<StatTile
 					label="Today"

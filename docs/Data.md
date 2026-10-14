@@ -48,6 +48,15 @@
 			"isFlagged": false,
 			"isStarred": false,
 			"createdAt": 1234567890, // added later, may be missing
+			// optional, set by a catch-up (src/services/catchUp.js): the card was
+			// rescheduled as if graded Hard, without recording a review.
+			// getInterval() uses `interval` until the next real review.
+			"reschedule": {
+				"at": 1234567890, // when the catch-up ran
+				"interval": 1234567890, // halved interval, ms
+				"previousWhenDue": 1234567890, // for undo
+				"previousReschedule": {} // optional, an earlier reschedule, for undo
+			},
 		}
 		],
 	}

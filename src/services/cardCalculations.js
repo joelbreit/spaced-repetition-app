@@ -1,5 +1,5 @@
 // 10 seconds
-const MIN_INTERVAL = 10 * 1000;
+export const MIN_INTERVAL = 10 * 1000;
 
 export function prettyPrintInterval(interval) {
 	// days
@@ -91,7 +91,22 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	return MIN_INTERVAL;
 }
 
+// A catch-up reschedule (see services/catchUp.js) applies until the card's
+// next real review
+export function getActiveReschedule(card) {
+	const reviews = card.reviews || [];
+	const lastReview = reviews[reviews.length - 1];
+	const { reschedule } = card;
+	if (!reschedule) return null;
+	return !lastReview || reschedule.at > lastReview.timestamp
+		? reschedule
+		: null;
+}
+
 export function getInterval(card) {
+	const reschedule = getActiveReschedule(card);
+	if (reschedule) return reschedule.interval;
+
 	let interval = 0;
 	// Previous interval available
 	if (

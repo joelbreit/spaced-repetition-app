@@ -1,4 +1,8 @@
-import { getInterval, RESULT_SCORES } from './cardCalculations';
+import {
+	getActiveReschedule,
+	getInterval,
+	RESULT_SCORES,
+} from './cardCalculations';
 import { calculateStreakStats } from './streak';
 
 // Aggregate statistics for the profile page, computed in one pass over every
@@ -141,6 +145,7 @@ export function computeStudyStats(appData, now = Date.now()) {
 				.filter((review) => review?.timestamp)
 				.sort((a, b) => a.timestamp - b.timestamp);
 			let againCount = 0;
+			let hardCount = 0;
 
 			reviews.forEach((review, index) => {
 				const { timestamp, result } = review;
@@ -160,6 +165,7 @@ export function computeStudyStats(appData, now = Date.now()) {
 					resultCounts[result]++;
 				}
 				if (result === 'again') againCount++;
+				if (result === 'hard') hardCount++;
 
 				if (review.reviewDuration > 0) {
 					const capped = Math.min(
@@ -206,7 +212,8 @@ export function computeStudyStats(appData, now = Date.now()) {
 			const isOverdue = lastReview && card.whenDue <= now;
 			if (isOverdue) deckOverdue++;
 
-			if (reviews.length > 0) {
+			// Hardest cards skip archived decks: they're not being studied
+			if (reviews.length > 0 && !deck.isArchived) {
 				cardStats.push({
 					cardId: card.cardId,
 					front: card.front,
@@ -215,6 +222,9 @@ export function computeStudyStats(appData, now = Date.now()) {
 					deckColor: deck.deckColor,
 					reviewCount: reviews.length,
 					againCount,
+					hardCount,
+					// Reviews graded Again or Hard
+					struggleCount: againCount + hardCount,
 					lastResult: lastReview.result,
 				});
 			}
@@ -367,11 +377,12 @@ export function computeStudyStats(appData, now = Date.now()) {
 			})),
 		},
 		hardestCards: cardStats
-			.filter((card) => card.againCount > 0)
+			.filter((card) => card.struggleCount > 0)
 			.sort(
 				(a, b) =>
-					b.againCount - a.againCount ||
-					b.againCount / b.reviewCount - a.againCount / a.reviewCount
+					b.struggleCount - a.struggleCount ||
+					b.struggleCount / b.reviewCount -
+						a.struggleCount / a.reviewCount
 			)
 			.slice(0, 10),
 		decks: deckStats,
@@ -428,6 +439,8 @@ export function computeDailyHistory(appData, now = Date.now()) {
 		);
 
 	const reviews = Array(dayCount).fill(0);
+	// Cards rescheduled by a catch-up on each day
+	const catchUps = Array(dayCount).fill(0);
 	// Difference arrays: +1 where a card enters a stage, -1 where it leaves
 	const stageDeltas = {
 		new: Array(dayCount + 1).fill(0),
@@ -461,26 +474,53 @@ export function computeDailyHistory(appData, now = Date.now()) {
 			dayIndex(createdAt),
 			cardReviews.length ? dayIndex(cardReviews[0].timestamp) : dayCount
 		);
-		cardReviews.forEach((review, i) => {
-			const next = cardReviews[i + 1];
-			// Older reviews may lack an interval: use the actual gap instead
-			const interval =
-				review.interval ||
-				(next ? next.timestamp : card.whenDue) - review.timestamp ||
-				0;
+		// A card is in its stage until its due date, then overdue
+		const addScheduled = (interval, from, to, due) => {
 			const stage = maturityStage(interval);
-			const from = dayIndex(review.timestamp);
-			const to = next ? dayIndex(next.timestamp) : dayCount;
-			// The latest review's due date is the card's; without one the
-			// card is never overdue, as in the Card Maturity section
-			const due = next
-				? review.timestamp + interval
-				: card.whenDue || Infinity;
 			// Due later today is still on schedule today
 			const dueDay = due > now ? dayCount : dayIndex(due);
 			addSpan(stage, from, Math.min(to, dueDay));
 			addSpan(overdueKey[stage], Math.max(from, dueDay), to);
+		};
+		const reschedule = getActiveReschedule(card);
+
+		cardReviews.forEach((review, i) => {
+			const next = cardReviews[i + 1];
+			const from = dayIndex(review.timestamp);
+			const to = next ? dayIndex(next.timestamp) : dayCount;
+			// The latest review's due date is the card's (before any
+			// catch-up); without one the card is never overdue, as in the
+			// Card Maturity section
+			const due = next
+				? null
+				: (reschedule ? reschedule.previousWhenDue : card.whenDue) ||
+					Infinity;
+			// Older reviews may lack an interval: use the actual gap instead
+			const endsAt = next ? next.timestamp : due;
+			const interval =
+				review.interval ||
+				(Number.isFinite(endsAt) ? endsAt - review.timestamp : 0);
+
+			if (next) {
+				addScheduled(interval, from, to, review.timestamp + interval);
+			} else if (reschedule) {
+				// Original schedule until the catch-up, the new one after
+				const catchUpDay = Math.max(from, dayIndex(reschedule.at));
+				addScheduled(interval, from, catchUpDay, due);
+				addScheduled(
+					reschedule.interval,
+					catchUpDay,
+					to,
+					card.whenDue || Infinity
+				);
+			} else {
+				addScheduled(interval, from, to, due);
+			}
 		});
+		if (card.reschedule?.at) {
+			const index = dayIndex(card.reschedule.at);
+			if (index < dayCount) catchUps[index]++;
+		}
 	});
 
 	const prefixSums = [0];
@@ -500,6 +540,7 @@ export function computeDailyHistory(appData, now = Date.now()) {
 			reviews: count,
 			average7: trailingAverage(prefixSums, i, 7),
 			average28: trailingAverage(prefixSums, i, 28),
+			catchUps: catchUps[i],
 			...running,
 			overdue:
 				running.overdueLearning +

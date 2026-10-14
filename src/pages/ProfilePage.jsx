@@ -15,6 +15,8 @@ import CardMaturity from '../components/Profile/CardMaturity';
 import RetentionStats from '../components/Profile/RetentionStats';
 import StudyHabits from '../components/Profile/StudyHabits';
 import DeckBreakdown from '../components/Profile/DeckBreakdown';
+import CatchUpDialog from '../components/Profile/CatchUpDialog';
+import { findUndoableCatchUp, undoCatchUp } from '../services/catchUp';
 import HardestCards from '../components/Profile/HardestCards';
 import { computeStudyStats } from '../services/statsCalculations';
 import {
@@ -34,6 +36,18 @@ function ProfilePage() {
 	const { appData, setAppData, isSaving, isOnline } = useAppData();
 	const fileInputRef = useRef(null);
 	const stats = useMemo(() => computeStudyStats(appData), [appData]);
+	// Catch-up dialog: undefined when closed, null for all decks, or a deckId
+	const [catchUpDeckId, setCatchUpDeckId] = useState(undefined);
+	const undoableCatchUp = useMemo(
+		() => findUndoableCatchUp(appData.decks),
+		[appData.decks]
+	);
+	const handleUndoCatchUp = () => {
+		setAppData((prev) => undoCatchUp(prev, undoableCatchUp.at));
+		showSuccess(
+			`Restored the previous schedule for ${undoableCatchUp.count.toLocaleString()} cards.`
+		);
+	};
 
 	// Password change form state
 	const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -223,13 +237,21 @@ function ProfilePage() {
 						<StudyRecords stats={stats} />
 						<ActivityHeatmap appData={appData} />
 						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-							<DueForecast stats={stats} />
+							<DueForecast
+								stats={stats}
+								onCatchUp={() => setCatchUpDeckId(null)}
+								undoableCatchUp={undoableCatchUp}
+								onUndoCatchUp={handleUndoCatchUp}
+							/>
 							<CardMaturity stats={stats} />
 						</div>
 						<RetentionStats stats={stats} />
 						<ProgressChart appData={appData} />
 						<StudyHabits stats={stats} />
-						<DeckBreakdown stats={stats} />
+						<DeckBreakdown
+							stats={stats}
+							onCatchUp={setCatchUpDeckId}
+						/>
 						<HardestCards stats={stats} />
 					</div>
 
@@ -432,6 +454,13 @@ function ProfilePage() {
 					</div>
 				</div>
 			</main>
+
+			{catchUpDeckId !== undefined && (
+				<CatchUpDialog
+					initialDeckId={catchUpDeckId}
+					onClose={() => setCatchUpDeckId(undefined)}
+				/>
+			)}
 
 			<Footer />
 		</div>
