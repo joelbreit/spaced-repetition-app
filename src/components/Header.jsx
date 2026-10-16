@@ -25,6 +25,8 @@ const THEME_OPTIONS = {
 	dark: { Icon: Moon, label: 'Dark theme' },
 };
 
+const SYNC_LABELS = ['Local', 'Syncing...', 'Synced', 'Offline'];
+
 function Header({ user, isSaving, isOnline, onSignInClick }) {
 	const { isAuthenticated, authToken, refreshToken } = useAuth();
 	const [showUserMenu, setShowUserMenu] = useState(false);
@@ -73,6 +75,14 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 		if (isSyncing || isSaving) return 'Syncing...';
 		return 'Click to sync';
 	};
+
+	const syncLabel = !isAuthenticated
+		? 'Local'
+		: isSyncing || isSaving
+			? 'Syncing...'
+			: isOnline
+				? 'Synced'
+				: 'Offline';
 
 	const isStreakActive = reviewsToday > 0;
 	const streakClasses = isStreakActive
@@ -141,34 +151,26 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 							title={getSyncTitle()}
 						>
 							{!isAuthenticated ? (
-								<>
-									<Cloud className="h-3 w-3 text-gray-500" />
-									<span className="hidden sm:inline text-xs text-gray-600 dark:text-slate-400">
-										Local
-									</span>
-								</>
+								<Cloud className="h-3 w-3 text-gray-500" />
 							) : isSyncing || isSaving ? (
-								<>
-									<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
-									<span className="hidden sm:inline text-xs text-gray-600 dark:text-slate-400">
-										Syncing...
-									</span>
-								</>
+								<div className="animate-spin h-3 w-3 border-2 border-teal-500 border-t-transparent rounded-full" />
 							) : isOnline ? (
-								<>
-									<Cloud className="h-3 w-3 text-green-500" />
-									<span className="hidden sm:inline text-xs text-gray-600 dark:text-slate-400">
-										Synced
-									</span>
-								</>
+								<Cloud className="h-3 w-3 text-green-500" />
 							) : (
-								<>
-									<CloudOff className="h-3 w-3 text-orange-500" />
-									<span className="hidden sm:inline text-xs text-gray-600 dark:text-slate-400">
-										Offline
-									</span>
-								</>
+								<CloudOff className="h-3 w-3 text-orange-500" />
 							)}
+							{/* All labels share one grid cell so the pill is always as wide as the longest one */}
+							<span className="hidden sm:grid text-xs text-gray-600 dark:text-slate-400">
+								{SYNC_LABELS.map((label) => (
+									<span
+										key={label}
+										className={`col-start-1 row-start-1 text-left ${label === syncLabel ? '' : 'invisible'}`}
+										aria-hidden={label !== syncLabel}
+									>
+										{label}
+									</span>
+								))}
+							</span>
 						</button>
 
 						{/* Theme - Desktop only (mobile has it in the menu) */}
