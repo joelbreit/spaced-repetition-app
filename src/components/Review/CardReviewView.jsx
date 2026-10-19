@@ -14,6 +14,7 @@ import {
 	Pause,
 	Undo2,
 	Keyboard,
+	FastForward,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import SegmentedProgressBar from '../SegmentedProgressBar';
@@ -100,6 +101,9 @@ export default function CardReviewView({
 	onToggleStar,
 	onUndo,
 	canUndo = false,
+	skippableNewCount = 0,
+	learnedCount = 0,
+	onSkipNew,
 }) {
 	const { appData } = useAppData();
 	const currentCard = deck.cards[currentCardIndex];
@@ -122,7 +126,9 @@ export default function CardReviewView({
 
 	// Track if the current card has been flipped at least once
 	const [hasBeenFlipped, setHasBeenFlipped] = useState(false);
-	const previousCardIndexRef = useRef(currentCardIndex);
+	// Index and id together: skipping new cards swaps the card at an index
+	const cardPosition = `${currentCardIndex}:${currentCard?.cardId}`;
+	const previousCardPositionRef = useRef(cardPosition);
 
 	// Track review timing - start time when card is first viewed
 	const reviewStartTimeRef = useRef(null);
@@ -179,13 +185,13 @@ export default function CardReviewView({
 
 	// Initialize timer on mount and reset hasBeenFlipped and start timer when card changes
 	useEffect(() => {
-		if (previousCardIndexRef.current !== currentCardIndex) {
+		if (previousCardPositionRef.current !== cardPosition) {
 			setHasBeenFlipped(false);
 			setSelectedReview(null);
-			previousCardIndexRef.current = currentCardIndex;
+			previousCardPositionRef.current = cardPosition;
 			reviewStartTimeRef.current = Date.now();
 		}
-	}, [currentCardIndex]);
+	}, [cardPosition]);
 
 	// Initialize timer on initial mount
 	useEffect(() => {
@@ -742,6 +748,22 @@ export default function CardReviewView({
 				currentCardIndex={currentCardIndex}
 				totalCards={totalCards}
 			/>
+
+			{/* Study ahead: skip the remaining new cards */}
+			{skippableNewCount > 0 && onSkipNew && (
+				<div className="-mt-4 mb-6 flex justify-center">
+					<button
+						onClick={onSkipNew}
+						disabled={!!animationResult}
+						title={`Skip the remaining ${skippableNewCount} new card${skippableNewCount !== 1 ? 's' : ''} (they stay new) and review learned cards early`}
+						className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-700 dark:text-green-300 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40 border border-green-200 dark:border-green-800 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						<FastForward className="h-4 w-4" />
+						Skip {skippableNewCount} new · study {learnedCount}{' '}
+						learned ahead
+					</button>
+				</div>
+			)}
 
 			{/* Card */}
 			<div className="mb-6" style={{ perspective: '1000px' }}>

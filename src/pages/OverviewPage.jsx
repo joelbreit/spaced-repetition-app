@@ -335,6 +335,50 @@ function OverviewPage() {
 		setCurrentView('review');
 	};
 
+	// Where the new cards sit in the session, and how many learned ones follow
+	const sectionTotal = (type) =>
+		reviewSections.find((section) => section.type === type)?.total || 0;
+	const newStart = sectionTotal('due');
+	const newEnd = newStart + sectionTotal('new');
+	const skippableNewCount =
+		currentCardIndex >= newStart && currentCardIndex < newEnd
+			? newEnd - currentCardIndex
+			: 0;
+	const learnedCount = sectionTotal('learned');
+
+	// Study ahead: drop the new cards not yet seen so the session moves on to
+	// the learned ones. Skipped cards stay new and untouched; learned cards
+	// get ordinary early reviews, which also clear any catch-up reschedule.
+	const skipNewCards = () => {
+		if (skippableNewCount === 0 || learnedCount === 0) return;
+
+		const skip = () => {
+			setCurrentDeckForReview((prev) => ({
+				...prev,
+				cards: [
+					...prev.cards.slice(0, currentCardIndex),
+					...prev.cards.slice(newEnd),
+				],
+			}));
+			setReviewSections((prev) =>
+				prev.map((section) =>
+					section.type === 'new'
+						? { ...section, total: currentCardIndex - newStart }
+						: section
+				)
+			);
+		};
+
+		// Like recordReview, let the card flip back before swapping it so
+		// the next card's answer isn't shown
+		if (isFlipped) {
+			setIsFlipped(false);
+			setTimeout(skip, 200);
+		} else {
+			skip();
+		}
+	};
+
 	const handleEditCard = (deckId, cardId) => {
 		// Save the current view so we can restore it after editing
 		setPreviousView(currentView);
@@ -546,6 +590,11 @@ function OverviewPage() {
 						onEndReview={handleEndReview}
 						onUndo={undoLastReview}
 						canUndo={undoStack.length > 0}
+						skippableNewCount={
+							learnedCount > 0 ? skippableNewCount : 0
+						}
+						learnedCount={learnedCount}
+						onSkipNew={skipNewCards}
 						onToggleFlag={(cardId) => {
 							const card = currentDeckForReview.cards.find(
 								(c) => c.cardId === cardId
