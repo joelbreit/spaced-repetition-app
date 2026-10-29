@@ -71,7 +71,8 @@ const GRADE_DOT_COLORS = {
 	again: 'bg-red-500',
 	hard: 'bg-orange-500',
 	good: 'bg-green-500',
-	easy: 'bg-teal-500',
+	// Blue rather than teal: teal is too close to green at dot size
+	easy: 'bg-blue-500',
 };
 
 const RECENT_GRADE_COUNT = 5;
@@ -700,7 +701,7 @@ export default function CardReviewView({
 			{recentReviews.map((r, i) => (
 				<span
 					key={r.reviewId || i}
-					className={`h-1.5 w-1.5 rounded-full ${GRADE_DOT_COLORS[r.result] || 'bg-gray-400'}`}
+					className={`h-2 w-2 rounded-full ${GRADE_DOT_COLORS[r.result] || 'bg-gray-400'}`}
 				/>
 			))}
 		</span>
