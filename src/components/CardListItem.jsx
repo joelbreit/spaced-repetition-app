@@ -6,6 +6,8 @@ import {
 	BookOpen,
 	Target,
 	BarChart3,
+	Check,
+	Link2,
 } from 'lucide-react';
 import {
 	calculateLearningStrength,
@@ -34,6 +36,10 @@ export default function CardListItem({
 	deckName = null,
 	deckSymbol = null,
 	deckColor = null,
+	selectable = false,
+	selected = false,
+	onToggleSelect = null,
+	hasPartner = false,
 }) {
 	const isFlagged = card.isFlagged || false;
 	const isStarred = card.isStarred || false;
@@ -41,12 +47,22 @@ export default function CardListItem({
 
 	return (
 		<div
+			onClick={
+				selectable && onToggleSelect
+					? (e) => onToggleSelect(card.cardId, e)
+					: undefined
+			}
+			aria-selected={selectable ? selected : undefined}
 			className={`bg-white dark:bg-slate-800 rounded-xl border p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group ${
-				isFlagged
-					? 'border-orange-300 dark:border-orange-700/50 bg-orange-50/30 dark:bg-orange-900/10'
-					: isStarred
-						? 'border-yellow-300 dark:border-yellow-700/50 bg-yellow-50/30 dark:bg-yellow-900/10'
-						: 'border-gray-100 dark:border-slate-700'
+				selectable ? 'select-none' : ''
+			} ${
+				selected
+					? 'border-teal-400 dark:border-teal-500 ring-2 ring-teal-400/60 dark:ring-teal-500/60 bg-teal-50/40 dark:bg-teal-900/10'
+					: isFlagged
+						? 'border-orange-300 dark:border-orange-700/50 bg-orange-50/30 dark:bg-orange-900/10'
+						: isStarred
+							? 'border-yellow-300 dark:border-yellow-700/50 bg-yellow-50/30 dark:bg-yellow-900/10'
+							: 'border-gray-100 dark:border-slate-700'
 			}`}
 		>
 			{/* Deck info badge (when viewing cards across multiple decks) */}
@@ -63,6 +79,25 @@ export default function CardListItem({
 			{/* Header row with Front label and action buttons */}
 			<div className="flex items-start justify-between gap-2 mb-2">
 				<div className="flex items-center gap-2">
+					{selectable && (
+						<span
+							role="checkbox"
+							aria-checked={selected}
+							aria-label="Select card"
+							className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors duration-150 ${
+								selected
+									? 'bg-teal-500 border-teal-500 text-white'
+									: 'border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-800'
+							}`}
+						>
+							{selected && (
+								<Check
+									className="h-3.5 w-3.5"
+									strokeWidth={3}
+								/>
+							)}
+						</span>
+					)}
 					<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide">
 						Front
 					</h4>
@@ -72,8 +107,18 @@ export default function CardListItem({
 					{isFlagged && (
 						<Flag className="h-4 w-4 text-orange-500 dark:text-orange-400 fill-current" />
 					)}
+					{hasPartner && (
+						<Link2
+							className="h-4 w-4 text-gray-400 dark:text-slate-500"
+							aria-label="Has a partner card"
+						>
+							<title>Has a partner card (reversed)</title>
+						</Link2>
+					)}
 				</div>
-				<div className="flex gap-1 shrink-0">
+				<div
+					className={`flex gap-1 shrink-0 ${selectable ? 'invisible' : ''}`}
+				>
 					{onToggleCardStar && (
 						<button
 							onClick={(e) => {

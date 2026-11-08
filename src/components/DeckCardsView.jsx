@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
 	Plus,
@@ -18,6 +18,9 @@ import {
 	Folder,
 	FileUp,
 	FileText,
+	CheckSquare,
+	FolderInput,
+	Trash2,
 } from 'lucide-react';
 import { useNotification } from '../hooks/useNotification';
 import { useAppData } from '../contexts/AppDataContext';
@@ -27,6 +30,7 @@ import {
 	getPerDayReviewRate,
 } from '../services/cardCalculations';
 import CardListItem from './CardListItem';
+import { MoveCardsDialog, DeleteCardsDialog } from './CardSelectionDialogs';
 import Breadcrumbs from './Breadcrumbs';
 import ContainerIcon from './ContainerIcon';
 import { getContainerColor } from '../config/containerColors';
@@ -42,6 +46,8 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 		toggleCardStar,
 		duplicateCardsReversed,
 		moveDeck,
+		moveCards,
+		deleteCards,
 	} = useDeckOperations();
 	const { showConfirmation, showSuccess, showError } = useNotification();
 
@@ -55,6 +61,10 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const [sortDirection, setSortDirection] = useState('desc');
 	const [filterBy, setFilterBy] = useState('all');
 	const [showMoveDialog, setShowMoveDialog] = useState(false);
+	const [selectionMode, setSelectionMode] = useState(false);
+	const [selectedIds, setSelectedIds] = useState(() => new Set());
+	const [lastToggledId, setLastToggledId] = useState(null);
+	const [bulkDialog, setBulkDialog] = useState(null); // 'move' | 'delete' | null
 
 	const selectedDeck = appData.decks?.find((d) => d.deckId === deckId);
 
@@ -135,6 +145,121 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	};
 
 	const sortedAndFilteredCards = getSortedAndFilteredCards();
+
+	// --- Multi-select ---------------------------------------------------
+	// Only count ids still in this deck, so moved/deleted cards drop out
+	const selectedCards =
+		selectedDeck?.cards.filter((c) => selectedIds.has(c.cardId)) ?? [];
+	const selectedCount = selectedCards.length;
+
+	// Where every card lives, to find partners in other decks
+	const cardDeckById = new Map();
+	for (const deck of appData.decks || []) {
+		for (const c of deck.cards) cardDeckById.set(c.cardId, deck.deckId);
+	}
+
+	// Partners of selected cards that aren't themselves selected
+	const unselectedPartners = [];
+	const seenPartners = new Set();
+	for (const card of selectedCards) {
+		const pid = card.partnerCardId;
+		if (!pid || selectedIds.has(pid) || seenPartners.has(pid)) continue;
+		const partnerDeckId = cardDeckById.get(pid);
+		if (!partnerDeckId) continue;
+		seenPartners.add(pid);
+		unselectedPartners.push({ cardId: pid, deckId: partnerDeckId });
+	}
+
+	const visibleIds = sortedAndFilteredCards.map((c) => c.cardId);
+	const allVisibleSelected =
+		visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+
+	const exitSelectionMode = () => {
+		setSelectionMode(false);
+		setSelectedIds(new Set());
+		setLastToggledId(null);
+		setBulkDialog(null);
+	};
+
+	// Shift-click selects the range from the last toggled card
+	const handleToggleSelect = (cardId, event) => {
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			const shouldSelect = !prev.has(cardId);
+			const from = visibleIds.indexOf(lastToggledId);
+			const to = visibleIds.indexOf(cardId);
+			if (event?.shiftKey && from !== -1 && to !== -1) {
+				const [lo, hi] = from < to ? [from, to] : [to, from];
+				for (const id of visibleIds.slice(lo, hi + 1)) {
+					if (shouldSelect) next.add(id);
+					else next.delete(id);
+				}
+			} else if (shouldSelect) {
+				next.add(cardId);
+			} else {
+				next.delete(cardId);
+			}
+			return next;
+		});
+		setLastToggledId(cardId);
+	};
+
+	const toggleSelectAllVisible = () => {
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			for (const id of visibleIds) {
+				if (allVisibleSelected) next.delete(id);
+				else next.add(id);
+			}
+			return next;
+		});
+	};
+
+	// Escape leaves selection mode (dialogs handle their own Escape)
+	useEffect(() => {
+		if (!selectionMode || bulkDialog) return;
+		const handleKeyDown = (e) => {
+			if (e.key === 'Escape') exitSelectionMode();
+		};
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, [selectionMode, bulkDialog]);
+
+	// Leaving the deck clears any selection
+	useEffect(() => {
+		exitSelectionMode();
+	}, [deckId]);
+
+	const handleBulkMove = ({ target, partnerIds }) => {
+		const ids = [...selectedCards.map((c) => c.cardId), ...partnerIds];
+		const fullTarget = target.newDeck
+			? {
+					newDeck: {
+						...target.newDeck,
+						parentFolderId: selectedDeck.parentFolderId ?? null,
+					},
+				}
+			: target;
+		moveCards(ids, fullTarget);
+		const targetName =
+			target.newDeck?.deckName ??
+			appData.decks.find((d) => d.deckId === target.deckId)?.deckName;
+		showSuccess(
+			`Moved ${ids.length} card${ids.length === 1 ? '' : 's'} to "${targetName}".`,
+			'Cards Moved'
+		);
+		exitSelectionMode();
+	};
+
+	const handleBulkDelete = ({ partnerIds }) => {
+		const ids = [...selectedCards.map((c) => c.cardId), ...partnerIds];
+		deleteCards(ids);
+		showSuccess(
+			`Deleted ${ids.length} card${ids.length === 1 ? '' : 's'}.`,
+			'Cards Deleted'
+		);
+		exitSelectionMode();
+	};
 
 	const toggleSortDirection = () => {
 		setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -483,6 +608,25 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 						</button>
 						{selectedDeck.cards.length > 0 && (
 							<button
+								onClick={() =>
+									selectionMode
+										? exitSelectionMode()
+										: setSelectionMode(true)
+								}
+								className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 ${
+									selectionMode
+										? 'bg-teal-100 hover:bg-teal-200 text-teal-700 dark:bg-teal-900/40 dark:hover:bg-teal-900/60 dark:text-teal-300'
+										: 'bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200'
+								}`}
+								title="Select multiple cards to move or delete"
+								aria-pressed={selectionMode}
+							>
+								<CheckSquare className="h-5 w-5" />
+								<span className="hidden lg:inline">Select</span>
+							</button>
+						)}
+						{selectedDeck.cards.length > 0 && (
+							<button
 								onClick={handleDuplicateCardsReversed}
 								className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
 								title="Duplicate all cards with reversed front/back"
@@ -689,7 +833,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 				)}
 
 				{/* Cards List */}
-				<div className="space-y-4">
+				<div className={`space-y-4 ${selectionMode ? 'pb-24' : ''}`}>
 					{selectedDeck.cards.length === 0 ? (
 						<div className="py-12 text-center">
 							<FileText className="mx-auto h-16 w-16 mb-4 text-gray-300 dark:text-slate-600" />
@@ -723,11 +867,91 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 								onDeleteCard={handleDeleteCard}
 								onToggleCardStar={toggleCardStar}
 								onToggleCardFlag={toggleCardFlag}
+								selectable={selectionMode}
+								selected={selectedIds.has(card.cardId)}
+								onToggleSelect={handleToggleSelect}
+								hasPartner={
+									selectionMode &&
+									cardDeckById.has(card.partnerCardId)
+								}
 							/>
 						))
 					)}
 				</div>
 			</div>
+
+			{/* Multi-select action bar */}
+			{selectionMode && (
+				<div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 pointer-events-none">
+					<div className="pointer-events-auto flex w-full max-w-2xl flex-wrap items-center gap-2 rounded-2xl border border-gray-200 dark:border-slate-600 bg-white/95 dark:bg-slate-800/95 backdrop-blur px-4 py-3 shadow-2xl">
+						<span className="text-sm font-semibold text-gray-900 dark:text-slate-100 tabular-nums">
+							{selectedCount} selected
+						</span>
+						<button
+							onClick={toggleSelectAllVisible}
+							disabled={visibleIds.length === 0}
+							className="px-2.5 py-1.5 text-sm text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-lg transition-colors disabled:opacity-50"
+						>
+							{allVisibleSelected
+								? 'Deselect all'
+								: hasActiveFilters
+									? `Select ${visibleIds.length} shown`
+									: 'Select all'}
+						</button>
+						<div className="ml-auto flex items-center gap-2">
+							<button
+								onClick={() => setBulkDialog('move')}
+								disabled={selectedCount === 0}
+								className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white rounded-lg shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								<FolderInput className="h-4 w-4" />
+								<span className="hidden sm:inline">
+									Move to deck
+								</span>
+								<span className="sm:hidden">Move</span>
+							</button>
+							<button
+								onClick={() => setBulkDialog('delete')}
+								disabled={selectedCount === 0}
+								className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								title="Delete selected cards"
+							>
+								<Trash2 className="h-4 w-4" />
+								<span className="hidden sm:inline">Delete</span>
+							</button>
+							<button
+								onClick={exitSelectionMode}
+								className="flex items-center gap-1 px-2.5 py-2 text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+								title="Exit selection (Esc)"
+							>
+								<X className="h-4 w-4" />
+								<span className="hidden sm:inline">Done</span>
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{bulkDialog === 'move' && (
+				<MoveCardsDialog
+					decks={appData.decks}
+					folders={appData.folders}
+					currentDeckId={deckId}
+					selectedCount={selectedCount}
+					unselectedPartners={unselectedPartners}
+					onMove={handleBulkMove}
+					onClose={() => setBulkDialog(null)}
+				/>
+			)}
+
+			{bulkDialog === 'delete' && (
+				<DeleteCardsDialog
+					selectedCount={selectedCount}
+					unselectedPartners={unselectedPartners}
+					onDelete={handleBulkDelete}
+					onClose={() => setBulkDialog(null)}
+				/>
+			)}
 
 			{/* Move to Folder Dialog */}
 			{showMoveDialog && (

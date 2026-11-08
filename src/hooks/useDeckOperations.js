@@ -238,6 +238,89 @@ export function useDeckOperations() {
 		});
 	};
 
+	// Move cards (from any deck) into a target deck. Pass either
+	// { deckId } for an existing deck, or { newDeck: { deckName, parentFolderId } }
+	// to create the deck in the same update. Returns the target deckId.
+	const moveCards = (cardIds, target) => {
+		const ids = new Set(cardIds);
+		const targetDeckId =
+			target.deckId ??
+			`${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+
+		setAppData((prev) => {
+			const decks = prev.decks || [];
+			const moving = [];
+			let stripped = decks.map((deck) => {
+				if (deck.deckId === targetDeckId) return deck;
+				if (!deck.cards.some((c) => ids.has(c.cardId))) return deck;
+				return {
+					...deck,
+					cards: deck.cards.filter((card) => {
+						if (ids.has(card.cardId)) {
+							moving.push(card);
+							return false;
+						}
+						return true;
+					}),
+				};
+			});
+
+			if (target.newDeck) {
+				stripped = [
+					...stripped,
+					{
+						deckId: targetDeckId,
+						deckName: target.newDeck.deckName,
+						deckSymbol: DEFAULT_DECK_ICON,
+						deckColor: DEFAULT_CONTAINER_COLOR,
+						parentFolderId: target.newDeck.parentFolderId ?? null,
+						createdAt: Date.now(),
+						cards: [],
+					},
+				];
+			}
+
+			return {
+				...prev,
+				decks: stripped.map((deck) =>
+					deck.deckId === targetDeckId
+						? { ...deck, cards: [...deck.cards, ...moving] }
+						: deck
+				),
+			};
+		});
+
+		return targetDeckId;
+	};
+
+	// Delete cards from any deck. Surviving cards whose partner was deleted
+	// lose their partnerCardId so they can be reverse-duplicated again.
+	const deleteCards = (cardIds) => {
+		const ids = new Set(cardIds);
+		setAppData((prev) => ({
+			...prev,
+			decks: (prev.decks || []).map((deck) => {
+				if (
+					!deck.cards.some(
+						(c) => ids.has(c.cardId) || ids.has(c.partnerCardId)
+					)
+				)
+					return deck;
+				return {
+					...deck,
+					cards: deck.cards
+						.filter((card) => !ids.has(card.cardId))
+						.map((card) => {
+							if (!ids.has(card.partnerCardId)) return card;
+							// eslint-disable-next-line no-unused-vars
+							const { partnerCardId, ...rest } = card;
+							return rest;
+						}),
+				};
+			}),
+		}));
+	};
+
 	const addFolder = (
 		folderName,
 		folderSymbol = DEFAULT_FOLDER_ICON,
@@ -333,6 +416,8 @@ export function useDeckOperations() {
 		toggleCardFlag,
 		toggleCardStar,
 		duplicateCardsReversed,
+		moveCards,
+		deleteCards,
 		addFolder,
 		updateFolder,
 		deleteFolder,
