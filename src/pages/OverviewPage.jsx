@@ -336,35 +336,56 @@ function OverviewPage() {
 		setCurrentView('review');
 	};
 
-	// Where the new cards sit in the session, and how many learned ones follow
-	const sectionTotal = (type) =>
-		reviewSections.find((section) => section.type === type)?.total || 0;
-	const newStart = sectionTotal('due');
-	const newEnd = newStart + sectionTotal('new');
-	const skippableNewCount =
-		currentCardIndex >= newStart && currentCardIndex < newEnd
-			? newEnd - currentCardIndex
-			: 0;
-	const learnedCount = sectionTotal('learned');
+	// Skip ahead: if the current card is in the Due or New section and more
+	// sections follow, the rest of that section can be dropped from the session
+	const skipTarget = (() => {
+		let start = 0;
+		for (let i = 0; i < reviewSections.length; i += 1) {
+			const section = reviewSections[i];
+			const end = start + section.total;
+			if (currentCardIndex >= start && currentCardIndex < end) {
+				if (section.type !== 'due' && section.type !== 'new') {
+					return null;
+				}
+				const next = reviewSections
+					.slice(i + 1)
+					.find((s) => s.total > 0);
+				if (!next) return null;
+				return {
+					type: section.type,
+					start,
+					end,
+					remaining: end - currentCardIndex,
+					nextType: next.type,
+					nextLabel: next.label,
+					nextCount: next.total,
+				};
+			}
+			start = end;
+		}
+		return null;
+	})();
 
-	// Study ahead: drop the new cards not yet seen so the session moves on to
-	// the learned ones. Skipped cards stay new and untouched; learned cards
-	// get ordinary early reviews, which also clear any catch-up reschedule.
-	const skipNewCards = () => {
-		if (skippableNewCount === 0 || learnedCount === 0) return;
+	// Drop the cards not yet seen in the current section so the session moves
+	// on to the next one. Skipped cards are untouched: new cards stay new and
+	// due cards stay due. Learned cards get ordinary early reviews, which also
+	// clear any catch-up reschedule.
+	const skipSection = () => {
+		if (!skipTarget) return;
+		const { type, start, end } = skipTarget;
 
 		const skip = () => {
 			setCurrentDeckForReview((prev) => ({
 				...prev,
 				cards: [
 					...prev.cards.slice(0, currentCardIndex),
-					...prev.cards.slice(newEnd),
+					...prev.cards.slice(end),
 				],
 			}));
 			setReviewSections((prev) =>
 				prev.map((section) =>
-					section.type === 'new'
-						? { ...section, total: currentCardIndex - newStart }
+					section.type === type
+						? { ...section, total: currentCardIndex - start }
 						: section
 				)
 			);
@@ -591,11 +612,8 @@ function OverviewPage() {
 						onEndReview={handleEndReview}
 						onUndo={undoLastReview}
 						canUndo={undoStack.length > 0}
-						skippableNewCount={
-							learnedCount > 0 ? skippableNewCount : 0
-						}
-						learnedCount={learnedCount}
-						onSkipNew={skipNewCards}
+						skipTarget={skipTarget}
+						onSkipSection={skipSection}
 						onToggleFlag={(cardId) => {
 							const card = currentDeckForReview.cards.find(
 								(c) => c.cardId === cardId

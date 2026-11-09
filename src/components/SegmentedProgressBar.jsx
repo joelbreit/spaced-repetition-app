@@ -2,12 +2,14 @@ import { Check } from 'lucide-react';
 
 /**
  * Segmented Progress Bar for spaced repetition review sessions
- * Shows up to 3 progress bars (Due, New, Learned) with the active one expanded
+ * Shows up to 3 progress bars (Due, New, Learned) with the active one expanded.
+ * `footerAction` is an optional element shown beside the overall card count.
  */
 export default function SegmentedProgressBar({
 	sections,
 	currentCardIndex,
 	totalCards,
+	footerAction = null,
 }) {
 	// Filter out empty sections
 	const activeSections = sections.filter((section) => section.total > 0);
@@ -178,9 +180,17 @@ export default function SegmentedProgressBar({
 			</div>
 
 			{/* Overall progress indicator */}
-			<div className="mt-3 text-center text-xs text-gray-500 dark:text-gray-400">
-				Card {Math.min(currentCardIndex + 1, totalCards)} of{' '}
-				{totalCards} overall
+			<div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+				<span>
+					Card {Math.min(currentCardIndex + 1, totalCards)} of{' '}
+					{totalCards} overall
+				</span>
+				{footerAction && (
+					<>
+						<span aria-hidden="true">·</span>
+						{footerAction}
+					</>
+				)}
 			</div>
 		</div>
 	);

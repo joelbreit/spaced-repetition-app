@@ -93,6 +93,13 @@ const GRADE_KEYS = {
 	4: 'easy',
 };
 
+// Skip link picks up the color of the section it moves on to
+const SKIP_HOVER_COLORS = {
+	new: 'hover:text-teal-600 dark:hover:text-teal-400 focus-visible:text-teal-600 dark:focus-visible:text-teal-400',
+	learned:
+		'hover:text-green-600 dark:hover:text-green-400 focus-visible:text-green-600 dark:focus-visible:text-green-400',
+};
+
 export default function CardReviewView({
 	deck,
 	currentCardIndex,
@@ -106,9 +113,8 @@ export default function CardReviewView({
 	onToggleStar,
 	onUndo,
 	canUndo = false,
-	skippableNewCount = 0,
-	learnedCount = 0,
-	onSkipNew,
+	skipTarget = null,
+	onSkipSection,
 }) {
 	const { appData } = useAppData();
 	const currentCard = deck.cards[currentCardIndex];
@@ -751,23 +757,28 @@ export default function CardReviewView({
 				sections={sections}
 				currentCardIndex={currentCardIndex}
 				totalCards={totalCards}
+				footerAction={
+					skipTarget &&
+					onSkipSection && (
+						<button
+							type="button"
+							onClick={onSkipSection}
+							disabled={!!animationResult}
+							title={`Skip the remaining ${skipTarget.remaining} ${skipTarget.type} card${skipTarget.remaining !== 1 ? 's' : ''} (they stay ${skipTarget.type}) and move on to ${skipTarget.nextCount} ${skipTarget.nextLabel.toLowerCase()} card${skipTarget.nextCount !== 1 ? 's' : ''}`}
+							className={`inline-flex items-center gap-1 font-medium rounded transition-colors duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+								SKIP_HOVER_COLORS[skipTarget.nextType] ||
+								SKIP_HOVER_COLORS.learned
+							}`}
+						>
+							Skip to {skipTarget.nextLabel.toLowerCase()}
+							<FastForward
+								className="h-3 w-3"
+								aria-hidden="true"
+							/>
+						</button>
+					)
+				}
 			/>
-
-			{/* Study ahead: skip the remaining new cards */}
-			{skippableNewCount > 0 && onSkipNew && (
-				<div className="-mt-4 mb-6 flex justify-center">
-					<button
-						onClick={onSkipNew}
-						disabled={!!animationResult}
-						title={`Skip the remaining ${skippableNewCount} new card${skippableNewCount !== 1 ? 's' : ''} (they stay new) and review learned cards early`}
-						className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-700 dark:text-green-300 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40 border border-green-200 dark:border-green-800 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						<FastForward className="h-4 w-4" />
-						Skip {skippableNewCount} new · study {learnedCount}{' '}
-						learned ahead
-					</button>
-				</div>
-			)}
 
 			{/* Card */}
 			<div className="mb-6" style={{ perspective: '1000px' }}>
