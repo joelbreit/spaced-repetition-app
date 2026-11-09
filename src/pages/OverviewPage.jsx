@@ -17,6 +17,7 @@ import { useAppData } from '../contexts/AppDataContext';
 import { useDeckOperations } from '../hooks/useDeckOperations';
 import { calculateNextInterval } from '../services/cardCalculations';
 import { calculateStreakStats } from '../services/streak';
+import { getFlipDuration } from '../services/reviewSettings';
 
 function OverviewPage() {
 	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -301,7 +302,7 @@ function OverviewPage() {
 				setIsSessionComplete(true);
 				setCurrentView('summary');
 			}
-		}, 200);
+		}, getFlipDuration());
 	};
 
 	const undoLastReview = () => {
@@ -373,7 +374,7 @@ function OverviewPage() {
 		// the next card's answer isn't shown
 		if (isFlipped) {
 			setIsFlipped(false);
-			setTimeout(skip, 200);
+			setTimeout(skip, getFlipDuration());
 		} else {
 			skip();
 		}

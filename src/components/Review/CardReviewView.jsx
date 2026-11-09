@@ -19,7 +19,7 @@ import {
 import { useState, useEffect, useRef, useCallback } from 'react';
 import SegmentedProgressBar from '../SegmentedProgressBar';
 import CardSide from './CardSide';
-import ReadAloudSettingsModal from './ReadAloudSettingsModal';
+import ReviewSettingsModal from './ReviewSettingsModal';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import {
 	calculateNextInterval,
@@ -31,6 +31,11 @@ import {
 } from '../../services/cardCalculations';
 import { useAppData } from '../../contexts/AppDataContext';
 import { readAloudAPI } from '../../services/apiStorage';
+import {
+	FLIP_DURATIONS,
+	loadReviewSettings,
+	saveReviewSettings,
+} from '../../services/reviewSettings';
 
 const GRADES = [
 	{
@@ -142,39 +147,14 @@ export default function CardReviewView({
 	const prefetchInFlightRef = useRef(new Set());
 	const cacheVersionRef = useRef(0);
 
-	// Read aloud settings state (including playback speed)
-	const [readAloudSettings, setReadAloudSettings] = useState(() => {
-		try {
-			const saved = localStorage.getItem('readAloudSettings');
-			const savedSpeed = localStorage.getItem('readAloudPlaybackSpeed');
-			if (saved) {
-				const settings = JSON.parse(saved);
-				return {
-					voiceId: settings.voiceId || 'Ruth',
-					engine: settings.engine || 'generative',
-					autoRead: settings.autoRead || 'off',
-					playbackSpeed: savedSpeed ? parseFloat(savedSpeed) : 1.0,
-					prefetchAudio: settings.prefetchAudio || false,
-				};
-			}
-			return {
-				voiceId: 'Ruth',
-				engine: 'generative',
-				autoRead: 'off',
-				playbackSpeed: savedSpeed ? parseFloat(savedSpeed) : 1.0,
-				prefetchAudio: false,
-			};
-		} catch (error) {
-			console.error('Error loading readAloud settings:', error);
-		}
-		return {
-			voiceId: 'Ruth',
-			engine: 'generative',
-			autoRead: 'off',
-			playbackSpeed: 1.0,
-			prefetchAudio: false,
-		};
-	});
+	// Review settings: text-to-speech and card animation
+	const [readAloudSettings, setReadAloudSettings] =
+		useState(loadReviewSettings);
+	const flipDuration = FLIP_DURATIONS[readAloudSettings.flipSpeed] ?? 200;
+
+	// A graded review waiting on audio to finish before advancing
+	const pendingReviewRef = useRef(null);
+	const [awaitingAudio, setAwaitingAudio] = useState(false);
 
 	// Convenience accessor for playback speed
 	const playbackSpeed = readAloudSettings.playbackSpeed;
@@ -347,7 +327,7 @@ export default function CardReviewView({
 					handleReadAloud();
 				}
 			}
-		}, 250);
+		}, flipDuration + 50);
 		return () => clearTimeout(timeoutId);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
@@ -357,29 +337,13 @@ export default function CardReviewView({
 		readAloudSettings.autoRead,
 		animationResult,
 		currentCard,
+		flipDuration,
 	]);
 
 	// Handle settings save
-	const handleSaveSettings = (
-		voiceId,
-		engine,
-		autoRead = 'off',
-		newPlaybackSpeed = 1.0,
-		prefetchAudio = false
-	) => {
-		const newSettings = {
-			voiceId,
-			engine,
-			autoRead,
-			playbackSpeed: newPlaybackSpeed,
-			prefetchAudio,
-		};
+	const handleSaveSettings = (newSettings) => {
 		setReadAloudSettings(newSettings);
-		localStorage.setItem('readAloudSettings', JSON.stringify(newSettings));
-		localStorage.setItem(
-			'readAloudPlaybackSpeed',
-			newPlaybackSpeed.toString()
-		);
+		saveReviewSettings(newSettings);
 	};
 
 	// Handle Read Aloud
@@ -457,6 +421,22 @@ export default function CardReviewView({
 		getAudioPlayer,
 	]);
 
+	// Record the graded review and move on to the next card
+	const commitPendingReview = useCallback(() => {
+		const pending = pendingReviewRef.current;
+		if (!pending) return;
+		pendingReviewRef.current = null;
+		setAwaitingAudio(false);
+
+		onReview(pending.result, pending.timestamp, pending.reviewDuration);
+
+		setTimeout(() => {
+			setAnimationResult(null);
+			setNextDueDate(null);
+			setSelectedReview(null);
+		}, 300);
+	}, [onReview]);
+
 	// Handle review button click - trigger animation then record
 	const handleReview = useCallback(
 		(result) => {
@@ -477,19 +457,29 @@ export default function CardReviewView({
 			setAnimationResult(result);
 			setNextDueDate(nextDue);
 			setSelectedReview(result);
+			pendingReviewRef.current = { result, timestamp, reviewDuration };
 
 			setTimeout(() => {
-				onReview(result, timestamp, reviewDuration);
-
-				setTimeout(() => {
-					setAnimationResult(null);
-					setNextDueDate(null);
-					setSelectedReview(null);
-				}, 300);
+				if (readAloudSettings.waitForAudio) {
+					// The effect below records it once audio is done
+					setAwaitingAudio(true);
+				} else {
+					commitPendingReview();
+				}
 			}, 600);
 		},
-		[currentCard, onReview]
+		[currentCard, readAloudSettings.waitForAudio, commitPendingReview]
 	);
+
+	// While waiting on audio, advance once it ends, is paused or fails
+	useEffect(() => {
+		if (!awaitingAudio) return;
+		const player = audioPlayerRef.current;
+		const playing = player && !player.paused && !player.ended;
+		if (!isLoadingAudio && !playing) {
+			commitPendingReview();
+		}
+	}, [awaitingAudio, isPlayingAudio, isLoadingAudio, commitPendingReview]);
 
 	// Keyboard shortcuts
 	useEffect(() => {
@@ -517,6 +507,18 @@ export default function CardReviewView({
 			if (event.key === 'Escape') {
 				event.preventDefault();
 				onEndReview();
+				return;
+			}
+
+			// Space or Enter skips the rest of the audio and moves on
+			if (
+				awaitingAudio &&
+				(event.key === ' ' ||
+					event.code === 'Space' ||
+					event.key === 'Enter')
+			) {
+				event.preventDefault();
+				commitPendingReview();
 				return;
 			}
 
@@ -604,6 +606,8 @@ export default function CardReviewView({
 		showSettingsModal,
 		showShortcuts,
 		onEndReview,
+		awaitingAudio,
+		commitPendingReview,
 	]);
 
 	if (!currentCard) {
@@ -777,8 +781,9 @@ export default function CardReviewView({
 						transform: isFlipped
 							? 'rotateY(180deg)'
 							: 'rotateY(0deg)',
-						transition:
-							'transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
+						transition: flipDuration
+							? `transform ${flipDuration}ms cubic-bezier(0.4, 0.0, 0.2, 1)`
+							: 'none',
 						display: 'grid',
 					}}
 				>
@@ -787,7 +792,11 @@ export default function CardReviewView({
 						side="Front"
 						text={currentCard.front}
 						animationResult={animationResult}
-						nextDueDate={animationResult ? nextDueDate : null}
+						nextDueDate={
+							animationResult && !awaitingAudio
+								? nextDueDate
+								: null
+						}
 						animationColor={getAnimationColor()}
 						isStarred={isStarred}
 						isFlagged={isFlagged}
@@ -806,7 +815,11 @@ export default function CardReviewView({
 						side="Back"
 						text={currentCard.back}
 						animationResult={animationResult}
-						nextDueDate={animationResult ? nextDueDate : null}
+						nextDueDate={
+							animationResult && !awaitingAudio
+								? nextDueDate
+								: null
+						}
 						animationColor={getAnimationColor()}
 						isStarred={isStarred}
 						isFlagged={isFlagged}
@@ -821,6 +834,22 @@ export default function CardReviewView({
 					/>
 				</div>
 			</div>
+
+			{awaitingAudio && (
+				<div className="-mt-3 mb-3 flex justify-center">
+					<button
+						onClick={commitPendingReview}
+						className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+						title="Skip the rest of the audio (Space)"
+					>
+						<Volume2 className="h-4 w-4 animate-pulse text-teal-500" />
+						Next card when audio finishes
+						<span className="font-medium text-teal-600 dark:text-teal-400">
+							Skip
+						</span>
+					</button>
+				</div>
+			)}
 
 			{/* Review buttons */}
 			<div className="space-y-6">
@@ -933,15 +962,11 @@ export default function CardReviewView({
 			</div>
 
 			{/* Settings Modal */}
-			<ReadAloudSettingsModal
+			<ReviewSettingsModal
 				isOpen={showSettingsModal}
 				onClose={() => setShowSettingsModal(false)}
 				onSave={handleSaveSettings}
-				currentVoiceId={readAloudSettings.voiceId}
-				currentEngine={readAloudSettings.engine}
-				currentAutoRead={readAloudSettings.autoRead}
-				currentPlaybackSpeed={readAloudSettings.playbackSpeed}
-				currentPrefetchAudio={readAloudSettings.prefetchAudio}
+				settings={readAloudSettings}
 			/>
 
 			<KeyboardShortcutsModal
