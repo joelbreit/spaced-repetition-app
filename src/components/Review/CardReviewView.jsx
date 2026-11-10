@@ -21,6 +21,7 @@ import SegmentedProgressBar from '../SegmentedProgressBar';
 import CardSide from './CardSide';
 import ReviewSettingsModal from './ReviewSettingsModal';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
+import AudioProgressBorder from './AudioProgressBorder';
 import {
 	calculateNextInterval,
 	getInterval,
@@ -132,7 +133,6 @@ export default function CardReviewView({
 
 	// Animation state for review result
 	const [animationResult, setAnimationResult] = useState(null);
-	const [nextDueDate, setNextDueDate] = useState(null);
 	const [selectedReview, setSelectedReview] = useState(null);
 
 	// Track if the current card has been flipped at least once
@@ -438,7 +438,6 @@ export default function CardReviewView({
 
 		setTimeout(() => {
 			setAnimationResult(null);
-			setNextDueDate(null);
 			setSelectedReview(null);
 		}, 300);
 	}, [onReview]);
@@ -449,19 +448,12 @@ export default function CardReviewView({
 			if (!currentCard) return;
 
 			const timestamp = Date.now();
-			const interval = calculateNextInterval(
-				result,
-				currentCard,
-				timestamp
-			);
-			const nextDue = timestamp + interval;
 
 			const reviewDuration = reviewStartTimeRef.current
 				? timestamp - reviewStartTimeRef.current
 				: 0;
 
 			setAnimationResult(result);
-			setNextDueDate(nextDue);
 			setSelectedReview(result);
 			pendingReviewRef.current = { result, timestamp, reviewDuration };
 
@@ -803,11 +795,6 @@ export default function CardReviewView({
 						side="Front"
 						text={currentCard.front}
 						animationResult={animationResult}
-						nextDueDate={
-							animationResult && !awaitingAudio
-								? nextDueDate
-								: null
-						}
 						animationColor={getAnimationColor()}
 						isStarred={isStarred}
 						isFlagged={isFlagged}
@@ -826,11 +813,6 @@ export default function CardReviewView({
 						side="Back"
 						text={currentCard.back}
 						animationResult={animationResult}
-						nextDueDate={
-							animationResult && !awaitingAudio
-								? nextDueDate
-								: null
-						}
 						animationColor={getAnimationColor()}
 						isStarred={isStarred}
 						isFlagged={isFlagged}
@@ -917,9 +899,14 @@ export default function CardReviewView({
 					<button
 						onClick={handleReadAloud}
 						disabled={isLoadingAudio}
-						className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+						className="relative flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
 						title={isPlayingAudio ? 'Pause' : 'Read aloud (Space)'}
 					>
+						<AudioProgressBorder
+							audioRef={audioPlayerRef}
+							isPlaying={isPlayingAudio}
+							resetKey={`${currentCardIndex}-${isFlipped}`}
+						/>
 						{isLoadingAudio ? (
 							<Loader2 className="h-5 w-5 animate-spin" />
 						) : isPlayingAudio ? (

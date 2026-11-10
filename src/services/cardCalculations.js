@@ -40,11 +40,6 @@ export function formatIntervalShort(interval) {
 	return `${oneDecimal(days / 365)}y`;
 }
 
-export function prettyPrintDueDateAsInterval(dueDate) {
-	const interval = dueDate - Date.now();
-	return `Due in ${prettyPrintInterval(interval)}`;
-}
-
 export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	// Always go to minimum interval
 	if (result === 'again') {

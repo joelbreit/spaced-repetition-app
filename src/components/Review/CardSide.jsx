@@ -1,6 +1,5 @@
 import { forwardRef } from 'react';
 import { Star, Flag } from 'lucide-react';
-import AnimationOverlay from './AnimationOverlay';
 import ContainerIcon from '../ContainerIcon';
 import { getContainerColor } from '../../config/containerColors';
 
@@ -23,7 +22,6 @@ const CardSide = forwardRef(function CardSide(
 		side,
 		text,
 		animationResult,
-		nextDueDate,
 		animationColor,
 		isStarred,
 		isFlagged,
@@ -52,8 +50,6 @@ const CardSide = forwardRef(function CardSide(
 				transitionDuration: '0.6s',
 			}}
 		>
-			<AnimationOverlay nextDueDate={nextDueDate} />
-
 			{/* Header */}
 			<div className="flex items-center justify-between px-4 py-3 border-b border-gray-200/50 dark:border-slate-700/50 bg-gray-50/50 dark:bg-slate-900/30">
 				{/* Deck Name */}

@@ -99,7 +99,6 @@ The app wraps contexts in this order (outermost to innermost):
 | `ReviewSummary.jsx`          | Session results, celebration, study-ahead/undo |
 | `KeyboardShortcutsModal.jsx` | `?` overlay listing review shortcuts           |
 | `ReadAloudButton.jsx`        | Text-to-speech via AWS Polly                   |
-| `AnimationOverlay.jsx`       | Confetti and visual feedback                   |
 
 ### Profile Components (`components/Profile/`)
 
