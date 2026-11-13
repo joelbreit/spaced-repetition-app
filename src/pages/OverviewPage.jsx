@@ -18,6 +18,7 @@ import { useDeckOperations } from '../hooks/useDeckOperations';
 import { calculateNextInterval } from '../services/cardCalculations';
 import { calculateStreakStats } from '../services/streak';
 import { getFlipDuration } from '../services/reviewSettings';
+import { shuffleSpreadingPartners } from '../services/reviewOrder';
 
 function OverviewPage() {
 	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -62,19 +63,14 @@ function OverviewPage() {
 			const dueCards = cards.filter(
 				(card) => card.whenDue <= now && card.reviews.length > 0
 			);
-			const newCards = cards.filter((card) => card.reviews.length === 0);
+			const newCards = shuffleSpreadingPartners(
+				cards.filter((card) => card.reviews.length === 0)
+			);
 			const notYetDueCards = cards.filter(
 				(card) => card.whenDue > now && card.reviews.length > 0
 			);
 
 			dueCards.sort((a, b) => b.whenDue - a.whenDue);
-
-			for (let i = newCards.length - 1; i > 0; i -= 1) {
-				const j = Math.floor(Math.random() * (i + 1));
-				const temp = newCards[i];
-				newCards[i] = newCards[j];
-				newCards[j] = temp;
-			}
 
 			notYetDueCards.sort((a, b) => a.whenDue - b.whenDue);
 
@@ -169,19 +165,14 @@ function OverviewPage() {
 		const dueCards = allCards.filter(
 			(card) => card.whenDue <= now && card.reviews.length > 0
 		);
-		const newCards = allCards.filter((card) => card.reviews.length === 0);
+		const newCards = shuffleSpreadingPartners(
+			allCards.filter((card) => card.reviews.length === 0)
+		);
 		const notYetDueCards = allCards.filter(
 			(card) => card.whenDue > now && card.reviews.length > 0
 		);
 
 		dueCards.sort((a, b) => b.whenDue - a.whenDue);
-
-		for (let i = newCards.length - 1; i > 0; i -= 1) {
-			const j = Math.floor(Math.random() * (i + 1));
-			const temp = newCards[i];
-			newCards[i] = newCards[j];
-			newCards[j] = temp;
-		}
 
 		notYetDueCards.sort((a, b) => a.whenDue - b.whenDue);
 

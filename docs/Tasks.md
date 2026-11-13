@@ -6,7 +6,11 @@
 
 - [ ] **Search and filtering in all group views**
 - [ ] **Cloze deletions**
-- [ ] **Review should fit better on page**
+- [ ] **SVG images with cards and rendering**
+- [ ] **Markdown support**
+- [ ] Track the cloud cost for each user
+- [ ] Show number of users
+- [ ] Review should fit better on page
 - [x] Show keyboard shortcuts somehow (`?` during review, plus key hints on the buttons)
     - [ ] Cards should stretch to fill the height allowed
     - [x] Cards too big for that height should be scrollable
@@ -23,7 +27,6 @@
 - [ ] User should be able to delete account
 - [ ] Documentation of pages, components, algorithms, data structure
 - [ ] Log how much things are probably costing
-- [ ] Markdown support
 - [ ] Weekly leagues - other users are my other weeks from the past
 - [ ] Select lucid icons instead of emojis for folders/decks
 - [ ] Show all keyboard shortcuts when holding down Alt (or Option) key
