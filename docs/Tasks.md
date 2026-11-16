@@ -2,6 +2,43 @@
 
 ## Issues
 
+### Lambda 6 MB payload limit
+
+Lambda caps both request and response payloads at 6 MB. Every load (`GET /data`)
+and every full save (`POST /data`) moves the user's whole dataset through the
+Lambda, so a big enough account will break the app.
+
+**Incident, 2026-11-16:** the largest account's `data.json` reached 5.5 MiB
+(3,979 cards, ~19,000 reviews, stored pretty-printed). The `GET` response — the
+file escaped into the Lambda proxy envelope — went over 6 MB, and every load
+failed with `413 RequestEntityTooLarge` in the Lambda logs and a `500` from API
+Gateway.
+
+**Stopgap shipped the same day** (`backend/src/functions/flashcards-api/index.mjs`):
+
+- `GET` responses are gzipped (`Content-Encoding: gzip`, base64 body). The 5.5 MiB
+  file now goes out as ~1.1 MB.
+- `POST`/`PATCH` now store minified JSON instead of pretty-printed, which cuts the
+  stored file to ~3.4 MB.
+
+**Still open:**
+
+- [ ] Full saves (`POST`) are uncompressed: the client sends the minified dataset
+      as-is, ~3.4 MB for the largest account today. Saves will fail once it
+      passes ~6 MB.
+- [ ] Choose a long-term fix (any of these, or a combination):
+    - Presigned S3 URLs for loading and full saves, so the data never passes
+      through Lambda (the Lambda only checks the token and signs the URL). This
+      removes the limit entirely.
+    - Split storage per deck (`users/{id}/decks/{deckId}.json`) so no single
+      object or request grows without bound.
+    - Gzip request bodies on the client (`CompressionStream`) and decompress in
+      the Lambda.
+    - Shrink review records: `reviewId` repeats `timestamp`, and old reviews could
+      be summarized or archived.
+- [ ] Alarm on Lambda `413` errors, or warn when a user's `data.json` passes ~4 MB,
+      so this shows up before users see failures
+
 ## Features
 
 - [ ] **Search and filtering in all group views**

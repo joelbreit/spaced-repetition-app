@@ -4,6 +4,7 @@ import {
 	PutObjectCommand,
 } from '@aws-sdk/client-s3';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
+import { gzipSync } from 'node:zlib';
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 const BUCKET = process.env.S3_BUCKET;
@@ -95,10 +96,15 @@ export const handler = async (event) => {
 				const response = await s3Client.send(command);
 				const jsonString = await response.Body.transformToString();
 
+				// Lambda caps response payloads at 6 MB (after the body is
+				// escaped into the proxy envelope). Large datasets blew past
+				// that and API Gateway returned 500. Gzip the body - JSON
+				// compresses ~5-10x and browsers decode it transparently.
 				return {
 					statusCode: 200,
-					headers,
-					body: jsonString,
+					headers: { ...headers, 'Content-Encoding': 'gzip' },
+					isBase64Encoded: true,
+					body: gzipSync(jsonString).toString('base64'),
 				};
 			} catch (error) {
 				if (error.name === 'NoSuchKey') {
@@ -119,7 +125,7 @@ export const handler = async (event) => {
 			const command = new PutObjectCommand({
 				Bucket: BUCKET,
 				Key: key,
-				Body: JSON.stringify(data, null, 2),
+				Body: JSON.stringify(data),
 				ContentType: 'application/json',
 			});
 
@@ -222,7 +228,7 @@ export const handler = async (event) => {
 			const putCommand = new PutObjectCommand({
 				Bucket: BUCKET,
 				Key: key,
-				Body: JSON.stringify(existingData, null, 2),
+				Body: JSON.stringify(existingData),
 				ContentType: 'application/json',
 			});
 
