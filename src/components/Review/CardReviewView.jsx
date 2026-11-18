@@ -73,11 +73,13 @@ const GRADE_LABELS = Object.fromEntries(
 	GRADES.map(({ result, label }) => [result, label])
 );
 
-const GRADE_DOT_COLORS = {
-	again: 'bg-red-500',
-	hard: 'bg-orange-500',
-	good: 'bg-green-500',
-	easy: 'bg-teal-500',
+// Color + height double-encode each grade so similar hues (red/orange,
+// green/teal) stay distinguishable; the row reads like a tiny sparkline
+const GRADE_MARKS = {
+	again: 'h-1 bg-red-500',
+	hard: 'h-2 bg-orange-500',
+	good: 'h-2.5 bg-green-500',
+	easy: 'h-3 bg-teal-500',
 };
 
 const RECENT_GRADE_COUNT = 5;
@@ -690,11 +692,11 @@ export default function CardReviewView({
 		])
 	);
 
-	// Last few grades as dots, oldest to newest
+	// Last few grades as bars, oldest to newest
 	const recentReviews = reviews.slice(-RECENT_GRADE_COUNT);
 	const recentGrades = recentReviews.length > 0 && (
 		<span
-			className="flex items-center gap-1"
+			className="flex h-3 items-end gap-0.5"
 			title={`Last ${recentReviews.length === 1 ? 'grade' : `${recentReviews.length} grades`}: ${recentReviews
 				.map((r) => GRADE_LABELS[r.result] || r.result)
 				.join(', ')}`}
@@ -702,7 +704,7 @@ export default function CardReviewView({
 			{recentReviews.map((r, i) => (
 				<span
 					key={r.reviewId || i}
-					className={`h-1.5 w-1.5 rounded-full ${GRADE_DOT_COLORS[r.result] || 'bg-gray-400'}`}
+					className={`w-1 rounded-full ${GRADE_MARKS[r.result] || 'h-1 bg-gray-400'}`}
 				/>
 			))}
 		</span>
