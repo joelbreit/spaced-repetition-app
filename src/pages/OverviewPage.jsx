@@ -252,6 +252,9 @@ function OverviewPage() {
 			whenDue: nextDue,
 		};
 
+		// Only write the scheduling fields: the session copy of the card can be
+		// stale (e.g. its partner was edited mid-session), and writing it back
+		// whole would revert those edits
 		setAppData((prev) => ({
 			...prev,
 			decks: (prev.decks || []).map((deck) =>
@@ -259,7 +262,13 @@ function OverviewPage() {
 					? {
 							...deck,
 							cards: deck.cards.map((c) =>
-								c.cardId === card.cardId ? updatedCard : c
+								c.cardId === card.cardId
+									? {
+											...c,
+											reviews: updatedCard.reviews,
+											whenDue: updatedCard.whenDue,
+										}
+									: c
 							),
 						}
 					: deck
@@ -402,18 +411,8 @@ function OverviewPage() {
 
 	const handleSaveCard = (deckId, cardId, front, back) => {
 		if (cardId) {
+			// The review session picks this up through reviewDeck
 			updateCard(deckId, cardId, front, back);
-
-			// If we're in a review session, update the currentDeckForReview to reflect the changes
-			if (previousView === 'review' && currentDeckForReview) {
-				const updatedCards = currentDeckForReview.cards.map((c) =>
-					c.cardId === cardId ? { ...c, front, back } : c
-				);
-				setCurrentDeckForReview({
-					...currentDeckForReview,
-					cards: updatedCards,
-				});
-			}
 		} else {
 			addCard(deckId, front, back);
 		}
@@ -431,6 +430,32 @@ function OverviewPage() {
 		setSelectedCardId(null);
 		setEditingDeckId(null);
 	};
+
+	// The session keeps its own card list (order, scheduling), but content can
+	// change mid-session: an edit, or a partner card updated alongside one.
+	// Show the latest stored content so the session never displays stale text.
+	const reviewDeck = useMemo(() => {
+		if (!currentDeckForReview) return null;
+		const stored = new Map();
+		(appData.decks || []).forEach((deck) =>
+			deck.cards.forEach((c) => stored.set(c.cardId, c))
+		);
+		return {
+			...currentDeckForReview,
+			cards: currentDeckForReview.cards.map((c) => {
+				const s = stored.get(c.cardId);
+				return s
+					? {
+							...c,
+							front: s.front,
+							back: s.back,
+							isStarred: s.isStarred,
+							isFlagged: s.isFlagged,
+						}
+					: c;
+			}),
+		};
+	}, [currentDeckForReview, appData.decks]);
 
 	const dueAndNewCount = reviewSections
 		.filter((section) => section.type === 'due' || section.type === 'new')
@@ -583,9 +608,9 @@ function OverviewPage() {
 				)}
 
 				{/* Review overlay */}
-				{currentView === 'review' && currentDeckForReview && (
+				{currentView === 'review' && reviewDeck && (
 					<CardReviewView
-						deck={currentDeckForReview}
+						deck={reviewDeck}
 						currentCardIndex={currentCardIndex}
 						isFlipped={isFlipped}
 						sections={reviewSections}
