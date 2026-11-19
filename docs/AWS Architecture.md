@@ -46,11 +46,48 @@ Browser (flashcards.joelbreit.com)
 | `ReadAloudFunction` (+ role, 1 permission) | auto-named                                             | SAM        |
 | `DataFunctionLogGroup`                     | `/aws/lambda/flashcards/data`                          | SAM        |
 | `ReadAloudFunctionLogGroup`                | `/aws/lambda/flashcards/read-aloud`                    | SAM        |
+| `DeployNotificationsTopic` (+ policy)      | SNS `flashcards-deploy-notifications`                  | SAM        |
+| `DeploySucceededRule`, `DeployFailedRule`  | EventBridge rules on the default bus                   | SAM        |
 
 Both Lambdas are Node.js 20.x, 256 MB, 30 s timeout, x86_64. IAM is least
 privilege: the data function gets `GetObject`/`PutObject`/`DeleteObject` on
 `spaced-rep-flashcards-data/*` plus `ListBucket`, and the read-aloud function
 gets only `polly:SynthesizeSpeech`. Both log groups retain 30 days.
+
+## Deploy notifications
+
+Every finished Amplify deploy of the frontend is posted to Slack (**Breitest**
+workspace, **#website** channel):
+
+```
+Amplify job finishes ──▶ EventBridge "Amplify Deployment Status Change"
+  (appId d1b6g3ci66s5cb, jobStatus SUCCEED | FAILED)
+    ├── DeploySucceededRule ─┐  input transformer → AWS Chatbot custom
+    └── DeployFailedRule ────┤  notification JSON (title + build-log link)
+                             ▼
+        SNS flashcards-deploy-notifications
+                             ▼
+        Amazon Q Developer in chat (Chatbot) config "Slack-Channel" ──▶ #website
+```
+
+- The topic and rules are in the SAM stack. The Amplify app ID is the template
+  parameter `AmplifyAppId`. `STARTED` and `CANCELLED` statuses are not
+  announced; add them to a rule's `jobStatus` list to change that.
+- **The Slack side is not in the stack.** AWS allows one chat configuration per
+  Slack channel per account, and #website already had the console-made
+  `Slack-Channel` configuration (managed in the Amazon Q Developer console,
+  region us-east-2), so the topic was added to its SNS topic list by hand. If the
+  topic is ever deleted or renamed, re-add it, keeping the other topics in the list:
+
+    ```bash
+    aws chatbot update-slack-channel-configuration --region us-east-2 \
+      --chat-configuration-arn arn:aws:chatbot::609406001911:chat-configuration/slack-channel/Slack-Channel \
+      --slack-channel-id C052ADB0FLG \
+      --sns-topic-arns <existing topic ARNs...> arn:aws:sns:us-east-1:609406001911:flashcards-deploy-notifications
+    ```
+
+- The message does not include the commit, because Amplify's event carries
+  only the app, branch, job ID and status. The build-log link has the commit.
 
 ## Data storage
 
@@ -74,6 +111,8 @@ bucket policy or CORS configuration — browsers never talk to S3 directly.
   `joelbreit.com` (`Z05533721JIMB3RGJY17E`).
 - The frontend's `VITE_*` config, which is set as **Amplify app environment
   variables**. `sam deploy` prints the correct values as stack outputs.
+- The Slack channel configuration that relays deploy notifications (see
+  [Deploy notifications](#deploy-notifications)).
 
 ## Known gaps
 

@@ -9,6 +9,12 @@ Description: Spaced repetition flashcards API
 # load-bearing: S3 object keys are users/{cognito sub}/data.json, so replacing
 # the user pool would orphan every user's data.
 
+Parameters:
+    AmplifyAppId:
+        Type: String
+        Default: d1b6g3ci66s5cb
+        Description: Amplify Hosting app whose deploys are announced in Slack
+
 Globals:
     Function:
         Runtime: nodejs20.x
@@ -290,6 +296,102 @@ Resources:
                         Path: /read-aloud
                         Method: POST
 
+    # ==========================================================================
+    # Frontend deploy notifications
+    #
+    # Amplify Hosting itself is not in this stack (see docs/AWS Architecture.md),
+    # but it emits "Amplify Deployment Status Change" events to EventBridge. Two
+    # rules (succeeded / failed) reshape those into AWS Chatbot custom
+    # notifications and publish them to an SNS topic that Amazon Q Developer in
+    # chat applications (formerly AWS Chatbot) posts to Slack.
+    #
+    # The Slack side is NOT in this stack: AWS allows one chat configuration per
+    # Slack channel, and #website already has the console-made "Slack-Channel"
+    # configuration (in the Amazon Q console), so this topic was added to its
+    # SNS topic list by hand. If the topic is ever recreated, re-add it there
+    # (see docs/AWS Architecture.md).
+    # ==========================================================================
+
+    DeployNotificationsTopic:
+        Type: AWS::SNS::Topic
+        Properties:
+            TopicName: flashcards-deploy-notifications
+            Tags:
+                - Key: Project
+                  Value: flashcards
+
+    DeployNotificationsTopicPolicy:
+        Type: AWS::SNS::TopicPolicy
+        Properties:
+            Topics:
+                - !Ref DeployNotificationsTopic
+            PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    - Sid: AllowEventBridgePublish
+                      Effect: Allow
+                      Principal:
+                          Service: events.amazonaws.com
+                      Action: sns:Publish
+                      Resource: !Ref DeployNotificationsTopic
+                      Condition:
+                          ArnEquals:
+                              aws:SourceArn:
+                                  - !GetAtt DeploySucceededRule.Arn
+                                  - !GetAtt DeployFailedRule.Arn
+
+    DeploySucceededRule:
+        Type: AWS::Events::Rule
+        Properties:
+            Description: Amplify deploy of the flashcards frontend succeeded
+            EventPattern:
+                source:
+                    - aws.amplify
+                detail-type:
+                    - Amplify Deployment Status Change
+                detail:
+                    appId:
+                        - !Ref AmplifyAppId
+                    jobStatus:
+                        - SUCCEED
+            Targets:
+                - Id: slack
+                  Arn: !Ref DeployNotificationsTopic
+                  InputTransformer:
+                      InputPathsMap:
+                          branch: $.detail.branchName
+                          jobId: $.detail.jobId
+                      InputTemplate: !Sub >-
+                          {"version":"1.0","source":"custom","content":{"textType":"client-markdown",
+                          "title":":white_check_mark: Flashcards deployed (<branch> #<jobId>)",
+                          "description":"A new version is live at https://flashcards.joelbreit.com\nBuild log: https://${AWS::Region}.console.aws.amazon.com/amplify/apps/${AmplifyAppId}/branches/<branch>/deployments"}}
+
+    DeployFailedRule:
+        Type: AWS::Events::Rule
+        Properties:
+            Description: Amplify deploy of the flashcards frontend failed
+            EventPattern:
+                source:
+                    - aws.amplify
+                detail-type:
+                    - Amplify Deployment Status Change
+                detail:
+                    appId:
+                        - !Ref AmplifyAppId
+                    jobStatus:
+                        - FAILED
+            Targets:
+                - Id: slack
+                  Arn: !Ref DeployNotificationsTopic
+                  InputTransformer:
+                      InputPathsMap:
+                          branch: $.detail.branchName
+                          jobId: $.detail.jobId
+                      InputTemplate: !Sub >-
+                          {"version":"1.0","source":"custom","content":{"textType":"client-markdown",
+                          "title":":x: Flashcards deploy FAILED (<branch> #<jobId>)",
+                          "description":"The previous version is still live.\nBuild log: https://${AWS::Region}.console.aws.amazon.com/amplify/apps/${AmplifyAppId}/branches/<branch>/deployments"}}
+
 Outputs:
     ApiUrl:
         Description: API Gateway endpoint URL - set as VITE_API_ENDPOINT in Amplify
@@ -306,3 +408,7 @@ Outputs:
     DataBucketName:
         Description: S3 bucket holding per-user flashcard data
         Value: !Ref FlashcardsDataBucket
+
+    DeployNotificationsTopicArn:
+        Description: SNS topic that relays Amplify deploy notifications to Slack
+        Value: !Ref DeployNotificationsTopic
