@@ -15,7 +15,7 @@ import Footer from '../components/Footer.jsx';
 import DemoBanner from '../components/DemoBanner';
 import { useAppData } from '../contexts/AppDataContext';
 import { useDeckOperations } from '../hooks/useDeckOperations';
-import { calculateNextInterval } from '../services/cardCalculations';
+import { applyReview } from '../services/cardCalculations';
 import { calculateStreakStats } from '../services/streak';
 import { getFlipDuration } from '../services/reviewSettings';
 import { shuffleSpreadingPartners } from '../services/reviewOrder';
@@ -220,17 +220,6 @@ function OverviewPage() {
 		// Get the deckId for this card (use sourceDeckId for folder reviews)
 		const deckId = card.sourceDeckId || currentDeckForReview.deckId;
 
-		const interval = calculateNextInterval(result, card, timestamp);
-		const nextDue = timestamp + interval;
-
-		const review = {
-			reviewId: `${timestamp}-${Math.random().toString(36).slice(2, 11)}`,
-			timestamp: timestamp,
-			interval: interval,
-			result,
-			reviewDuration: reviewDuration,
-		};
-
 		setSessionReviews((prev) => [
 			...prev,
 			{ cardId: card.cardId, result, timestamp, reviewDuration },
@@ -246,11 +235,12 @@ function OverviewPage() {
 			},
 		]);
 
-		const updatedCard = {
-			...card,
-			reviews: [...card.reviews, review],
-			whenDue: nextDue,
-		};
+		const updatedCard = applyReview(
+			card,
+			result,
+			timestamp,
+			reviewDuration
+		);
 
 		// Only write the scheduling fields: the session copy of the card can be
 		// stale (e.g. its partner was edited mid-session), and writing it back

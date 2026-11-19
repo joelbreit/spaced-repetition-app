@@ -23,6 +23,7 @@ import ReviewSettingsModal from './ReviewSettingsModal';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import AudioProgressBorder from './AudioProgressBorder';
 import {
+	applyReview,
 	calculateNextInterval,
 	getInterval,
 	calculateLearningStrength,
@@ -162,6 +163,9 @@ export default function CardReviewView({
 
 	// A graded review waiting on audio to finish before advancing
 	const pendingReviewRef = useRef(null);
+	// The card as it will be once that review is recorded, so the stats
+	// footer shows the new values during the animation and audio wait
+	const [gradedCard, setGradedCard] = useState(null);
 	const [awaitingAudio, setAwaitingAudio] = useState(false);
 
 	// Convenience accessor for playback speed
@@ -435,6 +439,7 @@ export default function CardReviewView({
 		if (!pending) return;
 		pendingReviewRef.current = null;
 		setAwaitingAudio(false);
+		setGradedCard(null);
 
 		onReview(pending.result, pending.timestamp, pending.reviewDuration);
 
@@ -458,6 +463,9 @@ export default function CardReviewView({
 			setAnimationResult(result);
 			setSelectedReview(result);
 			pendingReviewRef.current = { result, timestamp, reviewDuration };
+			setGradedCard(
+				applyReview(currentCard, result, timestamp, reviewDuration)
+			);
 
 			setTimeout(() => {
 				if (readAloudSettings.waitForAudio) {
@@ -627,8 +635,9 @@ export default function CardReviewView({
 		return colors[animationResult] || null;
 	};
 
-	// Calculate statistics
-	const reviews = currentCard.reviews || [];
+	// Calculate statistics, from the just-graded card while it's pending
+	const statsCard = gradedCard ?? currentCard;
+	const reviews = statsCard.reviews || [];
 	const reviewCount = reviews.length;
 
 	const lastReview = reviews.length > 0 ? reviews[reviews.length - 1] : null;
@@ -649,14 +658,20 @@ export default function CardReviewView({
 		return 'Just now';
 	};
 
-	const learningStrength = calculateLearningStrength(currentCard);
+	const learningStrength = calculateLearningStrength(statsCard);
 
-	const daysUntilDue = currentCard.whenDue
-		? Math.ceil((currentCard.whenDue - Date.now()) / (1000 * 60 * 60 * 24))
+	// Calendar days, not 24h blocks: due later today is "Today", not
+	// "Tomorrow". Rounding absorbs the 23/25h days around DST changes.
+	const startOfDay = (time) => new Date(time).setHours(0, 0, 0, 0);
+	const daysUntilDue = statsCard.whenDue
+		? Math.round(
+				(startOfDay(statsCard.whenDue) - startOfDay(Date.now())) /
+					(1000 * 60 * 60 * 24)
+			)
 		: 0;
 
 	const formatDaysUntilDue = () => {
-		if (!currentCard.whenDue) return 'Due';
+		if (!statsCard.whenDue) return 'Due';
 		if (daysUntilDue < 0) {
 			const daysAgo = Math.abs(daysUntilDue);
 			if (daysAgo === 1) return 'Yesterday';
@@ -668,7 +683,7 @@ export default function CardReviewView({
 	};
 
 	const formatInterval = () => {
-		const interval = getInterval(currentCard);
+		const interval = getInterval(statsCard);
 		const days = Math.floor(interval / (1000 * 60 * 60 * 24));
 		if (days > 0) return `${days}d`;
 		const hours = Math.floor(interval / (1000 * 60 * 60));
@@ -739,7 +754,7 @@ export default function CardReviewView({
 		},
 		{
 			icon: <Weight className="h-3 w-3 text-purple-500" />,
-			value: getPerDayReviewRate(currentCard).toFixed(2),
+			value: getPerDayReviewRate(statsCard).toFixed(2),
 			label: 'burden',
 		},
 	];

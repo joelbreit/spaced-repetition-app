@@ -86,6 +86,29 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	return MIN_INTERVAL;
 }
 
+// The card as it will be after this grade: the review appended and the next
+// due date set. Shared by recording a review and previewing its stats.
+export function applyReview(
+	card,
+	result,
+	timestamp = Date.now(),
+	reviewDuration = 0
+) {
+	const interval = calculateNextInterval(result, card, timestamp);
+	const review = {
+		reviewId: `${timestamp}-${Math.random().toString(36).slice(2, 11)}`,
+		timestamp,
+		interval,
+		result,
+		reviewDuration,
+	};
+	return {
+		...card,
+		reviews: [...(card.reviews || []), review],
+		whenDue: timestamp + interval,
+	};
+}
+
 // A catch-up reschedule (see services/catchUp.js) applies until the card's
 // next real review
 export function getActiveReschedule(card) {
