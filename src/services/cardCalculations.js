@@ -42,7 +42,7 @@ export function formatIntervalShort(interval) {
 
 export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	// Always go to minimum interval
-	if (result === 'again') {
+	if (result === 'forgot') {
 		return MIN_INTERVAL;
 	}
 
@@ -57,7 +57,7 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	const previousInterval = getInterval(card);
 
 	// 0.5x MIN(last interval, time since last review)
-	if (result === 'hard') {
+	if (result === 'sooner') {
 		return Math.max(
 			Math.min(previousInterval, timeSinceLastReview) * 0.5,
 			MIN_INTERVAL
@@ -65,12 +65,12 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	}
 
 	// 1x last interval
-	if (result === 'good') {
+	if (result === 'right') {
 		return Math.max(previousInterval, MIN_INTERVAL);
 	}
 
 	// 2x MAX(last interval, time since last review)
-	if (result === 'easy') {
+	if (result === 'later') {
 		if (timeSinceLastReview < previousInterval) {
 			// prevent exploding due date for early reviews
 			// interval + 2x time since last review
@@ -157,7 +157,12 @@ export function getInterval(card) {
 
 // How well each grade shows a card was remembered, from 0 to 1. Used for
 // card mastery and the profile page's recall score.
-export const RESULT_SCORES = { again: 0.0, hard: 0.25, good: 0.75, easy: 1.0 };
+export const RESULT_SCORES = {
+	forgot: 0.0,
+	sooner: 0.25,
+	right: 0.75,
+	later: 1.0,
+};
 
 export function calculateLearningStrength(card) {
 	const reviews = card.reviews || [];

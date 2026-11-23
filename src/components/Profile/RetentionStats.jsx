@@ -35,7 +35,7 @@ const formatScoreScale = () =>
  * RetentionStats Component
  *
  * How well cards are remembered when they come back, scored by grade
- * (Again 0% up to Easy 100%), by time since the previous review and by week.
+ * (Forgot 0% up to Later 100%), by time since the previous review and by week.
  */
 export default function RetentionStats({ stats }) {
 	const colors = useChartColors();

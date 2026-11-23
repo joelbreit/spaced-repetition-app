@@ -95,7 +95,7 @@ The app wraps contexts in this order (outermost to innermost):
 | ---------------------------- | ---------------------------------------------- |
 | `CardReviewView.jsx`         | Main review interface, card flip logic         |
 | `CardSide.jsx`               | Renders front or back of card                  |
-| `CardActionButtons.jsx`      | Again/Hard/Good/Easy buttons                   |
+| `CardActionButtons.jsx`      | Star and flag buttons                          |
 | `ReviewSummary.jsx`          | Session results, celebration, study-ahead/undo |
 | `KeyboardShortcutsModal.jsx` | `?` overlay listing review shortcuts           |
 | `ReadAloudButton.jsx`        | Text-to-speech via AWS Polly                   |
@@ -114,7 +114,7 @@ Most sections take a `stats` prop computed once in `ProfilePage` by `computeStud
 | `ProgressChart.jsx`   | Cards created/studied and reviews over time, with range toggle |
 | `StudyHabits.jsx`     | Weekday × hour grid and answer time by grade                   |
 | `DeckBreakdown.jsx`   | Per-deck reviews, recall, overdue share; most neglected deck   |
-| `HardestCards.jsx`    | Cards marked "Again" most often                                |
+| `HardestCards.jsx`    | Cards marked "Forgot" or "Sooner" most often                   |
 | `AdditionalStats.jsx` | On-demand totals plus a collapsed "Data health" section        |
 | `StatsCard.jsx`       | Shared card, tile, tooltip and toggle building blocks          |
 | `chartTheme.js`       | Recharts colors for light/dark and grade colors                |
@@ -231,7 +231,7 @@ setAppData((prev) => ({
 const newReview = {
 	reviewId: crypto.randomUUID(),
 	timestamp: Date.now(),
-	result: 'good',
+	result: 'right',
 	interval: newInterval,
 	reviewDuration: timeSpentMs,
 };
@@ -272,8 +272,8 @@ Uses `@dnd-kit` for reordering:
 
 In review mode (`CardReviewView.jsx`):
 
-- `Space` / `Enter`: Flip card or select "Good"
-- `1-4`: Select Again/Hard/Good/Easy
+- `Space` / `Enter`: Flip card or select "Right"
+- `1-4`: Select Forgot/Sooner/Right/Later
 - `Arrow keys`: Navigate results
 
 ## Error Handling

@@ -15,6 +15,7 @@ import {
 import { useAppData } from '../contexts/AppDataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { loadFromAPI } from '../services/apiStorage';
+import { migrateGrades } from '../services/grades';
 import { useNotification } from '../hooks/useNotification';
 import { calculateStreakStats } from '../services/streak';
 import { useTheme } from '../contexts/ThemeContext';
@@ -59,7 +60,7 @@ function Header({ user, isSaving, isOnline, onSignInClick }) {
 
 			if (cloudData) {
 				// Update appData with the loaded data
-				setAppData(cloudData);
+				setAppData(migrateGrades(cloudData));
 				showSuccess('Data synced from cloud successfully');
 			}
 		} catch (error) {

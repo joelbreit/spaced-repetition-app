@@ -166,10 +166,10 @@ export default function CardEditView({
 
 	const getResultColor = (result) => {
 		const colors = {
-			again: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
-			hard: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20',
-			good: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
-			easy: 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20',
+			forgot: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
+			sooner: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20',
+			right: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+			later: 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20',
 		};
 		return (
 			colors[result] ||

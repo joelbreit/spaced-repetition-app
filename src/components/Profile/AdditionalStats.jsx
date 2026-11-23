@@ -145,10 +145,10 @@ export default function AdditionalStats({ appData }) {
 
 				// Calculate review result distribution
 				const resultCounts = {
-					again: 0,
-					hard: 0,
-					good: 0,
-					easy: 0,
+					forgot: 0,
+					sooner: 0,
+					right: 0,
+					later: 0,
 				};
 
 				allCards.forEach((card) => {
@@ -156,10 +156,10 @@ export default function AdditionalStats({ appData }) {
 						card.reviews.forEach((review) => {
 							if (
 								review.result &&
-								(review.result === 'again' ||
-									review.result === 'hard' ||
-									review.result === 'good' ||
-									review.result === 'easy')
+								(review.result === 'forgot' ||
+									review.result === 'sooner' ||
+									review.result === 'right' ||
+									review.result === 'later')
 							) {
 								resultCounts[review.result]++;
 							}
@@ -186,8 +186,8 @@ export default function AdditionalStats({ appData }) {
 				const averageReviewsPerCard =
 					totalCards > 0 ? (totalReviews / totalCards).toFixed(2) : 0;
 
-				// Calculate review success rate (good + easy / total)
-				const successCount = resultCounts.good + resultCounts.easy;
+				// Calculate review success rate (right + later / total)
+				const successCount = resultCounts.right + resultCounts.later;
 				const successRate =
 					totalReviews > 0
 						? ((successCount / totalReviews) * 100).toFixed(1)
@@ -500,9 +500,10 @@ export default function AdditionalStats({ appData }) {
 								</span>
 							</div>
 							<p className="text-xs text-gray-500 dark:text-slate-500 mt-2">
-								({stats.successCount.toLocaleString()} good/easy
-								out of {stats.totalReviews.toLocaleString()}{' '}
-								total reviews)
+								({stats.successCount.toLocaleString()}{' '}
+								right/later out of{' '}
+								{stats.totalReviews.toLocaleString()} total
+								reviews)
 							</p>
 						</div>
 					)}
@@ -518,34 +519,34 @@ export default function AdditionalStats({ appData }) {
 							<div className="space-y-2">
 								<div className="flex items-center justify-between">
 									<span className="text-xs text-gray-600 dark:text-slate-400">
-										Again
+										Forgot
 									</span>
 									<span className="text-sm font-semibold text-red-600 dark:text-red-400">
-										{stats.resultCounts.again.toLocaleString()}
+										{stats.resultCounts.forgot.toLocaleString()}
 									</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-xs text-gray-600 dark:text-slate-400">
-										Hard
+										Sooner
 									</span>
 									<span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
-										{stats.resultCounts.hard.toLocaleString()}
+										{stats.resultCounts.sooner.toLocaleString()}
 									</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-xs text-gray-600 dark:text-slate-400">
-										Good
+										Right
 									</span>
 									<span className="text-sm font-semibold text-green-600 dark:text-green-400">
-										{stats.resultCounts.good.toLocaleString()}
+										{stats.resultCounts.right.toLocaleString()}
 									</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-xs text-gray-600 dark:text-slate-400">
-										Easy
+										Later
 									</span>
 									<span className="text-sm font-semibold text-teal-600 dark:text-teal-400">
-										{stats.resultCounts.easy.toLocaleString()}
+										{stats.resultCounts.later.toLocaleString()}
 									</span>
 								</div>
 							</div>

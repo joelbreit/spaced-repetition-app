@@ -151,7 +151,7 @@ export default function DueForecast({
 													[
 														'Overdue',
 														d.overdue.toLocaleString(),
-														colors.hard,
+														colors.sooner,
 													],
 													[
 														'Due today',
@@ -174,7 +174,7 @@ export default function DueForecast({
 							<Bar
 								dataKey="overdue"
 								stackId="due"
-								fill={colors.hard}
+								fill={colors.sooner}
 								name="Overdue"
 							/>
 						)}

@@ -9,10 +9,10 @@ const LIGHT = {
 	primary: '#14b8a6', // teal-500
 	secondary: '#06b6d4', // cyan-500
 	muted: 'rgb(209 213 219)', // gray-300
-	again: '#ef4444', // red-500
-	hard: '#f97316', // orange-500
-	good: '#22c55e', // green-500
-	easy: '#14b8a6', // teal-500
+	forgot: '#ef4444', // red-500
+	sooner: '#f97316', // orange-500
+	right: '#22c55e', // green-500
+	later: '#14b8a6', // teal-500
 	surface: '#ffffff',
 	ink: 'rgb(55 65 81)', // gray-700
 	// Card maturity: one hue, light to dark (matches CardMaturity)
@@ -30,10 +30,10 @@ const DARK = {
 	primary: '#2dd4bf', // teal-400
 	secondary: '#22d3ee', // cyan-400
 	muted: 'rgb(71 85 105)', // slate-600
-	again: '#f87171', // red-400
-	hard: '#fb923c', // orange-400
-	good: '#4ade80', // green-400
-	easy: '#2dd4bf', // teal-400
+	forgot: '#f87171', // red-400
+	sooner: '#fb923c', // orange-400
+	right: '#4ade80', // green-400
+	later: '#2dd4bf', // teal-400
 	surface: '#1e293b', // slate-800
 	ink: 'rgb(226 232 240)', // slate-200
 	stageNew: 'rgb(71 85 105)', // slate-600
@@ -48,16 +48,11 @@ export function useChartColors() {
 	return isDark ? DARK : LIGHT;
 }
 
-export const RESULT_LABELS = {
-	again: 'Again',
-	hard: 'Hard',
-	good: 'Good',
-	easy: 'Easy',
-};
+export { RESULT_LABELS } from '../../services/grades';
 
 export const RESULT_SWATCH_CLASSES = {
-	again: 'bg-red-500 dark:bg-red-400',
-	hard: 'bg-orange-500 dark:bg-orange-400',
-	good: 'bg-green-500 dark:bg-green-400',
-	easy: 'bg-teal-500 dark:bg-teal-400',
+	forgot: 'bg-red-500 dark:bg-red-400',
+	sooner: 'bg-orange-500 dark:bg-orange-400',
+	right: 'bg-green-500 dark:bg-green-400',
+	later: 'bg-teal-500 dark:bg-teal-400',
 };

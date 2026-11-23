@@ -83,7 +83,7 @@ User data is stored as JSON in S3 at `users/{userId}/data.json`:
 						{
 							"reviewId": "uuid",
 							"timestamp": 1234567890,
-							"result": "again|hard|good|easy",
+							"result": "forgot|sooner|right|later",
 							"interval": 86400000,
 							"reviewDuration": 5000
 						}
@@ -102,10 +102,12 @@ User data is stored as JSON in S3 at `users/{userId}/data.json`:
 
 Review results affect the next due date:
 
-- **Again**: Reset to minimum interval (~10 minutes)
-- **Hard**: Halve the previous interval
-- **Good**: Keep the same interval
-- **Easy**: Double the interval
+- **Forgot**: Reset to minimum interval (~10 minutes)
+- **Sooner**: Halve the previous interval
+- **Right**: Keep the same interval
+- **Later**: Double the interval
+
+These were once Anki's Again/Hard/Good/Easy; they were renamed because this app treats them as scheduling decisions, not Anki's recall levels. Grades saved before the rename as `again`/`hard`/`good`/`easy` are renamed when data loads (`src/services/grades.js`).
 
 Card priority during review:
 

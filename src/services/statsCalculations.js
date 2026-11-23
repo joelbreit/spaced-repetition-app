@@ -4,6 +4,7 @@ import {
 	RESULT_SCORES,
 } from './cardCalculations';
 import { calculateStreakStats } from './streak';
+import { RESULTS } from './grades';
 
 // Aggregate statistics for the profile page, computed in one pass over every
 // review. Review history (recall, habits, records) includes archived decks;
@@ -21,7 +22,7 @@ const DURATION_CAP = 60 * 1000;
 // Weeks with fewer reviews than this are too noisy to plot a recall score
 const MIN_WEEKLY_REVIEWS = 10;
 
-export const RESULTS = ['again', 'hard', 'good', 'easy'];
+export { RESULTS };
 
 export const GAP_BUCKETS = [
 	{ label: '< 1h', short: '<1h', max: HOUR },
@@ -111,8 +112,8 @@ export function computeStudyStats(appData, now = Date.now()) {
 	const retentionByWeek = new Map();
 	const gapRetention = GAP_BUCKETS.map(() => emptyRetention());
 	const overallRetention = emptyRetention();
-	const resultCounts = { again: 0, hard: 0, good: 0, easy: 0 };
-	const durationsByResult = { again: [], hard: [], good: [], easy: [] };
+	const resultCounts = { forgot: 0, sooner: 0, right: 0, later: 0 };
+	const durationsByResult = { forgot: [], sooner: [], right: [], later: [] };
 	const punchCard = Array.from({ length: 7 }, () => Array(24).fill(0));
 	const allTimestamps = [];
 	let studyTime = 0;
@@ -144,8 +145,8 @@ export function computeStudyStats(appData, now = Date.now()) {
 			const reviews = [...(card.reviews || [])]
 				.filter((review) => review?.timestamp)
 				.sort((a, b) => a.timestamp - b.timestamp);
-			let againCount = 0;
-			let hardCount = 0;
+			let forgotCount = 0;
+			let soonerCount = 0;
 
 			reviews.forEach((review, index) => {
 				const { timestamp, result } = review;
@@ -164,8 +165,8 @@ export function computeStudyStats(appData, now = Date.now()) {
 				if (resultCounts[result] !== undefined) {
 					resultCounts[result]++;
 				}
-				if (result === 'again') againCount++;
-				if (result === 'hard') hardCount++;
+				if (result === 'forgot') forgotCount++;
+				if (result === 'sooner') soonerCount++;
 
 				if (review.reviewDuration > 0) {
 					const capped = Math.min(
@@ -179,8 +180,8 @@ export function computeStudyStats(appData, now = Date.now()) {
 				// The first review of a card is learning it, not recalling it
 				if (index === 0) return;
 				const gap = timestamp - reviews[index - 1].timestamp;
-				// Weighted by grade: Again 0 up to Easy 1, so a Hard
-				// counts less than an Easy
+				// Weighted by grade: Forgot 0 up to Later 1, so a Sooner
+				// counts less than a Later
 				const recalled = RESULT_SCORES[result] ?? 0;
 				const bucket = GAP_BUCKETS.findIndex((b) => gap < b.max);
 
@@ -221,10 +222,10 @@ export function computeStudyStats(appData, now = Date.now()) {
 					deckName: deck.deckName,
 					deckColor: deck.deckColor,
 					reviewCount: reviews.length,
-					againCount,
-					hardCount,
-					// Reviews graded Again or Hard
-					struggleCount: againCount + hardCount,
+					forgotCount,
+					soonerCount,
+					// Reviews graded Forgot or Sooner
+					struggleCount: forgotCount + soonerCount,
 					lastResult: lastReview.result,
 				});
 			}

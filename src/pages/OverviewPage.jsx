@@ -464,12 +464,12 @@ function OverviewPage() {
 		}
 	};
 
-	// Cards whose most recent grade this session was Again or Hard
+	// Cards whose most recent grade this session was Forgot or Sooner
 	const missedCardIds = useMemo(() => {
 		const latestResult = new Map();
 		sessionReviews.forEach((r) => latestResult.set(r.cardId, r.result));
 		return [...latestResult]
-			.filter(([, result]) => result === 'again' || result === 'hard')
+			.filter(([, result]) => result === 'forgot' || result === 'sooner')
 			.map(([cardId]) => cardId);
 	}, [sessionReviews]);
 

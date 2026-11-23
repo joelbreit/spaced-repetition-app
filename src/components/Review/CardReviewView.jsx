@@ -33,6 +33,7 @@ import {
 } from '../../services/cardCalculations';
 import { useAppData } from '../../contexts/AppDataContext';
 import { readAloudAPI } from '../../services/apiStorage';
+import { RESULT_LABELS } from '../../services/grades';
 import {
 	FLIP_DURATIONS,
 	loadReviewSettings,
@@ -41,29 +42,29 @@ import {
 
 const GRADES = [
 	{
-		result: 'again',
-		label: 'Again',
+		result: 'forgot',
+		label: RESULT_LABELS.forgot,
 		hint: '←',
 		button: 'bg-red-500 hover:bg-red-600 focus:ring-red-500',
 		selected: 'ring-red-300 dark:ring-red-400',
 	},
 	{
-		result: 'hard',
-		label: 'Hard',
+		result: 'sooner',
+		label: RESULT_LABELS.sooner,
 		hint: '↓',
 		button: 'bg-orange-500 hover:bg-orange-600 focus:ring-orange-500',
 		selected: 'ring-orange-300 dark:ring-orange-400',
 	},
 	{
-		result: 'good',
-		label: 'Good',
+		result: 'right',
+		label: RESULT_LABELS.right,
 		hint: '→',
 		button: 'bg-green-500 hover:bg-green-600 focus:ring-green-500',
 		selected: 'ring-green-300 dark:ring-green-400',
 	},
 	{
-		result: 'easy',
-		label: 'Easy',
+		result: 'later',
+		label: RESULT_LABELS.later,
 		hint: '↑',
 		button: 'bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 focus:ring-teal-500',
 		selected: 'ring-teal-300 dark:ring-teal-400',
@@ -77,24 +78,24 @@ const GRADE_LABELS = Object.fromEntries(
 // Color + height double-encode each grade so similar hues (red/orange,
 // green/teal) stay distinguishable; the row reads like a tiny sparkline
 const GRADE_MARKS = {
-	again: 'h-1 bg-red-500',
-	hard: 'h-2 bg-orange-500',
-	good: 'h-2.5 bg-green-500',
-	easy: 'h-3 bg-teal-500',
+	forgot: 'h-1 bg-red-500',
+	sooner: 'h-2 bg-orange-500',
+	right: 'h-2.5 bg-green-500',
+	later: 'h-3 bg-teal-500',
 };
 
 const RECENT_GRADE_COUNT = 5;
 
 // Arrow keys (existing muscle memory) plus 1-4 (the Anki convention)
 const GRADE_KEYS = {
-	ArrowLeft: 'again',
-	1: 'again',
-	ArrowDown: 'hard',
-	2: 'hard',
-	ArrowRight: 'good',
-	3: 'good',
-	ArrowUp: 'easy',
-	4: 'easy',
+	ArrowLeft: 'forgot',
+	1: 'forgot',
+	ArrowDown: 'sooner',
+	2: 'sooner',
+	ArrowRight: 'right',
+	3: 'right',
+	ArrowUp: 'later',
+	4: 'later',
 };
 
 // Skip link picks up the color of the section it moves on to
@@ -627,10 +628,10 @@ export default function CardReviewView({
 		if (!animationResult) return null;
 
 		const colors = {
-			again: 'bg-red-500/20 dark:bg-red-500/30 border-red-500/50',
-			hard: 'bg-orange-500/20 dark:bg-orange-500/30 border-orange-500/50',
-			good: 'bg-green-500/20 dark:bg-green-500/30 border-green-500/50',
-			easy: 'bg-teal-500/20 dark:bg-teal-500/30 border-teal-500/50',
+			forgot: 'bg-red-500/20 dark:bg-red-500/30 border-red-500/50',
+			sooner: 'bg-orange-500/20 dark:bg-orange-500/30 border-orange-500/50',
+			right: 'bg-green-500/20 dark:bg-green-500/30 border-green-500/50',
+			later: 'bg-teal-500/20 dark:bg-teal-500/30 border-teal-500/50',
 		};
 		return colors[animationResult] || null;
 	};

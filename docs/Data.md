@@ -40,7 +40,7 @@
 				"timestamp": 1234567890,
 				"reviewDuration": 1234567890, // v3: ms spent reviewing the card, may be missing
 				"interval": 1234567890, // added later, may be missing
-				"result": "again" | "hard" | "good" | "easy"
+				"result": "forgot" | "sooner" | "right" | "later" // older data may have "again" | "hard" | "good" | "easy", renamed on load
 			}
 			],
 			"whenDue": 1234567890,
@@ -49,7 +49,7 @@
 			"isStarred": false,
 			"createdAt": 1234567890, // added later, may be missing
 			// optional, set by a catch-up (src/services/catchUp.js): the card was
-			// rescheduled as if graded Hard, without recording a review.
+			// rescheduled as if graded Sooner, without recording a review.
 			// getInterval() uses `interval` until the next real review.
 			"reschedule": {
 				"at": 1234567890, // when the catch-up ran

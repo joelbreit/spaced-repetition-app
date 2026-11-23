@@ -84,9 +84,11 @@ UUIDs via `crypto.randomUUID()`. Timestamps in milliseconds (Unix epoch).
 
 Review results affect next interval:
 
-- **Again**: Reset to minimum (~10 min)
-- **Hard**: 0.5x previous interval
-- **Good**: 1x previous interval
-- **Easy**: 2x previous interval
+- **Forgot**: Reset to minimum (~10 min)
+- **Sooner**: 0.5x previous interval
+- **Right**: 1x previous interval
+- **Later**: 2x previous interval
+
+Saved as `result: 'forgot' | 'sooner' | 'right' | 'later'`. Don't reuse Anki's Again/Hard/Good/Easy names: the meanings differ. Grades saved before the rename as `again`/`hard`/`good`/`easy` are renamed when data loads (`src/services/grades.js`).
 
 Review priority: Overdue → New (random) → Future (soonest first)

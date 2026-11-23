@@ -116,10 +116,10 @@ export default function ReviewSummary({
 	// Calculate session statistics
 	const totalReviewed = sessionReviews.length;
 	const resultCounts = {
-		again: sessionReviews.filter((r) => r.result === 'again').length,
-		hard: sessionReviews.filter((r) => r.result === 'hard').length,
-		good: sessionReviews.filter((r) => r.result === 'good').length,
-		easy: sessionReviews.filter((r) => r.result === 'easy').length,
+		forgot: sessionReviews.filter((r) => r.result === 'forgot').length,
+		sooner: sessionReviews.filter((r) => r.result === 'sooner').length,
+		right: sessionReviews.filter((r) => r.result === 'right').length,
+		later: sessionReviews.filter((r) => r.result === 'later').length,
 	};
 
 	// Calculate total review time
@@ -175,7 +175,9 @@ export default function ReviewSummary({
 	const masteryChange = metricsAfter.avgMastery - metricsBefore.avgMastery;
 	const burdenChange = metricsAfter.totalBurden - metricsBefore.totalBurden;
 
-	const recallPercent = getPercentage(resultCounts.good + resultCounts.easy);
+	const recallPercent = getPercentage(
+		resultCounts.right + resultCounts.later
+	);
 	const cardsWord = `card${totalReviewed !== 1 ? 's' : ''}`;
 	const timeText =
 		totalReviewTime > 0 ? ` in ${formatReviewTime(totalReviewTime)}` : '';
@@ -271,7 +273,7 @@ export default function ReviewSummary({
 						<button
 							onClick={onReviewMissed}
 							className="inline-flex items-center gap-2 px-6 py-4 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-700 dark:text-red-300 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-300"
-							title="Go through the cards you marked Again or Hard"
+							title="Go through the cards you marked Forgot or Sooner"
 						>
 							<RotateCcw className="h-5 w-5" />
 							Review missed ({missedCount})
@@ -365,42 +367,42 @@ export default function ReviewSummary({
 
 							{/* Visual bar */}
 							<div className="h-4 rounded-full overflow-hidden flex mb-4">
-								{resultCounts.again > 0 && (
+								{resultCounts.forgot > 0 && (
 									<div
 										className="bg-red-500 transition-all duration-500"
 										style={{
 											width: `${getPercentage(
-												resultCounts.again
+												resultCounts.forgot
 											)}%`,
 										}}
 									/>
 								)}
-								{resultCounts.hard > 0 && (
+								{resultCounts.sooner > 0 && (
 									<div
 										className="bg-orange-500 transition-all duration-500"
 										style={{
 											width: `${getPercentage(
-												resultCounts.hard
+												resultCounts.sooner
 											)}%`,
 										}}
 									/>
 								)}
-								{resultCounts.good > 0 && (
+								{resultCounts.right > 0 && (
 									<div
 										className="bg-green-500 transition-all duration-500"
 										style={{
 											width: `${getPercentage(
-												resultCounts.good
+												resultCounts.right
 											)}%`,
 										}}
 									/>
 								)}
-								{resultCounts.easy > 0 && (
+								{resultCounts.later > 0 && (
 									<div
 										className="bg-teal-500 transition-all duration-500"
 										style={{
 											width: `${getPercentage(
-												resultCounts.easy
+												resultCounts.later
 											)}%`,
 										}}
 									/>
@@ -413,56 +415,56 @@ export default function ReviewSummary({
 									<div className="flex items-center justify-center gap-1.5 mb-1">
 										<div className="w-3 h-3 rounded-full bg-red-500" />
 										<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-											Again
+											Forgot
 										</span>
 									</div>
 									<div className="text-lg font-bold text-red-600 dark:text-red-400">
-										{resultCounts.again}
+										{resultCounts.forgot}
 									</div>
 									<div className="text-xs text-gray-500">
-										{getPercentage(resultCounts.again)}%
+										{getPercentage(resultCounts.forgot)}%
 									</div>
 								</div>
 								<div className="text-center">
 									<div className="flex items-center justify-center gap-1.5 mb-1">
 										<div className="w-3 h-3 rounded-full bg-orange-500" />
 										<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-											Hard
+											Sooner
 										</span>
 									</div>
 									<div className="text-lg font-bold text-orange-600 dark:text-orange-400">
-										{resultCounts.hard}
+										{resultCounts.sooner}
 									</div>
 									<div className="text-xs text-gray-500">
-										{getPercentage(resultCounts.hard)}%
+										{getPercentage(resultCounts.sooner)}%
 									</div>
 								</div>
 								<div className="text-center">
 									<div className="flex items-center justify-center gap-1.5 mb-1">
 										<div className="w-3 h-3 rounded-full bg-green-500" />
 										<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-											Good
+											Right
 										</span>
 									</div>
 									<div className="text-lg font-bold text-green-600 dark:text-green-400">
-										{resultCounts.good}
+										{resultCounts.right}
 									</div>
 									<div className="text-xs text-gray-500">
-										{getPercentage(resultCounts.good)}%
+										{getPercentage(resultCounts.right)}%
 									</div>
 								</div>
 								<div className="text-center">
 									<div className="flex items-center justify-center gap-1.5 mb-1">
 										<div className="w-3 h-3 rounded-full bg-teal-500" />
 										<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-											Easy
+											Later
 										</span>
 									</div>
 									<div className="text-lg font-bold text-teal-600 dark:text-teal-400">
-										{resultCounts.easy}
+										{resultCounts.later}
 									</div>
 									<div className="text-xs text-gray-500">
-										{getPercentage(resultCounts.easy)}%
+										{getPercentage(resultCounts.later)}%
 									</div>
 								</div>
 							</div>

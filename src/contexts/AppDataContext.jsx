@@ -15,6 +15,7 @@ import {
 	patchToAPI,
 	checkAPIHealth,
 } from '../services/apiStorage';
+import { migrateGrades } from '../services/grades';
 
 const AppDataContext = createContext();
 
@@ -37,35 +38,35 @@ const demoData = {
 				{
 					cardId: 'demo-2',
 					front: 'Why are there 4 result buttons?',
-					back: 'The 4 levels allow for distinguishing between common, but important levels or remembering. The difference allows cards to be scheduled at the appropriate intervals.',
+					back: "Each button decides when you'll see the card next: start it over (Forgot), shorten the interval (Sooner), keep it (Right), or lengthen it (Later). The time under each button shows when the card would come back.",
 					reviews: [],
 					whenDue: Date.now(),
 				},
 				{
 					cardId: 'demo-3',
-					front: "What does 'Again' mean?",
-					back: "Again means you didn't know the answer. It resets the review to the minimum interval e.g. 10 minutes.",
+					front: "What does 'Forgot' mean?",
+					back: "Forgot means you didn't know the answer. It starts the card over at the minimum interval, e.g. 10 minutes.",
 					reviews: [],
 					whenDue: Date.now(),
 				},
 				{
 					cardId: 'demo-4',
-					front: "What does 'Hard' mean?",
-					back: "Rating a card as 'Hard' means it is more difficult to remember than you would like. This rating reduces the review interval so that you'll be prompted to review it sooner next time.",
+					front: "What does 'Sooner' mean?",
+					back: "Sooner means you remembered, but it was harder than you'd like. It halves the review interval so you'll see the card sooner next time.",
 					reviews: [],
 					whenDue: Date.now(),
 				},
 				{
 					cardId: 'demo-5',
-					front: "What does 'Good' mean?",
-					back: "Rating a card as 'Good' means it is about as difficult to remember as you would like. This rating keeps the review interval the same as the last time you reviewed it.",
+					front: "What does 'Right' mean?",
+					back: 'Right means the interval was about right: remembering took some effort, but not too much. It keeps the same interval as last time.',
 					reviews: [],
 					whenDue: Date.now(),
 				},
 				{
 					cardId: 'demo-6',
-					front: "What does 'Easy' mean?",
-					back: "Rating a card as 'Easy' means it is easy to remember and did not need to be due yet. This rating increases the review interval so that you'll be prompted to review it later next time.",
+					front: "What does 'Later' mean?",
+					back: "Later means it was easy and could have waited longer. It doubles the review interval so you'll see the card later next time.",
 					reviews: [],
 					whenDue: Date.now(),
 				},
@@ -147,15 +148,18 @@ export function AppDataProvider({ children }) {
 				const cloudData = await loadFromAPI(authToken, refreshToken);
 
 				// Keep folders even when there are no decks yet
-				const finalData = {
+				const loadedData = {
 					...cloudData,
 					folders: cloudData?.folders || [],
 					decks: cloudData?.decks || [],
 				};
 
-				setAppData(finalData);
+				// Grades saved under the old Again/Hard/Good/Easy names are
+				// renamed here. The last-saved snapshot stays as loaded, so
+				// the next auto-save writes the renamed decks back to the cloud.
+				setAppData(migrateGrades(loadedData));
 				lastSavedStateRef.current = JSON.parse(
-					JSON.stringify(finalData)
+					JSON.stringify(loadedData)
 				);
 				hasLoadedFromCloudRef.current = true;
 				setIsOnline(true);
