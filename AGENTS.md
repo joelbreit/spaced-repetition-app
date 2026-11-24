@@ -33,23 +33,23 @@ User (Browser)
 ### Key Data Flow
 
 1. **Loading**: `AppDataContext` loads data from API (authenticated) or uses in-memory demo data (guest)
-2. **Auto-save**: Changes debounced to 10 seconds, uses PATCH for incremental saves when possible
+2. **Auto-save**: Changes debounced to 10 seconds, then synced (`POST /sync`): only changed objects are sent and the server merges them with other devices' changes (see `docs/Data.md`)
 3. **API failure**: Shows error toast — no localStorage fallback. Data remains in React state for retry.
 
 ## Important Files & Directories
 
-| Path                                                    | Purpose                                                 |
-| ------------------------------------------------------- | ------------------------------------------------------- |
-| `src/App.jsx`                                           | Root component, context providers, routing              |
-| `src/contexts/AppDataContext.jsx`                       | Central data state, save/load logic, PATCH optimization |
-| `src/contexts/AuthContext.jsx`                          | Cognito auth, token refresh, user state                 |
-| `src/services/apiStorage.js`                            | API client (GET/POST/PATCH/read-aloud)                  |
-| `src/services/cardCalculations.js`                      | Spaced repetition algorithm                             |
-| `backend/template.yaml`                                 | SAM template: all backend infrastructure                |
-| `backend/src/functions/flashcards-api/index.mjs`        | Lambda: CRUD for flashcard data                         |
-| `backend/src/functions/flashcards-read-aloud/index.mjs` | Lambda: AWS Polly text-to-speech                        |
-| `docs/Data.md`                                          | Data schema documentation                               |
-| `docs/Design.md`                                        | UI/UX design system (colors, components, animations)    |
+| Path                                                    | Purpose                                              |
+| ------------------------------------------------------- | ---------------------------------------------------- |
+| `src/App.jsx`                                           | Root component, context providers, routing           |
+| `src/contexts/AppDataContext.jsx`                       | Central data state, load and sync logic              |
+| `src/contexts/AuthContext.jsx`                          | Cognito auth, token refresh, user state              |
+| `src/services/apiStorage.js`                            | API client (data, sync, reviews, read-aloud)         |
+| `src/services/cardCalculations.js`                      | Spaced repetition algorithm                          |
+| `backend/template.yaml`                                 | SAM template: all backend infrastructure             |
+| `backend/src/functions/flashcards-api/index.mjs`        | Lambda: CRUD for flashcard data                      |
+| `backend/src/functions/flashcards-read-aloud/index.mjs` | Lambda: AWS Polly text-to-speech                     |
+| `docs/Data.md`                                          | Data schema documentation                            |
+| `docs/Design.md`                                        | UI/UX design system (colors, components, animations) |
 
 ## Data Structure
 
@@ -217,7 +217,7 @@ used — see `backend/README.md`.
 - Guests who edit data and sign up see an export checkbox to download their work
 - Authenticated users can import JSON from the Profile page to merge decks/folders
 - Auth token expires after 1 hour; refresh happens every 45 minutes
-- PATCH optimization only works for single deck/card changes; bulk operations use POST
+- Saves merge per object (last save wins per folder/deck/card/note); card order within a deck isn't synced
 - New authenticated users start with empty state (no sample decks)
 
 ## Known Issues & TODOs

@@ -7,6 +7,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { gzipSync } from 'node:zlib';
+import { applySync } from './merge.mjs';
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 const BUCKET = process.env.S3_BUCKET;
@@ -144,6 +145,59 @@ const gzipResponse = (jsonString) => ({
 	body: gzipSync(jsonString).toString('base64'),
 });
 
+// data.json with its ETag, for a conditional write back
+async function readDataWithEtag(key) {
+	try {
+		const response = await s3Client.send(
+			new GetObjectCommand({ Bucket: BUCKET, Key: key })
+		);
+		return {
+			data: JSON.parse(await response.Body.transformToString()),
+			etag: response.ETag,
+		};
+	} catch (error) {
+		if (error.name === 'NoSuchKey') return { data: null, etag: null };
+		throw error;
+	}
+}
+
+// Another save landed between our read and write
+const isWriteConflict = (error) =>
+	[409, 412].includes(error.$metadata?.httpStatusCode) ||
+	['PreconditionFailed', 'ConditionalRequestConflict'].includes(error.name);
+
+const SYNC_ATTEMPTS = 5;
+
+/**
+ * Merge a client's changes into data.json (see merge.mjs). The write is
+ * conditional on data.json not having changed since it was read, so two
+ * devices saving at once both get merged; on a conflict it reads and merges
+ * again.
+ */
+async function syncData(key, request) {
+	for (let attempt = 0; attempt < SYNC_ATTEMPTS; attempt++) {
+		const { data, etag } = await readDataWithEtag(key);
+		const result = applySync(data, request);
+		if (!result.changed) return result;
+		try {
+			await s3Client.send(
+				new PutObjectCommand({
+					Bucket: BUCKET,
+					Key: key,
+					Body: JSON.stringify(result.data),
+					ContentType: 'application/json',
+					...(etag ? { IfMatch: etag } : { IfNoneMatch: '*' }),
+				})
+			);
+			return result;
+		} catch (error) {
+			if (!isWriteConflict(error)) throw error;
+			console.log(`Sync write conflict, retrying (${attempt + 1})`);
+		}
+	}
+	throw new Error('Too many concurrent saves; try again');
+}
+
 async function verifyToken(authHeader) {
 	if (!authHeader || !authHeader.startsWith('Bearer ')) {
 		throw new Error('Missing or invalid Authorization header');
@@ -208,6 +262,41 @@ export const handler = async (event) => {
 			event.rawPath ??
 			event.path ??
 			'';
+
+		if (path.endsWith('/sync')) {
+			if (method !== 'POST') {
+				return {
+					statusCode: 405,
+					headers,
+					body: JSON.stringify({ error: 'Method not allowed' }),
+				};
+			}
+			const request = JSON.parse(event.body || '{}');
+			const changes = request.changes || {};
+			const listsOk = [
+				'folders',
+				'decks',
+				'cards',
+				'notes',
+				'graves',
+			].every(
+				(k) => changes[k] === undefined || Array.isArray(changes[k])
+			);
+			if (!listsOk || !Number.isFinite(request.since ?? 0)) {
+				return {
+					statusCode: 400,
+					headers,
+					body: JSON.stringify({ error: 'Invalid sync request' }),
+				};
+			}
+			const result = await syncData(key, {
+				since: request.since ?? 0,
+				changes,
+			});
+			return gzipResponse(
+				JSON.stringify({ rev: result.rev, changes: result.changes })
+			);
+		}
 
 		if (path.endsWith('/reviews')) {
 			if (method === 'GET') {

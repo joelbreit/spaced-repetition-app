@@ -11,8 +11,7 @@ import { useNotification } from '../hooks/useNotification';
 import { DEFAULT_DECK_ICON } from '../config/containerIcons';
 import {
 	loadFromAPI,
-	saveToAPI,
-	patchToAPI,
+	syncToAPI,
 	checkAPIHealth,
 	loadReviewsFromAPI,
 	saveReviewsToAPI,
@@ -26,7 +25,12 @@ import {
 	reviewKey,
 } from '../services/reviewLog';
 import { resolveNotes, stripNoteFields } from '../services/notes';
-import { computePatchData } from '../services/savePatch';
+import {
+	computeChangeset,
+	applyRemoteChanges,
+	hasRemoteChanges,
+	changedSince,
+} from '../services/sync';
 
 const AppDataContext = createContext();
 
@@ -93,6 +97,11 @@ const demoState = resolveNotes(demoData);
 // log) and no card text (it's in the notes)
 const toStored = (data) => stripNoteFields(stripReviews(data));
 
+const MIN_SAVE_INTERVAL = 10 * 1000;
+// Pulling: not within 30s of the last sync; every 5 min while visible
+const PULL_MIN_GAP = 30 * 1000;
+const PULL_INTERVAL = 5 * 60 * 1000;
+
 export function AppDataProvider({ children }) {
 	const { authToken, isAuthenticated, refreshToken } = useAuth();
 	const { showError } = useNotification();
@@ -123,6 +132,10 @@ export function AppDataProvider({ children }) {
 	// The reviews the review log holds, keyed by cardId and reviewId
 	const savedReviewsRef = useRef(new Map());
 	const hasLoadedFromCloudRef = useRef(false);
+	// The server's rev as of the last sync: changes after it are pulled
+	const revRef = useRef(0);
+	const syncInFlightRef = useRef(false);
+	const syncAgainRef = useRef(false);
 	const healthCheckInProgress = useRef(false);
 
 	// Wrapped setter that tracks guest edits
@@ -168,6 +181,7 @@ export function AppDataProvider({ children }) {
 			if (!isAuthenticated || !authToken) {
 				hasLoadedFromCloudRef.current = false;
 				savedReviewsRef.current = new Map();
+				revRef.current = 0;
 				setAppData(demoState);
 				lastSavedStateRef.current = JSON.parse(
 					JSON.stringify(toStored(demoState))
@@ -184,12 +198,22 @@ export function AppDataProvider({ children }) {
 					loadReviewsFromAPI(authToken, refreshToken),
 				]);
 
-				// Keep folders even when there are no decks yet
+				// Keep folders even when there are no decks yet. The sync
+				// bookkeeping (rev, deletion records, order stamps) stays on
+				// the server.
+				const {
+					rev = 0,
+					graves: _graves,
+					orderAt: _orderAt,
+					orderUsn: _orderUsn,
+					...content
+				} = cloudData || {};
 				const loadedData = {
-					...cloudData,
-					folders: cloudData?.folders || [],
-					decks: cloudData?.decks || [],
+					...content,
+					folders: content.folders || [],
+					decks: content.decks || [],
 				};
+				revRef.current = rev;
 
 				// Reviews come back onto their cards. Data saved before the
 				// review log existed still has them nested in data.json; the
@@ -235,26 +259,27 @@ export function AppDataProvider({ children }) {
 		appDataRef.current = appData;
 	}, [appData]);
 
-	// Auto-save data - to cloud if authenticated, no-op if guest
-	useEffect(() => {
-		if (isLoading) return;
-
-		if (saveTimeoutRef.current) {
-			return;
-		}
-
-		const performSave = async () => {
-			setIsSaving(true);
-			const dataToSave = appDataRef.current;
+	/**
+	 * Sync with the cloud: send local changes (reviews first, then the rest
+	 * as a changeset the server merges object by object) and take in what
+	 * other devices changed since the last sync.
+	 * @param {{ pull?: boolean }} options - pull: sync even with no local
+	 *   changes, to fetch other devices' changes
+	 */
+	const performSync = useCallback(
+		async ({ pull = false } = {}) => {
+			if (syncInFlightRef.current) {
+				syncAgainRef.current = true;
+				return;
+			}
+			const snapshot = appDataRef.current;
 
 			// Guest mode: data lives in React state only — nothing to persist
 			if (!isAuthenticated || !authToken) {
 				lastSavedStateRef.current = JSON.parse(
-					JSON.stringify(toStored(dataToSave))
+					JSON.stringify(toStored(snapshot))
 				);
 				lastSaveTime.current = Date.now();
-				setIsSaving(false);
-				saveTimeoutRef.current = null;
 				return;
 			}
 
@@ -262,84 +287,112 @@ export function AppDataProvider({ children }) {
 			// Guards against the race where auth resolves after the guest branch
 			// runs but before the authenticated load completes, which would cause
 			// the initial demoData state to be written to the cloud.
-			if (!hasLoadedFromCloudRef.current) {
-				setIsSaving(false);
-				saveTimeoutRef.current = null;
-				return;
-			}
+			if (!hasLoadedFromCloudRef.current) return;
 
-			// Authenticated mode: save to cloud
-			const currentAuthToken = authToken;
+			const currentReviews = collectReviews(snapshot);
+			const reviewChanges = diffReviews(
+				currentReviews,
+				savedReviewsRef.current
+			);
+			const hasReviewChanges =
+				reviewChanges.add.length > 0 || reviewChanges.remove.length > 0;
+			// data.json holds everything but the reviews, and cards without
+			// the text their notes hold
+			const storedSnapshot = toStored(snapshot);
+			const changes = computeChangeset(
+				storedSnapshot,
+				lastSavedStateRef.current
+			);
+			if (!changes && !hasReviewChanges && !pull) return;
+
+			syncInFlightRef.current = true;
+			setIsSaving(true);
 			try {
-				const currentReviews = collectReviews(dataToSave);
-				const reviewChanges = diffReviews(
-					currentReviews,
-					savedReviewsRef.current
-				);
-				const hasReviewChanges =
-					reviewChanges.add.length > 0 ||
-					reviewChanges.remove.length > 0;
-
-				// data.json holds everything but the reviews, and cards
-				// without the text their notes hold
-				const storedData = toStored(dataToSave);
-				const patchData = computePatchData(
-					storedData,
-					lastSavedStateRef.current
-				);
-
-				if (patchData === false && !hasReviewChanges) {
-					// No changes — nothing to save
-					setIsSaving(false);
-					saveTimeoutRef.current = null;
-					return;
-				}
-
 				// Reviews go first: data.json saved without nested reviews
 				// must never reach the cloud before those reviews are in the
 				// log. If this fails, nothing else is saved.
 				if (hasReviewChanges) {
 					await saveReviewsToAPI(
 						reviewChanges,
-						currentAuthToken,
+						authToken,
 						refreshToken
 					);
 					savedReviewsRef.current = currentReviews;
 				}
 
-				if (patchData) {
-					// Use PATCH for incremental update
-					await patchToAPI(patchData, currentAuthToken, refreshToken);
-				} else if (patchData === null) {
-					// null = fall back to POST for full save
-					await saveToAPI(storedData, currentAuthToken, refreshToken);
-				}
-
-				// Update last saved state
-				lastSavedStateRef.current = JSON.parse(
-					JSON.stringify(storedData)
+				const response = await syncToAPI(
+					{ since: revRef.current, changes },
+					authToken,
+					refreshToken
 				);
+				revRef.current = response.rev;
+				const remote = response.changes;
+
+				// What the server now has, as far as this device knows
+				lastSavedStateRef.current = JSON.parse(
+					JSON.stringify(applyRemoteChanges(storedSnapshot, remote))
+				);
+
+				// Other devices' changes, and any of ours that lost to newer
+				// ones. Anything edited here since the snapshot is left alone:
+				// the next sync sends it.
+				if (hasRemoteChanges(remote)) {
+					setAppDataRaw((prev) => {
+						const skip = changedSince(
+							storedSnapshot,
+							toStored(prev)
+						);
+						return resolveNotes(
+							applyRemoteChanges(prev, remote, {
+								skip,
+								withReviews: true,
+							})
+						);
+					});
+				}
 				setIsOnline(true);
-				lastSaveTime.current = Date.now();
 			} catch (error) {
-				console.error('Failed to save to API:', error);
+				console.error('Failed to sync with API:', error);
 				showError('Failed to save to cloud.');
 				setIsOnline(false);
-				lastSaveTime.current = Date.now();
 			} finally {
+				lastSaveTime.current = Date.now();
+				syncInFlightRef.current = false;
 				setIsSaving(false);
-				saveTimeoutRef.current = null;
+				// Edits made while this sync was in flight
+				if (syncAgainRef.current || appDataRef.current !== snapshot) {
+					syncAgainRef.current = false;
+					setTimeout(
+						() => performSyncRef.current?.(),
+						MIN_SAVE_INTERVAL
+					);
+				}
 			}
-		};
+		},
+		[isAuthenticated, authToken, refreshToken, showError]
+	);
+	const performSyncRef = useRef(performSync);
+	useEffect(() => {
+		performSyncRef.current = performSync;
+	}, [performSync]);
+
+	// Auto-save: sync at most every 10 seconds after a change
+	useEffect(() => {
+		if (isLoading) return;
+
+		if (saveTimeoutRef.current) {
+			return;
+		}
 
 		const now = Date.now();
 		const timeSinceLastSave = lastSaveTime.current
 			? now - lastSaveTime.current
 			: Infinity;
-		const MIN_SAVE_INTERVAL = 10000; // 10 seconds
-
 		const delay = Math.max(0, MIN_SAVE_INTERVAL - timeSinceLastSave);
-		saveTimeoutRef.current = setTimeout(performSave, delay);
+		saveTimeoutRef.current = setTimeout(() => {
+			saveTimeoutRef.current = null;
+			performSync();
+		}, delay);
 
 		return () => {
 			if (saveTimeoutRef.current) {
@@ -347,14 +400,26 @@ export function AppDataProvider({ children }) {
 				saveTimeoutRef.current = null;
 			}
 		};
-	}, [
-		appData,
-		isLoading,
-		isAuthenticated,
-		authToken,
-		refreshToken,
-		showError,
-	]);
+	}, [appData, isLoading, performSync]);
+
+	// Pull other devices' changes when the app comes back into view, and
+	// every few minutes while it's open
+	useEffect(() => {
+		if (!isAuthenticated || isLoading) return;
+		const pull = () => {
+			if (document.visibilityState !== 'visible') return;
+			if (Date.now() - (lastSaveTime.current || 0) < PULL_MIN_GAP) return;
+			performSync({ pull: true });
+		};
+		document.addEventListener('visibilitychange', pull);
+		window.addEventListener('focus', pull);
+		const interval = setInterval(pull, PULL_INTERVAL);
+		return () => {
+			document.removeEventListener('visibilitychange', pull);
+			window.removeEventListener('focus', pull);
+			clearInterval(interval);
+		};
+	}, [isAuthenticated, isLoading, performSync]);
 
 	const value = {
 		appData,

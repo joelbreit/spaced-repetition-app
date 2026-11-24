@@ -59,6 +59,33 @@ the card. Loading gives each one a note (ID `note-<cardId>`); a pair whose
 `partnerCardId`s point at each other and whose text mirrors shares one, with
 the older card as `forward`. The next auto-save stores them that way.
 
+### Saving and sync
+
+The app saves by syncing (`POST /sync`), not by overwriting `data.json`, so
+two devices (or tabs) editing at once are merged object by object:
+
+- **Objects:** folders, decks (without their cards), cards and notes. Each
+  change is sent on its own, stamped `updatedAt` (when it was saved). The
+  server keeps the newer version of each object.
+- **Deletions** leave a grave `{ type, id, at }` in `data.json`. A deletion
+  beats an edit saved before it; an edit saved after it brings the object
+  back. Graves are kept indefinitely.
+- **Order** of decks and folders syncs as one value with its own time.
+- **Pulling:** the server counts syncs in `rev` and stamps each object it
+  stores with `usn` (the `rev` it was stored at). A sync sends the `rev` it
+  last saw and gets back everything stored since, plus the server's version
+  of anything of its own that lost. Apps sync after edits (at most every
+  10 s), when the tab comes back into view, and every 5 minutes.
+- **Atomic:** the server's merge reads `data.json`, merges, and writes it back
+  only if it hasn't changed since (S3 conditional write), retrying otherwise.
+
+The merge is `backend/src/functions/flashcards-api/merge.mjs`; the client side
+(what changed, applying another device's changes) is `src/services/sync.js`.
+An object edited locally while a sync is in flight keeps the local edit; the
+next sync sends it. Reviews another device added show up in history and stats
+after a reload (scheduling is up to date right away). Card order within a
+deck isn't synced: a card that moves or comes back is added at the end.
+
 ## JSON Structure
 
 `data.json`:
@@ -66,7 +93,16 @@ the older card as `forward`. The next auto-save stores them that way.
 ```json
 {
 	"version": "2",
-	"updatedAt": 1234567890, // not fully implemented yet
+	// v7 sync bookkeeping, server-side only (the app doesn't load these)
+	"rev": 42, // incremented by each sync that changes something
+	"graves": [
+		{ "type": "card", "id": "unique-id", "at": 1234567890, "usn": 41 }
+	],
+	"orderAt": 1234567890, // when deck/folder order last changed
+	"orderUsn": 40,
+	// Every folder, deck, card and note also has (v7):
+	//   "updatedAt": when a device saved its last change
+	//   "usn": the rev at which the server stored it
 	// Notes added in v5
 	"notes": [
 		{
@@ -93,7 +129,7 @@ the older card as `forward`. The next auto-save stores them that way.
 			"folderSymbol": "folder", // lucide icon key from src/config/containerIcons.js
 			"parentFolderId": null, // null or missing = root level, otherwise references another folderId
 			"createdAt": 1234567890,
-			"updatedAt": 1234567890 // not fully implemented yet
+			"updatedAt": 1234567890 // v7: set by sync
 		}
 	],
 	"decks": [
@@ -105,7 +141,7 @@ the older card as `forward`. The next auto-save stores them that way.
 			"parentFolderId": null, // v2, null or missing = root level, otherwise references another folderId
 			"isArchived": false, // optional, defaults to false. Archived decks are excluded from folder stats and Study All, but still viewable and studyable directly
 			"createdAt": 1234567890, // added later, may be missing
-			"updatedAt": 1234567890, // not fully implemented yet
+			"updatedAt": 1234567890, // v7: set by sync
 			"cards": [
 				{
 					"cardId": "unique-id",
@@ -153,6 +189,13 @@ the older card as `forward`. The next auto-save stores them that way.
 	]
 }
 ```
+
+## v7 (sync)
+
+- [x] `POST /sync` merges changes object by object; replaces full saves and PATCH
+- [x] `updatedAt`/`usn` on folders, decks, cards and notes; graves for deletions; `rev`
+- Note: `POST`/`PATCH /data` remain for app versions from before v7; they don't
+  set `usn`, so other devices don't pull their changes. Remove once no old tabs remain.
 
 ## v6 (cloze)
 

@@ -27,6 +27,7 @@ Browser (flashcards.joelbreit.com)
   └── HTTP API 3u15oyvpok  stage /prod
         │
         ├── GET|POST|PATCH|OPTIONS /data ──▶ DataFunction
+        ├── POST /sync ────────────────────▶ DataFunction (merge, see docs/Data.md)
         ├── GET|POST /reviews ─────────────▶ DataFunction
         │        verifies the Cognito JWT in code, then reads/writes
         │        s3://spaced-rep-flashcards-data/users/{sub}/data.json

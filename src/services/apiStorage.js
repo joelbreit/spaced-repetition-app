@@ -58,118 +58,28 @@ export async function loadFromAPI(authToken, refreshToken = null) {
 }
 
 /**
- * Save flashcard data to the API (with authentication)
- * @param {Object} data - The flashcard data to save
+ * Sync with the API: send local changes, get back other devices' changes.
+ * The server merges object by object (see services/sync.js).
+ * @param {{ since: number, changes: Object|null }} request - `since` is the
+ *   rev of the last sync; `changes` from computeChangeset(), or null to only
+ *   pull
  * @param {string} authToken - JWT token from Cognito
  * @param {Function} [refreshToken] - Optional function to refresh the token if it expires
- * @returns {Promise<Object>} Response from the API
+ * @returns {Promise<{ rev: number, changes: Object }>}
  */
-export async function saveToAPI(data, authToken, refreshToken = null) {
-	try {
-		const response = await fetch(`${API_ENDPOINT}/data`, {
+export async function syncToAPI(request, authToken, refreshToken = null) {
+	return requestAPI(
+		'/sync',
+		{
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${authToken}`,
-			},
-			body: JSON.stringify(data),
-		});
-
-		if (!response.ok) {
-			if (response.status === 401 && refreshToken) {
-				// Token expired, try refreshing and retry once
-				console.log('Token expired, refreshing...');
-				const newToken = await refreshToken();
-				if (newToken) {
-					// Retry with new token
-					const retryResponse = await fetch(`${API_ENDPOINT}/data`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							Authorization: `Bearer ${newToken}`,
-						},
-						body: JSON.stringify(data),
-					});
-					if (!retryResponse.ok) {
-						throw new Error(
-							`HTTP error! status: ${retryResponse.status}`
-						);
-					}
-					const result = await retryResponse.json();
-					return result;
-				}
-			}
-			if (response.status === 401) {
-				throw new Error('Unauthorized - please log in again');
-			}
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-
-		const result = await response.json();
-		return result;
-	} catch (error) {
-		console.error('Error saving to API:', error);
-		throw error;
-	}
-}
-
-/**
- * Patch flashcard data to the API (with authentication)
- * Only sends the changed portion (card or deck) instead of entire dataset
- * @param {Object} patchData - The patch data object with format:
- *   - Card patch: { type: 'card', deckId: string, card: CardObject }
- *   - Deck patch: { type: 'deck', deck: DeckObject }
- * @param {string} authToken - JWT token from Cognito
- * @param {Function} [refreshToken] - Optional function to refresh the token if it expires
- * @returns {Promise<Object>} Response from the API
- */
-export async function patchToAPI(patchData, authToken, refreshToken = null) {
-	try {
-		const response = await fetch(`${API_ENDPOINT}/data`, {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${authToken}`,
-			},
-			body: JSON.stringify(patchData),
-		});
-
-		if (!response.ok) {
-			if (response.status === 401 && refreshToken) {
-				// Token expired, try refreshing and retry once
-				console.log('Token expired, refreshing...');
-				const newToken = await refreshToken();
-				if (newToken) {
-					// Retry with new token
-					const retryResponse = await fetch(`${API_ENDPOINT}/data`, {
-						method: 'PATCH',
-						headers: {
-							'Content-Type': 'application/json',
-							Authorization: `Bearer ${newToken}`,
-						},
-						body: JSON.stringify(patchData),
-					});
-					if (!retryResponse.ok) {
-						throw new Error(
-							`HTTP error! status: ${retryResponse.status}`
-						);
-					}
-					const result = await retryResponse.json();
-					return result;
-				}
-			}
-			if (response.status === 401) {
-				throw new Error('Unauthorized - please log in again');
-			}
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-
-		const result = await response.json();
-		return result;
-	} catch (error) {
-		console.error('Error patching to API:', error);
-		throw error;
-	}
+			body: JSON.stringify({
+				since: request.since,
+				changes: request.changes || {},
+			}),
+		},
+		authToken,
+		refreshToken
+	);
 }
 
 // A request to the API, retried once with a fresh token if it has expired

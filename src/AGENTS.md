@@ -39,7 +39,7 @@ The app wraps contexts in this order (outermost to innermost):
 - **State**: `appData`, `isLoading`, `isSaving`, `isOnline`, `hasGuestEdits`
 - **Features**:
     - Auto-saves with 10-second debounce
-    - PATCH optimization for single card/deck changes
+    - Syncs only changed objects (`services/sync.js`); pulls other devices' changes on focus and every 5 min
     - Guest mode is in-memory only — no localStorage persistence
     - `hasGuestEdits` flag tracks whether the guest has modified demo data
 
@@ -127,8 +127,7 @@ API client for backend communication:
 
 ```javascript
 loadFromAPI(authToken, refreshToken); // GET /data
-saveToAPI(data, authToken, refreshToken); // POST /data (full save)
-patchToAPI(patchData, authToken, refreshToken); // PATCH /data (incremental)
+syncToAPI({ since, changes }, authToken, refreshToken); // POST /sync (merge; returns other devices' changes)
 loadReviewsFromAPI(authToken, refreshToken); // GET /reviews (the whole review log)
 saveReviewsToAPI({ add, remove }, authToken, refreshToken); // POST /reviews (batched)
 checkAPIHealth(); // OPTIONS /data

@@ -275,6 +275,12 @@ Resources:
                         ApiId: !Ref HttpApi
                         Path: /reviews
                         Method: POST
+                PostSync:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref HttpApi
+                        Path: /sync
+                        Method: POST
                 # Redundant with the API-level CORS config above, but the pre-migration
                 # stack routed OPTIONS /data to the Lambda, so it is preserved.
                 OptionsData:

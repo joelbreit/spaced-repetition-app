@@ -37,10 +37,11 @@ Guest mode uses localStorage; authenticated mode uses AWS (Cognito → API Gatew
 
 Key files:
 
-- `src/contexts/AppDataContext.jsx` - Central data state, auto-save with 10s debounce, PATCH optimization
+- `src/contexts/AppDataContext.jsx` - Central data state, auto-sync with 10s debounce
 - `src/contexts/AuthContext.jsx` - Cognito auth, token refresh every 45 min
 - `src/services/cardCalculations.js` - Spaced repetition algorithm
-- `src/services/apiStorage.js` - API client (`/data` GET/POST/PATCH, `/reviews` GET/POST)
+- `src/services/apiStorage.js` - API client (`/data` GET, `/sync` POST, `/reviews` GET/POST)
+- `src/services/sync.js` + `backend/.../merge.mjs` - Saves merge object by object across devices (`updatedAt`, graves, `rev`/`usn`)
 - `src/services/reviewLog.js` - Reviews live in a separate monthly review log in S3, put back on cards in memory
 - `src/services/notes.js` - Card text lives in notes; reversed partners are two cards of one note. Edit text through the note, not `card.front`
 - `src/services/cloze.js` - Cloze deletions (`{{c1::answer::hint}}`); a cloze note makes one card per number
