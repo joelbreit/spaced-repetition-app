@@ -180,9 +180,24 @@ export async function checkAPIHealth() {
  * @param {string} text - The text to convert to speech
  * @param {string} [voiceId] - Optional voice ID (defaults to saved setting or 'Ruth')
  * @param {string} [engine] - Optional engine type (defaults to saved setting or 'generative')
+ * @param {Object} [auth] - From useAuth(); the endpoint requires a signed-in user
+ * @param {string} [auth.authToken] - JWT token from Cognito
+ * @param {Function} [auth.refreshToken] - Refreshes the token after a 401
  * @returns {Promise<Blob>} Audio blob
+ * @throws {Error} with `code: 'SIGN_IN_REQUIRED'` when there is no token
  */
-export async function readAloudAPI(text, voiceId = null, engine = null) {
+export async function readAloudAPI(
+	text,
+	voiceId = null,
+	engine = null,
+	{ authToken = null, refreshToken = null } = {}
+) {
+	if (!authToken) {
+		const error = new Error('Sign in to use read aloud');
+		error.code = 'SIGN_IN_REQUIRED';
+		throw error;
+	}
+
 	// Load settings from localStorage or use defaults
 	let finalVoiceId = voiceId;
 	let finalEngine = engine;
@@ -206,17 +221,29 @@ export async function readAloudAPI(text, voiceId = null, engine = null) {
 	}
 
 	try {
-		const response = await fetch(`${API_ENDPOINT}/read-aloud`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				text,
-				VoiceId: finalVoiceId,
-				Engine: finalEngine,
-			}),
+		const body = JSON.stringify({
+			text,
+			VoiceId: finalVoiceId,
+			Engine: finalEngine,
 		});
+		const post = (token) =>
+			fetch(`${API_ENDPOINT}/read-aloud`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`,
+				},
+				body,
+			});
+
+		let response = await post(authToken);
+		if (response.status === 401 && refreshToken) {
+			// Token expired, refresh and retry once
+			const newToken = await refreshToken();
+			if (newToken) {
+				response = await post(newToken);
+			}
+		}
 
 		// Estimated cost calculation based on engine
 		// Generative: $30 per 1M characters

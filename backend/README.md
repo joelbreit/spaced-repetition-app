@@ -70,11 +70,10 @@ against Cognito, means stop.
 The migration was a behaviour-preserving lift-and-shift, so a few things are
 carried over as-is rather than fixed:
 
-- **`POST /read-aloud` has no authentication.** No gateway authorizer, no token
-  check in the handler, `Allow-Origin: *`. Fixing it needs a matching frontend
-  change so `readAloudAPI()` sends `Authorization`, so it's tracked separately.
 - **`/data` verifies JWTs in the handler, not at the gateway.** The `bookmarks`
   stack uses an `HttpApi` `DefaultAuthorizer`, which is the better pattern.
+  `POST /read-aloud` already uses the gateway `CognitoAuthorizer` (it was open
+  before the migration and was locked down afterwards).
 - **`OPTIONS /data` routes to the Lambda** even though API-level CORS already
   handles preflight. Redundant, but it is what the old stack did.
 - **The bucket's CORS rules** reference `localhost:5173`, `*.netlify.app`, and

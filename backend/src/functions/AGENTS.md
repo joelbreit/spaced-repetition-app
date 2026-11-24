@@ -72,7 +72,10 @@ Text-to-speech API using AWS Polly.
 
 **Response**: Audio stream (`audio/mpeg`)
 
-**No authentication required** - endpoint is public.
+**Authentication**: `Authorization: Bearer <Cognito access token>`, checked at
+the gateway by the `CognitoAuthorizer` JWT authorizer (the handler does no token
+check of its own). Requests without a valid token get `401` before the Lambda
+runs.
 
 **Environment Variables**:
 

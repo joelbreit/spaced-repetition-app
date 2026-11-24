@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { DEFAULT_REVIEW_SETTINGS } from '../../services/reviewSettings';
 import { readAloudAPI } from '../../services/apiStorage';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Voice and engine compatibility mapping
 const VOICE_ENGINES = {
@@ -187,6 +188,7 @@ function useVoicePreview(voiceId, engine, playbackSpeed, isOpen) {
 	const requestRef = useRef(0);
 	const [status, setStatus] = useState('idle'); // idle | loading | playing
 	const [error, setError] = useState(null);
+	const { authToken, refreshToken } = useAuth();
 
 	const stop = () => {
 		requestRef.current += 1;
@@ -224,7 +226,10 @@ function useVoicePreview(voiceId, engine, playbackSpeed, isOpen) {
 			const key = `${voiceId}|${engine}`;
 			let blob = cacheRef.current.get(key);
 			if (!blob) {
-				blob = await readAloudAPI(PREVIEW_TEXT, voiceId, engine);
+				blob = await readAloudAPI(PREVIEW_TEXT, voiceId, engine, {
+					authToken,
+					refreshToken,
+				});
 				cacheRef.current.set(key, blob);
 			}
 			if (request !== requestRef.current) return;
@@ -245,7 +250,11 @@ function useVoicePreview(voiceId, engine, playbackSpeed, isOpen) {
 		} catch (err) {
 			if (request !== requestRef.current) return;
 			console.error('Voice preview failed:', err);
-			setError('Could not play the preview. Please try again.');
+			setError(
+				err.code === 'SIGN_IN_REQUIRED'
+					? 'Sign in to preview voices.'
+					: 'Could not play the preview. Please try again.'
+			);
 			setStatus('idle');
 		}
 	};

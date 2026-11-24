@@ -34,7 +34,7 @@ Browser (flashcards.joelbreit.com)
         │        s3://spaced-rep-flashcards-data/users/{sub}/reviews/YYYY-MM.json
         │
         └── POST /read-aloud ─────────────▶ ReadAloudFunction
-                 no auth (see Known gaps) ──▶ Amazon Polly
+                 Cognito JWT authorizer ────▶ Amazon Polly
 ```
 
 ## Stack resources
@@ -121,10 +121,10 @@ bucket policy or CORS configuration — browsers never talk to S3 directly.
 
 ## Known gaps
 
-- **`POST /read-aloud` is unauthenticated.** No gateway authorizer, no token
-  check, `Allow-Origin: *`, caller-chosen Polly engine (generative is $30/M
-  characters) and no length cap. Fixing it needs a coordinated frontend change
-  so `readAloudAPI()` sends the `Authorization` header.
+- **`POST /read-aloud` trusts signed-in callers on cost.** It requires a
+  Cognito token (gateway `CognitoAuthorizer`, so guests can't use read aloud),
+  but any signed-in user still picks the Polly engine (generative is $30/M
+  characters) and there is no length cap.
 - **`/data` verifies JWTs in the handler rather than at the gateway.** The
   `bookmarks` stack uses an `HttpApi` `DefaultAuthorizer`, which is the better
   pattern.

@@ -131,7 +131,7 @@ syncToAPI({ since, changes }, authToken, refreshToken); // POST /sync (merge; re
 loadReviewsFromAPI(authToken, refreshToken); // GET /reviews (the whole review log)
 saveReviewsToAPI({ add, remove }, authToken, refreshToken); // POST /reviews (batched)
 checkAPIHealth(); // OPTIONS /data
-readAloudAPI(text); // POST /read-aloud
+readAloudAPI(text, voiceId, engine, { authToken, refreshToken }); // POST /read-aloud (signed-in only)
 ```
 
 ### `cardCalculations.js`

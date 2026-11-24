@@ -15,11 +15,13 @@ import {
 	useCallback,
 } from 'react';
 import { readAloudAPI } from '../../services/apiStorage';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ReadAloudButton = forwardRef(function ReadAloudButton(
 	{ text, playbackSpeed, onSpeedChange, voiceId = null, engine = null },
 	ref
 ) {
+	const { authToken, refreshToken } = useAuth();
 	const [showSpeedDropdown, setShowSpeedDropdown] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isPlaying, setIsPlaying] = useState(false);
@@ -151,7 +153,8 @@ const ReadAloudButton = forwardRef(function ReadAloudButton(
 				const audioBlob = await readAloudAPI(
 					textToRead,
 					voiceId,
-					engine
+					engine,
+					{ authToken, refreshToken }
 				);
 				const loadTime = Date.now() - loadStartTime;
 				console.log(`Audio loaded in ${loadTime}ms`);
@@ -187,7 +190,16 @@ const ReadAloudButton = forwardRef(function ReadAloudButton(
 				currentAudioTextRef.current = null;
 			}
 		},
-		[playbackSpeed, isPlaying, handlePause, handleResume, voiceId, engine]
+		[
+			playbackSpeed,
+			isPlaying,
+			handlePause,
+			handleResume,
+			voiceId,
+			engine,
+			authToken,
+			refreshToken,
+		]
 	);
 
 	// Expose play/pause method to parent via ref

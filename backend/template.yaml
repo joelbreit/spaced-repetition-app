@@ -148,15 +148,24 @@ Resources:
     # API
     # ==========================================================================
 
-    # No DefaultAuthorizer: the data function verifies the Cognito JWT in code
-    # and /read-aloud is deliberately open, matching the pre-migration stack.
-    # Moving to a gateway JWT authorizer (as in the bookmarks stack) is a
-    # follow-up - it also needs the frontend to send Authorization on
-    # /read-aloud, which readAloudAPI() does not currently do.
+    # CognitoAuthorizer is attached per route, not as a DefaultAuthorizer.
+    # /read-aloud uses it (Polly is billed per character, so it must not be
+    # open). The data routes still verify the Cognito JWT in code; moving them
+    # to the gateway authorizer too (as in the bookmarks stack) is a follow-up.
+    # The frontend sends the Cognito *access* token, which has no `aud` claim;
+    # HTTP API JWT authorizers then match `client_id` against the audience.
     HttpApi:
         Type: AWS::Serverless::HttpApi
         Properties:
             StageName: prod
+            Auth:
+                Authorizers:
+                    CognitoAuthorizer:
+                        IdentitySource: $request.header.Authorization
+                        JwtConfiguration:
+                            issuer: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+                            audience:
+                                - !Ref UserPoolClient
             CorsConfiguration:
                 AllowOrigins:
                     - '*'
@@ -313,6 +322,8 @@ Resources:
                         ApiId: !Ref HttpApi
                         Path: /read-aloud
                         Method: POST
+                        Auth:
+                            Authorizer: CognitoAuthorizer
 
     # ==========================================================================
     # Frontend deploy notifications

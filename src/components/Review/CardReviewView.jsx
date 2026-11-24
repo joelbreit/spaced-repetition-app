@@ -33,6 +33,7 @@ import {
 	prettyPrintInterval,
 } from '../../services/cardCalculations';
 import { useAppData } from '../../contexts/AppDataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { readAloudAPI } from '../../services/apiStorage';
 import { RESULT_LABELS } from '../../services/grades';
 import {
@@ -123,6 +124,10 @@ export default function CardReviewView({
 	onSkipSection,
 }) {
 	const { appData } = useAppData();
+	// Read aloud calls Polly through an authenticated endpoint, so guests
+	// don't get it
+	const { isAuthenticated, authToken, refreshToken } = useAuth();
+	const canReadAloud = isAuthenticated && !!authToken;
 	const currentCard = deck.cards[currentCardIndex];
 	const totalCards = deck.cards.length;
 	const isFlagged = currentCard?.isFlagged || false;
@@ -259,7 +264,7 @@ export default function CardReviewView({
 
 	// Prefetch audio for upcoming cards
 	useEffect(() => {
-		if (!readAloudSettings.prefetchAudio) return;
+		if (!readAloudSettings.prefetchAudio || !canReadAloud) return;
 		const { voiceId, engine } = readAloudSettings;
 		const cards = deck.cards;
 		const end = Math.min(currentCardIndex + 3, cards.length);
@@ -277,7 +282,7 @@ export default function CardReviewView({
 					continue;
 
 				prefetchInFlightRef.current.add(key);
-				readAloudAPI(text, voiceId, engine)
+				readAloudAPI(text, voiceId, engine, { authToken, refreshToken })
 					.then((blob) => {
 						if (cacheVersionRef.current === version) {
 							audioCacheRef.current.set(key, blob);
@@ -295,6 +300,7 @@ export default function CardReviewView({
 	}, [
 		currentCardIndex,
 		readAloudSettings.prefetchAudio,
+		canReadAloud,
 		readAloudSettings.voiceId,
 		readAloudSettings.engine,
 		deck.cards,
@@ -314,7 +320,12 @@ export default function CardReviewView({
 	// Auto-read when side is shown (after flip animation)
 	useEffect(() => {
 		const autoRead = readAloudSettings.autoRead;
-		if (autoRead === 'off' || !currentCard || animationResult) {
+		if (
+			autoRead === 'off' ||
+			!canReadAloud ||
+			!currentCard ||
+			animationResult
+		) {
 			return;
 		}
 		const timeoutId = setTimeout(() => {
@@ -349,6 +360,7 @@ export default function CardReviewView({
 		currentCardIndex,
 		currentCard?.cardId,
 		readAloudSettings.autoRead,
+		canReadAloud,
 		animationResult,
 		currentCard,
 		flipDuration,
@@ -365,7 +377,7 @@ export default function CardReviewView({
 		const textToRead = speakableText(
 			isFlipped ? currentCard?.back : currentCard?.front
 		);
-		if (!textToRead?.trim()) return;
+		if (!textToRead?.trim() || !canReadAloud) return;
 
 		const audioPlayer = audioPlayerRef.current;
 
@@ -397,7 +409,8 @@ export default function CardReviewView({
 				audioBlob = await readAloudAPI(
 					textToRead,
 					readAloudSettings.voiceId,
-					readAloudSettings.engine
+					readAloudSettings.engine,
+					{ authToken, refreshToken }
 				);
 				audioCacheRef.current.set(cacheKey, audioBlob);
 			}
@@ -435,6 +448,9 @@ export default function CardReviewView({
 		readAloudSettings,
 		playbackSpeed,
 		getAudioPlayer,
+		canReadAloud,
+		authToken,
+		refreshToken,
 	]);
 
 	// Record the graded review and move on to the next card
@@ -921,9 +937,15 @@ export default function CardReviewView({
 				<div className="flex justify-center gap-3 flex-wrap">
 					<button
 						onClick={handleReadAloud}
-						disabled={isLoadingAudio}
+						disabled={isLoadingAudio || !canReadAloud}
 						className="relative flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-						title={isPlayingAudio ? 'Pause' : 'Read aloud (Space)'}
+						title={
+							!canReadAloud
+								? 'Sign in to listen'
+								: isPlayingAudio
+									? 'Pause'
+									: 'Read aloud (Space)'
+						}
 					>
 						<AudioProgressBorder
 							audioRef={audioPlayerRef}
