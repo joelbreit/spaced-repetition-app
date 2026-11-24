@@ -5,7 +5,7 @@ import {
 } from './cardCalculations';
 import { DAY, startOfDay } from './statsCalculations';
 
-// Catch-up: reschedule overdue cards as if each were graded Sooner once (half
+// Catch-up: reschedule overdue cards as if each were graded Too Difficult once (half
 // its interval), spread over the coming days so no day gets more than a daily
 // limit. No reviews are recorded, so review history and every stat built on
 // it stay true. Each card keeps what it needs for one undo:

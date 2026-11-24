@@ -84,11 +84,11 @@ UUIDs via `crypto.randomUUID()`. Timestamps in milliseconds (Unix epoch).
 
 Review results affect next interval:
 
-- **Forgot**: Reset to minimum (~10 min)
-- **Sooner**: 0.5x previous interval
-- **Right**: 1x previous interval
-- **Later**: 2x previous interval
+- **Unfamiliar** (`forgot`): Reset to minimum (~10 min)
+- **Too Difficult** (`sooner`): 0.5x previous interval
+- **Effortful** (`right`): 1x previous interval
+- **Too Easy** (`later`): 2x previous interval
 
-Saved as `result: 'forgot' | 'sooner' | 'right' | 'later'`. Don't reuse Anki's Again/Hard/Good/Easy names: the meanings differ. Grades saved before the rename as `again`/`hard`/`good`/`easy` are renamed when data loads (`src/services/grades.js`).
+Saved as `result: 'forgot' | 'sooner' | 'right' | 'later'`; the button labels come from `RESULT_LABELS` in `src/services/grades.js` and can change without migrating data. Don't reuse Anki's Again/Hard/Good/Easy names: the meanings differ. Grades saved before the rename as `again`/`hard`/`good`/`easy` are renamed when data loads (`src/services/grades.js`).
 
 Review priority: Overdue → New (random) → Future (soonest first)

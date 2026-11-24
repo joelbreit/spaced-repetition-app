@@ -464,7 +464,7 @@ function OverviewPage() {
 		}
 	};
 
-	// Cards whose most recent grade this session was Forgot or Sooner
+	// Cards whose most recent grade this session was Unfamiliar or Too Difficult
 	const missedCardIds = useMemo(() => {
 		const latestResult = new Map();
 		sessionReviews.forEach((r) => latestResult.set(r.cardId, r.result));

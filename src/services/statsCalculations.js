@@ -180,8 +180,8 @@ export function computeStudyStats(appData, now = Date.now()) {
 				// The first review of a card is learning it, not recalling it
 				if (index === 0) return;
 				const gap = timestamp - reviews[index - 1].timestamp;
-				// Weighted by grade: Forgot 0 up to Later 1, so a Sooner
-				// counts less than a Later
+				// Weighted by grade: Unfamiliar 0 up to Too Easy 1, so a
+				// Too Difficult counts less than a Too Easy
 				const recalled = RESULT_SCORES[result] ?? 0;
 				const bucket = GAP_BUCKETS.findIndex((b) => gap < b.max);
 
@@ -224,7 +224,7 @@ export function computeStudyStats(appData, now = Date.now()) {
 					reviewCount: reviews.length,
 					forgotCount,
 					soonerCount,
-					// Reviews graded Forgot or Sooner
+					// Reviews graded Unfamiliar or Too Difficult
 					struggleCount: forgotCount + soonerCount,
 					lastResult: lastReview.result,
 				});

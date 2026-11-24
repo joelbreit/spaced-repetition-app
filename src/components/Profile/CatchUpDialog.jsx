@@ -44,7 +44,7 @@ const formatDay = (date) =>
 /**
  * CatchUpDialog Component
  *
- * Reschedules overdue cards as if each were graded Sooner once, spread over
+ * Reschedules overdue cards as if each were graded Too Difficult once, spread over
  * the coming days under a daily limit, with a preview before confirming.
  * `initialDeckId` is null for all active decks.
  */
@@ -144,10 +144,11 @@ export default function CatchUpDialog({ initialDeckId = null, onClose }) {
 						</h2>
 						<p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
 							Each overdue card is rescheduled as if you'd graded
-							it Sooner: its interval is halved, and it's spread
-							over the coming days in your review queue's order
-							(most recently due first). No reviews are recorded,
-							so your history and stats stay as they are.
+							it Too Difficult: its interval is halved, and it's
+							spread over the coming days in your review queue's
+							order (most recently due first). No reviews are
+							recorded, so your history and stats stay as they
+							are.
 						</p>
 					</div>
 					<button

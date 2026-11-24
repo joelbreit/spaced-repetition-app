@@ -102,10 +102,10 @@ User data is stored as JSON in S3 at `users/{userId}/data.json`:
 
 Review results affect the next due date:
 
-- **Forgot**: Reset to minimum interval (~10 minutes)
-- **Sooner**: Halve the previous interval
-- **Right**: Keep the same interval
-- **Later**: Double the interval
+- **Unfamiliar** (`forgot`): Reset to minimum interval (~10 minutes)
+- **Too Difficult** (`sooner`): Halve the previous interval
+- **Effortful** (`right`): Keep the same interval
+- **Too Easy** (`later`): Double the interval
 
 These were once Anki's Again/Hard/Good/Easy; they were renamed because this app treats them as scheduling decisions, not Anki's recall levels. Grades saved before the rename as `again`/`hard`/`good`/`easy` are renamed when data loads (`src/services/grades.js`).
 

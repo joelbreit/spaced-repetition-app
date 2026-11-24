@@ -7,7 +7,7 @@ import { getContainerColor } from '../../config/containerColors';
 /**
  * HardestCards Component
  *
- * The cards marked "Forgot" or "Sooner" most often, linking to their decks.
+ * The cards marked Unfamiliar or Too Difficult most often, linking to their decks.
  */
 export default function HardestCards({ stats }) {
 	const cards = stats.hardestCards;
@@ -16,12 +16,14 @@ export default function HardestCards({ stats }) {
 		<StatsCard title="Hardest Cards" icon={Flame}>
 			{cards.length === 0 ? (
 				<EmptyState>
-					No cards marked "Forgot" or "Sooner" yet. Nice work!
+					No cards marked {RESULT_LABELS.forgot} or{' '}
+					{RESULT_LABELS.sooner} yet. Nice work!
 				</EmptyState>
 			) : (
 				<>
 					<p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
-						The cards you've marked "Forgot" or "Sooner" most often.
+						The cards you've marked {RESULT_LABELS.forgot} or{' '}
+						{RESULT_LABELS.sooner} most often.
 					</p>
 					<ol className="divide-y divide-gray-100 dark:divide-slate-700/60">
 						{cards.map((card, index) => (
@@ -71,8 +73,10 @@ export default function HardestCards({ stats }) {
 											{card.reviewCount} reviews
 										</div>
 										<div className="text-xs text-gray-500 dark:text-slate-500 tabular-nums">
-											{card.forgotCount} Forgot ·{' '}
-											{card.soonerCount} Sooner
+											{card.forgotCount}{' '}
+											{RESULT_LABELS.forgot} ·{' '}
+											{card.soonerCount}{' '}
+											{RESULT_LABELS.sooner}
 										</div>
 									</div>
 									<ChevronRight className="h-4 w-4 text-gray-300 dark:text-slate-600 group-hover:text-gray-500 dark:group-hover:text-slate-400 shrink-0" />

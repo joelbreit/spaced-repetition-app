@@ -114,7 +114,7 @@ Most sections take a `stats` prop computed once in `ProfilePage` by `computeStud
 | `ProgressChart.jsx`   | Cards created/studied and reviews over time, with range toggle |
 | `StudyHabits.jsx`     | Weekday × hour grid and answer time by grade                   |
 | `DeckBreakdown.jsx`   | Per-deck reviews, recall, overdue share; most neglected deck   |
-| `HardestCards.jsx`    | Cards marked "Forgot" or "Sooner" most often                   |
+| `HardestCards.jsx`    | Cards marked Unfamiliar or Too Difficult most often            |
 | `AdditionalStats.jsx` | On-demand totals plus a collapsed "Data health" section        |
 | `StatsCard.jsx`       | Shared card, tile, tooltip and toggle building blocks          |
 | `chartTheme.js`       | Recharts colors for light/dark and grade colors                |
@@ -272,8 +272,8 @@ Uses `@dnd-kit` for reordering:
 
 In review mode (`CardReviewView.jsx`):
 
-- `Space` / `Enter`: Flip card or select "Right"
-- `1-4`: Select Forgot/Sooner/Right/Later
+- `Space` / `Enter`: Flip card or select "Effortful"
+- `1-4`: Select Unfamiliar/Too Difficult/Effortful/Too Easy
 - `Arrow keys`: Navigate results
 
 ## Error Handling

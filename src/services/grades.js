@@ -2,13 +2,15 @@
 // They used to be Anki's Again/Hard/Good/Easy, but this app treats them as
 // scheduling decisions rather than Anki's recall levels, so the names changed
 // to avoid confusion with Anki and between the old and new meanings.
+// The saved keys name what the grade does to the schedule; the labels shown
+// to the user can change without touching saved data.
 export const RESULTS = ['forgot', 'sooner', 'right', 'later'];
 
 export const RESULT_LABELS = {
-	forgot: 'Forgot',
-	sooner: 'Sooner',
-	right: 'Right',
-	later: 'Later',
+	forgot: 'Unfamiliar',
+	sooner: 'Too Difficult',
+	right: 'Effortful',
+	later: 'Too Easy',
 };
 
 // Grades saved before the rename, mapped to their new names

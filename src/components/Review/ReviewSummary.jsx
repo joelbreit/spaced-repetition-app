@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
+import { RESULT_LABELS } from '../../services/grades';
 import {
 	calculateAverageMastery,
 	calculateReviewedCardsBurden,
@@ -273,7 +274,7 @@ export default function ReviewSummary({
 						<button
 							onClick={onReviewMissed}
 							className="inline-flex items-center gap-2 px-6 py-4 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-700 dark:text-red-300 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-300"
-							title="Go through the cards you marked Forgot or Sooner"
+							title={`Go through the cards you marked ${RESULT_LABELS.forgot} or ${RESULT_LABELS.sooner}`}
 						>
 							<RotateCcw className="h-5 w-5" />
 							Review missed ({missedCount})
@@ -415,7 +416,7 @@ export default function ReviewSummary({
 									<div className="flex items-center justify-center gap-1.5 mb-1">
 										<div className="w-3 h-3 rounded-full bg-red-500" />
 										<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-											Forgot
+											{RESULT_LABELS.forgot}
 										</span>
 									</div>
 									<div className="text-lg font-bold text-red-600 dark:text-red-400">
@@ -429,7 +430,7 @@ export default function ReviewSummary({
 									<div className="flex items-center justify-center gap-1.5 mb-1">
 										<div className="w-3 h-3 rounded-full bg-orange-500" />
 										<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-											Sooner
+											{RESULT_LABELS.sooner}
 										</span>
 									</div>
 									<div className="text-lg font-bold text-orange-600 dark:text-orange-400">
@@ -443,7 +444,7 @@ export default function ReviewSummary({
 									<div className="flex items-center justify-center gap-1.5 mb-1">
 										<div className="w-3 h-3 rounded-full bg-green-500" />
 										<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-											Right
+											{RESULT_LABELS.right}
 										</span>
 									</div>
 									<div className="text-lg font-bold text-green-600 dark:text-green-400">
@@ -457,7 +458,7 @@ export default function ReviewSummary({
 									<div className="flex items-center justify-center gap-1.5 mb-1">
 										<div className="w-3 h-3 rounded-full bg-teal-500" />
 										<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-											Later
+											{RESULT_LABELS.later}
 										</span>
 									</div>
 									<div className="text-lg font-bold text-teal-600 dark:text-teal-400">

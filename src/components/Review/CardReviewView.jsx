@@ -867,7 +867,7 @@ export default function CardReviewView({
 				{hasBeenFlipped ? (
 					<div>
 						<h3 className="mb-3 text-center text-base font-medium text-gray-500 dark:text-slate-400">
-							How did you do?
+							Grade this card
 						</h3>
 						<div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
 							{GRADES.map((grade) => (

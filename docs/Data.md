@@ -49,7 +49,7 @@
 			"isStarred": false,
 			"createdAt": 1234567890, // added later, may be missing
 			// optional, set by a catch-up (src/services/catchUp.js): the card was
-			// rescheduled as if graded Sooner, without recording a review.
+			// rescheduled as if graded Too Difficult (`sooner`), without recording a review.
 			// getInterval() uses `interval` until the next real review.
 			"reschedule": {
 				"at": 1234567890, // when the catch-up ran

@@ -9,6 +9,7 @@ import {
 import { useAppData } from '../../contexts/AppDataContext';
 import { useNotification } from '../../hooks/useNotification';
 import { repairCreatedAtValues } from '../../services/repairCreatedAt';
+import { RESULT_LABELS } from '../../services/grades';
 
 export default function AdditionalStats({ appData }) {
 	const { setAppData } = useAppData();
@@ -519,7 +520,7 @@ export default function AdditionalStats({ appData }) {
 							<div className="space-y-2">
 								<div className="flex items-center justify-between">
 									<span className="text-xs text-gray-600 dark:text-slate-400">
-										Forgot
+										{RESULT_LABELS.forgot}
 									</span>
 									<span className="text-sm font-semibold text-red-600 dark:text-red-400">
 										{stats.resultCounts.forgot.toLocaleString()}
@@ -527,7 +528,7 @@ export default function AdditionalStats({ appData }) {
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-xs text-gray-600 dark:text-slate-400">
-										Sooner
+										{RESULT_LABELS.sooner}
 									</span>
 									<span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
 										{stats.resultCounts.sooner.toLocaleString()}
@@ -535,7 +536,7 @@ export default function AdditionalStats({ appData }) {
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-xs text-gray-600 dark:text-slate-400">
-										Right
+										{RESULT_LABELS.right}
 									</span>
 									<span className="text-sm font-semibold text-green-600 dark:text-green-400">
 										{stats.resultCounts.right.toLocaleString()}
@@ -543,7 +544,7 @@ export default function AdditionalStats({ appData }) {
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-xs text-gray-600 dark:text-slate-400">
-										Later
+										{RESULT_LABELS.later}
 									</span>
 									<span className="text-sm font-semibold text-teal-600 dark:text-teal-400">
 										{stats.resultCounts.later.toLocaleString()}

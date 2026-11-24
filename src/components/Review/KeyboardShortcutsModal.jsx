@@ -1,14 +1,15 @@
 import { X, Keyboard } from 'lucide-react';
+import { RESULT_LABELS } from '../../services/grades';
 
 const SHORTCUT_GROUPS = [
 	{
 		title: 'Reviewing',
 		shortcuts: [
 			{ keys: ['Enter'], description: 'Flip card' },
-			{ keys: ['←', '1'], description: 'Forgot' },
-			{ keys: ['↓', '2'], description: 'Sooner' },
-			{ keys: ['→', '3'], description: 'Right' },
-			{ keys: ['↑', '4'], description: 'Later' },
+			{ keys: ['←', '1'], description: RESULT_LABELS.forgot },
+			{ keys: ['↓', '2'], description: RESULT_LABELS.sooner },
+			{ keys: ['→', '3'], description: RESULT_LABELS.right },
+			{ keys: ['↑', '4'], description: RESULT_LABELS.later },
 			{ keys: ['Z'], description: 'Undo last review' },
 		],
 	},
