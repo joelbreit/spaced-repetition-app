@@ -247,6 +247,11 @@ code highlighting and Mermaid diagrams; `clozeProps` is null for basic cards);
 read-aloud speaks `speakableText()` from `services/markdown.js`. Use `canReverse(card)` rather
 than checking `partnerCardId`.
 
+Import Cards (`DeckCardsView`) reads a TSV file with `parseCardImport()`
+(`services/importCards.js`): each row is `front<TAB>back`, or cloze text (with
+`{{cN::...}}`) and an optional extra. Quoted fields can span lines, and
+Anki's `#separator:`/`#html:` header lines are understood.
+
 ### Adding Reviews
 
 Use `applyReview()` from `services/cardCalculations.js`: it appends the review

@@ -33,6 +33,8 @@ import {
 } from '../services/cardCalculations';
 import { canReverse } from '../services/notes';
 import NewCardModal from './NewCardModal';
+import { parseCardImport } from '../services/importCards';
+import { clozeOrds } from '../services/cloze';
 import CardListItem from './CardListItem';
 import { MoveCardsDialog, DeleteCardsDialog } from './CardSelectionDialogs';
 import Breadcrumbs from './Breadcrumbs';
@@ -388,48 +390,33 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 		event.target.value = '';
 
 		try {
-			const text = await file.text();
-			const lines = text.split('\n').filter((line) => line.trim());
+			const { basic, cloze, skipped } = parseCardImport(
+				await file.text()
+			);
+			basic.forEach(({ front, back }) => addCard(deckId, front, back));
+			cloze.forEach(({ text, extra }) =>
+				addClozeNote(deckId, text, extra)
+			);
+			const clozeCards = cloze.reduce(
+				(sum, note) => sum + clozeOrds(note.text).length,
+				0
+			);
+			const total = basic.length + clozeCards;
 
-			if (lines.length === 0) {
-				showError('The file is empty.', 'Import Failed');
-				return;
-			}
-
-			let importedCount = 0;
-			let skippedCount = 0;
-
-			for (const line of lines) {
-				const columns = line.split('\t');
-
-				if (columns.length < 2) {
-					skippedCount++;
-					continue;
+			if (total > 0) {
+				const parts = [`Imported ${total} card(s)`];
+				if (cloze.length > 0) {
+					parts.push(
+						` (${clozeCards} from ${cloze.length} cloze note(s))`
+					);
 				}
-
-				const front = columns[0].trim();
-				const back = columns[1].trim();
-
-				if (front && back) {
-					addCard(deckId, front, back);
-					importedCount++;
-				} else {
-					skippedCount++;
+				if (skipped > 0) {
+					parts.push(`. ${skipped} row(s) were skipped.`);
 				}
-			}
-
-			if (importedCount > 0) {
-				showSuccess(
-					`Successfully imported ${importedCount} card(s)${
-						skippedCount > 0
-							? `. ${skippedCount} row(s) were skipped.`
-							: ''
-					}`,
-					'Import Complete'
-				);
+				showSuccess(parts.join(''), 'Import Complete');
 			} else {
 				showError(
-					'No cards were imported. Please check that your TSV file has 2 columns (front and back) separated by tabs.',
+					'No cards were imported. Each row needs a front and back separated by a tab, or cloze text with {{c1::...}} deletions.',
 					'Import Failed'
 				);
 			}
@@ -561,7 +548,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 						<label
 							htmlFor="import-cards-input"
 							className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-							title="Import cards from a TSV file (2 columns: front and back)"
+							title="Import cards from a TSV file: front and back, or cloze text and an optional extra, separated by a tab"
 						>
 							<FileUp className="h-5 w-5" />
 							<span className="hidden lg:inline">
