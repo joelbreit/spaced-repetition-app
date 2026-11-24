@@ -122,11 +122,30 @@ function ProfilePage() {
 					(f) => !existingFolderIds.has(f.folderId)
 				);
 
-				setAppData((prev) => ({
-					...prev,
-					decks: [...prev.decks, ...newDecks],
-					folders: [...(prev.folders || []), ...newFolders],
-				}));
+				// Exports include notes; older exports have each card's text
+				// on the card instead, and those cards get notes on import
+				const newCardNoteIds = new Set(
+					newDecks.flatMap((d) =>
+						(d.cards || []).map((c) => c.noteId)
+					)
+				);
+
+				setAppData((prev) => {
+					const existingNoteIds = new Set(
+						(prev.notes || []).map((n) => n.noteId)
+					);
+					const newNotes = (imported.notes || []).filter(
+						(n) =>
+							newCardNoteIds.has(n.noteId) &&
+							!existingNoteIds.has(n.noteId)
+					);
+					return {
+						...prev,
+						notes: [...(prev.notes || []), ...newNotes],
+						decks: [...prev.decks, ...newDecks],
+						folders: [...(prev.folders || []), ...newFolders],
+					};
+				});
 
 				showSuccess(
 					`Imported ${newDecks.length} decks and ${newFolders.length} folders.`

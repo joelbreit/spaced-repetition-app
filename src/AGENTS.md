@@ -227,6 +227,15 @@ setAppData((prev) => ({
 }));
 ```
 
+### Card Text and Partners
+
+A card's text lives in its note (`appData.notes`); `card.front`, `card.back`
+and `card.partnerCardId` are filled in from the note after every
+`setAppData` and are never stored. Change text with `updateCard()` /
+`setCardText()` (`services/notes.js`), which edits the note, so a reversed
+partner changes too. New cards: `newNoteAndCard()`; a reversed partner:
+`reversedCard()`.
+
 ### Adding Reviews
 
 Use `applyReview()` from `services/cardCalculations.js`: it appends the review

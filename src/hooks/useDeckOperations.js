@@ -4,6 +4,7 @@ import {
 	DEFAULT_FOLDER_ICON,
 } from '../config/containerIcons';
 import { DEFAULT_CONTAINER_COLOR } from '../config/containerColors';
+import { newNoteAndCard, reversedCard, setCardText } from '../services/notes';
 
 export function useDeckOperations() {
 	const { setAppData } = useAppData();
@@ -84,16 +85,10 @@ export function useDeckOperations() {
 	};
 
 	const addCard = (deckId, front, back) => {
-		const newCard = {
-			cardId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-			front,
-			back,
-			reviews: [],
-			whenDue: Date.now(),
-			createdAt: Date.now(),
-		};
+		const { note, card: newCard } = newNoteAndCard(front, back);
 		setAppData((prev) => ({
 			...prev,
+			notes: [...(prev.notes || []), note],
 			decks: (prev.decks || []).map((deck) =>
 				deck.deckId === deckId
 					? { ...deck, cards: [...deck.cards, newCard] }
@@ -102,22 +97,9 @@ export function useDeckOperations() {
 		}));
 	};
 
+	// Changes the card's note, so a reversed partner card changes with it
 	const updateCard = (deckId, cardId, front, back) => {
-		setAppData((prev) => ({
-			...prev,
-			decks: (prev.decks || []).map((deck) =>
-				deck.deckId === deckId
-					? {
-							...deck,
-							cards: deck.cards.map((card) =>
-								card.cardId === cardId
-									? { ...card, front, back }
-									: card
-							),
-						}
-					: deck
-			),
-		}));
+		setAppData((prev) => setCardText(prev, deckId, cardId, front, back));
 	};
 
 	const deleteCard = (deckId, cardId) => {
@@ -189,51 +171,25 @@ export function useDeckOperations() {
 
 			const now = Date.now();
 
-			// Only select cards that do not already have a partnerCardId
+			// Only cards whose note has no reversed card yet
 			const cardsToDuplicate = deck.cards.filter(
 				(card) => !card.partnerCardId
 			);
 
 			if (cardsToDuplicate.length === 0) return prev;
 
-			// Generate new cards just for those without partner
-			const newCards = cardsToDuplicate.map((card, idx) => {
-				const newCardId = `${now}-${idx}`;
-				return {
-					cardId: newCardId,
-					front: card.back,
-					back: card.front,
-					reviews: [],
-					whenDue: now,
-					partnerCardId: card.cardId,
-					createdAt: now,
-				};
-			});
+			// A new card for the other side of each one's note
+			const newCards = cardsToDuplicate.map((card, idx) =>
+				reversedCard(card, `${now}-${idx}`, now)
+			);
 
 			return {
 				...prev,
-				decks: (prev.decks || []).map((d) => {
-					if (d.deckId !== deckId) return d;
-
-					// Update only original cards that did not have a partner
-					const updatedCards = d.cards.map((card) => {
-						const idx = cardsToDuplicate.findIndex(
-							(c) => c.cardId === card.cardId
-						);
-						if (idx !== -1) {
-							return {
-								...card,
-								partnerCardId: newCards[idx].cardId,
-							};
-						}
-						return card;
-					});
-
-					return {
-						...d,
-						cards: [...updatedCards, ...newCards],
-					};
-				}),
+				decks: (prev.decks || []).map((d) =>
+					d.deckId === deckId
+						? { ...d, cards: [...d.cards, ...newCards] }
+						: d
+				),
 			};
 		});
 	};
@@ -293,31 +249,22 @@ export function useDeckOperations() {
 		return targetDeckId;
 	};
 
-	// Delete cards from any deck. Surviving cards whose partner was deleted
-	// lose their partnerCardId so they can be reverse-duplicated again.
+	// Delete cards from any deck. A surviving partner keeps the note and can
+	// be reverse-duplicated again; a note with no cards left is dropped.
 	const deleteCards = (cardIds) => {
 		const ids = new Set(cardIds);
 		setAppData((prev) => ({
 			...prev,
-			decks: (prev.decks || []).map((deck) => {
-				if (
-					!deck.cards.some(
-						(c) => ids.has(c.cardId) || ids.has(c.partnerCardId)
-					)
-				)
-					return deck;
-				return {
-					...deck,
-					cards: deck.cards
-						.filter((card) => !ids.has(card.cardId))
-						.map((card) => {
-							if (!ids.has(card.partnerCardId)) return card;
-							// eslint-disable-next-line no-unused-vars
-							const { partnerCardId, ...rest } = card;
-							return rest;
-						}),
-				};
-			}),
+			decks: (prev.decks || []).map((deck) =>
+				deck.cards.some((c) => ids.has(c.cardId))
+					? {
+							...deck,
+							cards: deck.cards.filter(
+								(card) => !ids.has(card.cardId)
+							),
+						}
+					: deck
+			),
 		}));
 	};
 

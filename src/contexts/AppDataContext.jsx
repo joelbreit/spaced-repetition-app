@@ -25,6 +25,8 @@ import {
 	diffReviews,
 	reviewKey,
 } from '../services/reviewLog';
+import { resolveNotes, stripNoteFields } from '../services/notes';
+import { computePatchData } from '../services/savePatch';
 
 const AppDataContext = createContext();
 
@@ -84,11 +86,30 @@ const demoData = {
 	],
 };
 
+// Demo cards are written with their text; resolveNotes gives them notes
+const demoState = resolveNotes(demoData);
+
+// The app data as data.json stores it: no reviews (they're in the review
+// log) and no card text (it's in the notes)
+const toStored = (data) => stripNoteFields(stripReviews(data));
+
 export function AppDataProvider({ children }) {
 	const { authToken, isAuthenticated, refreshToken } = useAuth();
 	const { showError } = useNotification();
 
-	const [appData, setAppData] = useState(demoData);
+	const [appData, setAppDataRaw] = useState(demoState);
+
+	// Every update is brought in line with its notes, so cards always show
+	// their note's text and partner, and unused notes are dropped
+	const setAppData = useCallback(
+		(updater) =>
+			setAppDataRaw((prev) =>
+				resolveNotes(
+					typeof updater === 'function' ? updater(prev) : updater
+				)
+			),
+		[]
+	);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isOnline, setIsOnline] = useState(true);
@@ -112,7 +133,7 @@ export function AppDataProvider({ children }) {
 			}
 			setAppData(updater);
 		},
-		[isAuthenticated]
+		[isAuthenticated, setAppData]
 	);
 
 	// Check API health on mount (only for authenticated users)
@@ -147,9 +168,9 @@ export function AppDataProvider({ children }) {
 			if (!isAuthenticated || !authToken) {
 				hasLoadedFromCloudRef.current = false;
 				savedReviewsRef.current = new Map();
-				setAppData(demoData);
+				setAppData(demoState);
 				lastSavedStateRef.current = JSON.parse(
-					JSON.stringify(demoData)
+					JSON.stringify(toStored(demoState))
 				);
 				setIsOnline(false);
 				setIsLoading(false);
@@ -176,7 +197,8 @@ export function AppDataProvider({ children }) {
 				// it now belongs, so the next auto-save moves those reviews
 				// into the log and saves data.json without them. Grades saved
 				// under the old Again/Hard/Good/Easy names are renamed here and
-				// written back the same way.
+				// written back the same way. Cards saved before notes existed
+				// get notes here (resolveNotes) and are saved that way next.
 				setAppData(
 					migrateGrades(attachReviews(loadedData, logReviews))
 				);
@@ -187,7 +209,7 @@ export function AppDataProvider({ children }) {
 					])
 				);
 				lastSavedStateRef.current = JSON.parse(
-					JSON.stringify(stripReviews(loadedData))
+					JSON.stringify(toStored(loadedData))
 				);
 				hasLoadedFromCloudRef.current = true;
 				setIsOnline(true);
@@ -206,147 +228,12 @@ export function AppDataProvider({ children }) {
 			}
 		}
 		loadData();
-	}, [isAuthenticated, authToken, refreshToken, showError]);
+	}, [isAuthenticated, authToken, refreshToken, showError, setAppData]);
 
 	// Keep appDataRef in sync with appData
 	useEffect(() => {
 		appDataRef.current = appData;
 	}, [appData]);
-
-	// Helper function to compute patch data from changes
-	const computePatchData = (currentData, lastSavedState) => {
-		if (!lastSavedState || !lastSavedState.decks) {
-			return null; // No previous state, need full save
-		}
-
-		// Everything outside the decks array (folders, etc.) is small, so any
-		// change there - including folder icons and colors - gets a full save
-		const { decks: currentDecks = [], ...currentRest } = currentData;
-		const { decks: savedDecks = [], ...savedRest } = lastSavedState;
-		if (JSON.stringify(currentRest) !== JSON.stringify(savedRest)) {
-			return null;
-		}
-
-		// Track which decks have changes
-		const changedDecks = [];
-		const changedCardsByDeck = {};
-
-		// Check each deck
-		for (const currentDeck of currentDecks) {
-			const savedDeck = savedDecks.find(
-				(d) => d.deckId === currentDeck.deckId
-			);
-
-			if (!savedDeck) {
-				// New deck - this requires a deck-level patch
-				changedDecks.push(currentDeck);
-				changedCardsByDeck[currentDeck.deckId] = 'new-deck';
-				continue;
-			}
-
-			// Check deck-level fields (name, icon, color, folder, archived...)
-			const { cards: _currentCards, ...currentMeta } = currentDeck;
-			const { cards: _savedCards, ...savedMeta } = savedDeck;
-			if (JSON.stringify(currentMeta) !== JSON.stringify(savedMeta)) {
-				changedDecks.push(currentDeck);
-				changedCardsByDeck[currentDeck.deckId] = 'deck-meta-changed';
-				continue;
-			}
-
-			// Check for card changes
-			const currentCards = currentDeck.cards || [];
-			const savedCards = savedDeck.cards || [];
-			const changedCards = [];
-
-			// Check each card in current deck
-			for (const currentCard of currentCards) {
-				const savedCard = savedCards.find(
-					(c) => c.cardId === currentCard.cardId
-				);
-
-				if (!savedCard) {
-					// New card
-					changedCards.push(currentCard);
-				} else {
-					// Check if card changed (compare JSON strings for deep equality)
-					const currentCardStr = JSON.stringify(currentCard);
-					const savedCardStr = JSON.stringify(savedCard);
-					if (currentCardStr !== savedCardStr) {
-						changedCards.push(currentCard);
-					}
-				}
-			}
-
-			// Check for deleted cards
-			for (const savedCard of savedCards) {
-				const currentCard = currentCards.find(
-					(c) => c.cardId === savedCard.cardId
-				);
-				if (!currentCard) {
-					// Card was deleted - need to update the deck
-					changedDecks.push(currentDeck);
-					changedCardsByDeck[currentDeck.deckId] = 'cards-deleted';
-					break;
-				}
-			}
-
-			if (changedCards.length > 0) {
-				changedDecks.push(currentDeck);
-				changedCardsByDeck[currentDeck.deckId] = changedCards;
-			}
-		}
-
-		// Check for deleted decks
-		for (const savedDeck of savedDecks) {
-			const currentDeck = currentDecks.find(
-				(d) => d.deckId === savedDeck.deckId
-			);
-			if (!currentDeck) {
-				// Deck was deleted - need full save (can't patch delete)
-				return null;
-			}
-		}
-
-		// Check for deck reordering (same decks but different order)
-		if (currentDecks.length === savedDecks.length) {
-			const orderChanged = currentDecks.some((deck, index) => {
-				return savedDecks[index]?.deckId !== deck.deckId;
-			});
-			if (orderChanged && changedDecks.length === 0) {
-				// Only order changed, no content changes - need full save
-				return null;
-			}
-		}
-
-		// If multiple decks changed, fall back to full save
-		if (changedDecks.length > 1) {
-			return null;
-		}
-
-		// If one deck changed
-		if (changedDecks.length === 1) {
-			const changedDeck = changedDecks[0];
-			const changeType = changedCardsByDeck[changedDeck.deckId];
-
-			// If only one card changed, use card-level patch
-			if (Array.isArray(changeType) && changeType.length === 1) {
-				return {
-					type: 'card',
-					deckId: changedDeck.deckId,
-					card: changeType[0],
-				};
-			}
-
-			// Otherwise, use deck-level patch
-			return {
-				type: 'deck',
-				deck: changedDeck,
-			};
-		}
-
-		// No changes detected
-		return false;
-	};
 
 	// Auto-save data - to cloud if authenticated, no-op if guest
 	useEffect(() => {
@@ -363,7 +250,7 @@ export function AppDataProvider({ children }) {
 			// Guest mode: data lives in React state only — nothing to persist
 			if (!isAuthenticated || !authToken) {
 				lastSavedStateRef.current = JSON.parse(
-					JSON.stringify(dataToSave)
+					JSON.stringify(toStored(dataToSave))
 				);
 				lastSaveTime.current = Date.now();
 				setIsSaving(false);
@@ -393,8 +280,9 @@ export function AppDataProvider({ children }) {
 					reviewChanges.add.length > 0 ||
 					reviewChanges.remove.length > 0;
 
-				// data.json holds everything but the reviews
-				const storedData = stripReviews(dataToSave);
+				// data.json holds everything but the reviews, and cards
+				// without the text their notes hold
+				const storedData = toStored(dataToSave);
 				const patchData = computePatchData(
 					storedData,
 					lastSavedStateRef.current

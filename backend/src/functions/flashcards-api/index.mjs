@@ -300,7 +300,7 @@ export const handler = async (event) => {
 
 		if (method === 'PATCH') {
 			const patchData = JSON.parse(event.body);
-			const { type, deckId, card, deck } = patchData;
+			const { type, deckId, card, deck, notes } = patchData;
 
 			// Load existing data from S3
 			let existingData;
@@ -328,8 +328,26 @@ export const handler = async (event) => {
 				existingData.decks = [];
 			}
 
-			// Apply patch based on type
-			if (type === 'card' && deckId && card) {
+			const validNotes =
+				notes &&
+				Array.isArray(notes.upsert ?? []) &&
+				Array.isArray(notes.remove ?? []) &&
+				(notes.upsert ?? []).every(
+					(n) => n && typeof n.noteId === 'string'
+				);
+			if (notes && !validNotes) {
+				return {
+					statusCode: 400,
+					headers,
+					body: JSON.stringify({ error: 'Invalid notes patch' }),
+				};
+			}
+
+			// Apply patch based on type. A patch may also carry note
+			// changes, alone or with a card or deck change.
+			if (!type && validNotes) {
+				// Notes only, applied below
+			} else if (type === 'card' && deckId && card) {
 				// Find the deck and update the card
 				const deckIndex = existingData.decks.findIndex(
 					(d) => d.deckId === deckId
@@ -378,6 +396,15 @@ export const handler = async (event) => {
 						error: 'Invalid patch data format',
 					}),
 				};
+			}
+
+			if (validNotes) {
+				const byId = new Map(
+					(existingData.notes || []).map((n) => [n.noteId, n])
+				);
+				(notes.remove ?? []).forEach((id) => byId.delete(id));
+				(notes.upsert ?? []).forEach((n) => byId.set(n.noteId, n));
+				existingData.notes = [...byId.values()];
 			}
 
 			// Save updated data back to S3

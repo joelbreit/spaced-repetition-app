@@ -55,7 +55,10 @@ User (Browser)
 
 User data is stored as JSON in S3 at `users/{userId}/data.json`, with reviews in
 a separate review log at `users/{userId}/reviews/YYYY-MM.json` (see
-`docs/Data.md`). In memory, reviews are put back on their cards as `card.reviews`.
+`docs/Data.md`). Card text lives in notes; a reversed partner is a second card
+of the same note. In memory, reviews are put back on their cards as
+`card.reviews`, and each card gets `front`, `back` and `partnerCardId` from its
+note (`src/services/notes.js`).
 `data.json`:
 
 ```json
@@ -69,6 +72,13 @@ a separate review log at `users/{userId}/reviews/YYYY-MM.json` (see
 			"folderColor": "blue" // key from src/config/containerColors.js
 		}
 	],
+	"notes": [
+		{
+			"noteId": "uuid",
+			"front": "Question",
+			"back": "Answer"
+		}
+	],
 	"decks": [
 		{
 			"deckId": "uuid",
@@ -79,16 +89,15 @@ a separate review log at `users/{userId}/reviews/YYYY-MM.json` (see
 			"cards": [
 				{
 					"cardId": "uuid",
-					"front": "Question",
-					"back": "Answer",
+					"noteId": "uuid", // the note holding this card's text
+					"template": "reverse", // "forward" (default, omitted) or "reverse"
 					"whenDue": 1234567890, // Unix timestamp (ms)
 					"interval": 86400000, // scheduling state, missing on new cards
 					"reps": 3,
 					"lapses": 1,
 					"lastReviewed": 1234567890,
 					"isFlagged": false,
-					"isStarred": false,
-					"partnerCardId": "uuid" // For reverse cards
+					"isStarred": false
 				}
 			]
 		}

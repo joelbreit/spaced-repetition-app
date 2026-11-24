@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
 	Star,
 	Flag,
@@ -8,7 +8,6 @@ import {
 	ChevronUp,
 	Link2,
 } from 'lucide-react';
-import { useAppData } from '../contexts/AppDataContext';
 
 export default function CardEditView({
 	appData,
@@ -19,7 +18,6 @@ export default function CardEditView({
 	onToggleStar,
 	onToggleFlag,
 }) {
-	const { setAppData } = useAppData();
 	const [front, setFront] = useState('');
 	const [back, setBack] = useState('');
 	const [isStarred, setIsStarred] = useState(false);
@@ -27,8 +25,6 @@ export default function CardEditView({
 	const [partnerCardId, setPartnerCardId] = useState(null);
 	const [reviews, setReviews] = useState([]);
 	const [showReviews, setShowReviews] = useState(false);
-	const [updatePartnerCard, setUpdatePartnerCard] = useState(false);
-	const [originalCard, setOriginalCard] = useState(null); // Store original card data for comparison
 
 	useEffect(() => {
 		if (cardId && deckId) {
@@ -36,41 +32,22 @@ export default function CardEditView({
 			if (deck) {
 				const card = deck.cards.find((c) => c.cardId === cardId);
 				if (card) {
-					// Store original card data for comparison
-					setOriginalCard({ front: card.front, back: card.back });
 					setFront(card.front);
 					setBack(card.back);
 					setIsStarred(card.isStarred || false);
 					setIsFlagged(card.isFlagged || false);
 					setPartnerCardId(card.partnerCardId || null);
 					setReviews(card.reviews || []);
-
-					// Check if partner card exists and cards match, then set checkbox default
-					const partner = card.partnerCardId
-						? deck.cards.find(
-								(c) => c.cardId === card.partnerCardId
-							)
-						: null;
-					if (partner) {
-						const match =
-							card.front.trim() === partner.back.trim() &&
-							card.back.trim() === partner.front.trim();
-						setUpdatePartnerCard(match);
-					} else {
-						setUpdatePartnerCard(false);
-					}
 				}
 			}
 		} else {
 			// Reset for new card
-			setOriginalCard(null);
 			setFront('');
 			setBack('');
 			setIsStarred(false);
 			setIsFlagged(false);
 			setPartnerCardId(null);
 			setReviews([]);
-			setUpdatePartnerCard(false);
 		}
 	}, [cardId, deckId, appData]);
 
@@ -79,31 +56,8 @@ export default function CardEditView({
 			const trimmedFront = front.trim();
 			const trimmedBack = back.trim();
 
-			// Update the current card
+			// Saves the card's note, so a reversed partner updates with it
 			onSave(deckId, cardId, trimmedFront, trimmedBack);
-
-			// If checkbox is checked and partner card exists, update partner card (swap front/back)
-			if (updatePartnerCard && partnerCard && partnerCardId) {
-				setAppData((prev) => ({
-					...prev,
-					decks: (prev.decks || []).map((deck) =>
-						deck.deckId === deckId
-							? {
-									...deck,
-									cards: deck.cards.map((card) =>
-										card.cardId === partnerCardId
-											? {
-													...card,
-													front: trimmedBack,
-													back: trimmedFront,
-												}
-											: card
-									),
-								}
-							: deck
-					),
-				}));
-			}
 		}
 	};
 
@@ -177,33 +131,12 @@ export default function CardEditView({
 		);
 	};
 
-	const getPartnerCard = () => {
-		if (!partnerCardId || !deckId) return null;
-		const deck = appData.decks.find((d) => d.deckId === deckId);
-		if (!deck) return null;
-		return deck.cards.find((c) => c.cardId === partnerCardId);
-	};
-
-	const partnerCard = getPartnerCard();
-
-	// Check if cards match based on original saved state (not current edited state)
-	// This card's original front == partner's back, this card's original back == partner's front
-	const cardsMatch = useMemo(() => {
-		if (!partnerCard || !cardId || !originalCard) return false;
-		const originalFront = originalCard.front.trim();
-		const originalBack = originalCard.back.trim();
-		return (
-			originalFront === partnerCard.back.trim() &&
-			originalBack === partnerCard.front.trim()
-		);
-	}, [partnerCard, originalCard, cardId]);
-
-	// Force uncheck if cards don't match (but allow manual toggle when they do match)
-	useEffect(() => {
-		if (cardId && partnerCard && !cardsMatch) {
-			setUpdatePartnerCard(false);
-		}
-	}, [cardsMatch, cardId, partnerCard]);
+	// Partners share a note, so they can be in different decks
+	const partnerCard = partnerCardId
+		? appData.decks
+				.flatMap((d) => d.cards || [])
+				.find((c) => c.cardId === partnerCardId)
+		: null;
 
 	return (
 		<div
@@ -419,50 +352,12 @@ export default function CardEditView({
 
 				{/* Footer with Buttons */}
 				<div className="px-6 py-5 border-t border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 space-y-4">
-					{/* Partner Card Update Checkbox - only show when editing and partner exists */}
 					{cardId && partnerCard && (
-						<div className="pb-2">
-							<label
-								className={`flex items-start gap-3 p-3 rounded-xl transition-all duration-200 ${
-									cardsMatch
-										? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800'
-										: 'cursor-not-allowed'
-								}`}
-							>
-								<input
-									type="checkbox"
-									checked={updatePartnerCard}
-									onChange={(e) =>
-										setUpdatePartnerCard(e.target.checked)
-									}
-									disabled={!cardsMatch}
-									className={`mt-0.5 h-5 w-5 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 accent-teal-600 dark:accent-teal-400 ${
-										cardsMatch
-											? 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 cursor-pointer'
-											: 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50 cursor-not-allowed'
-									}`}
-								/>
-								<div className="flex-1 min-w-0">
-									<span
-										className={`text-sm font-medium block ${
-											cardsMatch
-												? 'text-gray-700 dark:text-slate-200'
-												: 'text-gray-400 dark:text-slate-500'
-										}`}
-									>
-										Also update partner card (front/back
-										reversed)
-									</span>
-									{!cardsMatch && (
-										<p className="text-xs text-gray-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-											Disabled: Cards don't match. This
-											card's front should equal the
-											partner's back, and vice versa.
-										</p>
-									)}
-								</div>
-							</label>
-						</div>
+						<p className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+							<Link2 className="h-4 w-4 shrink-0" />
+							Its partner card shares this text, front and back
+							reversed, and updates with it.
+						</p>
 					)}
 					<div className="flex gap-3">
 						<button
