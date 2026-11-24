@@ -1,10 +1,13 @@
 /**
- * Shuffle cards randomly, then nudge the order so that partner cards
- * (reversed front/back pairs linked via `partnerCardId`) end up far apart.
+ * Shuffle cards randomly, then nudge the order so that sibling cards (cards
+ * of the same note: a reversed front/back pair, or a cloze note's cards) end
+ * up far apart.
  *
- * Best-effort: aims for each pair to be at least 40% of the list apart, using a
+ * Best-effort: aims for each pair of siblings to be at least 40% of the list
+ * apart, split between a note's gaps when it has more than two cards, using a
  * bounded number of random swaps that only ever reduce the total shortfall.
- * Returns a new array; the input is not modified.
+ * Returns a new array; the input is not modified. The name predates cloze
+ * cards; partners are the two-card case.
  */
 export function shuffleSpreadingPartners(cards) {
 	const order = cards.slice();
@@ -15,25 +18,46 @@ export function shuffleSpreadingPartners(cards) {
 		[order[i], order[j]] = [order[j], order[i]];
 	}
 
-	// 40% of the list: well above a plain shuffle's typical gap, but loose enough
-	// that all-pair decks don't settle into a predictable mirrored order.
-	// Small lists still aim to avoid back-to-back partners.
 	if (n < 3) return order;
-	const target = Math.max(2, Math.floor(n * 0.4));
+
+	// Cards in this list grouped by note; only notes with 2+ cards matter
+	const byNote = new Map();
+	order.forEach((card) => {
+		if (!card.noteId) return;
+		if (!byNote.has(card.noteId)) byNote.set(card.noteId, []);
+		byNote.get(card.noteId).push(card.cardId);
+	});
+	const siblings = new Map();
+	byNote.forEach((ids) => {
+		if (ids.length < 2) return;
+		ids.forEach((id) =>
+			siblings.set(
+				id,
+				ids.filter((other) => other !== id)
+			)
+		);
+	});
+	if (siblings.size === 0) return order;
+
+	// 40% of the list: well above a plain shuffle's typical gap, but loose
+	// enough that all-pair decks don't settle into a predictable mirrored
+	// order. A note with k cards splits that over its k - 1 gaps, so the
+	// target stays reachable. Small lists still aim to avoid back-to-back
+	// siblings.
+	const targetFor = (count) =>
+		Math.max(2, Math.floor((n * 0.4) / (count - 1)));
 
 	// position of each cardId in `order`
 	const pos = new Map(order.map((card, i) => [card.cardId, i]));
-	const partnerOf = (card) =>
-		card.partnerCardId && pos.has(card.partnerCardId)
-			? card.partnerCardId
-			: null;
-
-	if (!order.some(partnerOf)) return order;
 
 	const shortfallAt = (i) => {
-		const partnerId = partnerOf(order[i]);
-		if (!partnerId) return 0;
-		return Math.max(0, target - Math.abs(i - pos.get(partnerId)));
+		const ids = siblings.get(order[i].cardId);
+		if (!ids) return 0;
+		const target = targetFor(ids.length + 1);
+		return ids.reduce(
+			(sum, id) => sum + Math.max(0, target - Math.abs(i - pos.get(id))),
+			0
+		);
 	};
 
 	const maxIterations = n * 50;
@@ -51,7 +75,7 @@ export function shuffleSpreadingPartners(cards) {
 		const before = shortfallAt(a) + shortfallAt(b);
 		swap(order, pos, a, b);
 		const after = shortfallAt(a) + shortfallAt(b);
-		// Partners of a and b also moved relative to them, but shortfall is
+		// Every sibling gap that moved involves a or b, and shortfall is
 		// symmetric within a pair, so these two positions capture the change.
 		if (after > before) swap(order, pos, a, b);
 	}

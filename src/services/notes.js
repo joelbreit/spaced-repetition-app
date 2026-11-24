@@ -1,25 +1,59 @@
-// Notes hold a card's text; cards hold scheduling. A note's cards are made
-// from templates: `forward` shows the note's front first, `reverse` its back.
-// Reversed partner cards are two cards of one note, so their text can't drift
-// apart. See docs/Data.md.
+// Notes hold a card's text; cards hold scheduling. See docs/Data.md.
 //
-// In memory every card also carries `front`, `back` and `partnerCardId`,
-// filled in from its note by resolveNotes(), so code that only reads cards
-// works as before. To change a card's text, change its note (setCardText).
+// Basic notes ({ front, back }) make cards from templates: `forward` shows
+// the note's front first, `reverse` its back. Reversed partner cards are two
+// cards of one note, so their text can't drift apart.
+//
+// Cloze notes ({ type: 'cloze', text, extra }) make one `cloze` card per
+// cloze number in the text; the card's `ord` is its number.
+//
+// In memory every card also carries `front` and `back` (plain text), plus
+// `partnerCardId` for a basic card's reversed partner, or `clozeText` and
+// `clozeExtra` for a cloze card, all filled in from its note by
+// resolveNotes(). Code that only reads cards works as before. To change a
+// card's text, change its note (setCardText).
 
-export const TEMPLATES = ['forward', 'reverse'];
+import { clozeOrds, clozeSideText } from './cloze';
+
+export const TEMPLATES = ['forward', 'reverse', 'cloze'];
 
 // Card fields worked out from the note, never stored
-const DERIVED_FIELDS = ['front', 'back', 'partnerCardId'];
+const DERIVED_FIELDS = [
+	'front',
+	'back',
+	'partnerCardId',
+	'clozeText',
+	'clozeExtra',
+];
 
 export const newNoteId = () => crypto.randomUUID();
 
-/** A card's text as its template shows it */
-export function cardText(note, template) {
+const newCardId = (now, suffix = Math.random().toString(36).slice(2, 11)) =>
+	`${now}-${suffix}`;
+
+export const isClozeNote = (note) => note?.type === 'cloze';
+
+/**
+ * What a card shows, worked out from its note: plain-text `front` and
+ * `back`, and for cloze cards the note's text and extra for rendering
+ */
+export function cardText(note, template, ord) {
+	if (isClozeNote(note)) {
+		return {
+			front: clozeSideText(note.text, ord, 'front'),
+			back: clozeSideText(note.text, ord, 'back', note.extra),
+			clozeText: note.text,
+			clozeExtra: note.extra || undefined,
+		};
+	}
 	return template === 'reverse'
 		? { front: note.back, back: note.front }
 		: { front: note.front, back: note.back };
 }
+
+/** Can this card get a reversed partner? Basic cards without one can. */
+export const canReverse = (card) =>
+	card.template !== 'cloze' && !card.partnerCardId;
 
 /** Note text that shows `front` and `back` on a card with this template */
 export function noteTextFor(template, front, back) {
@@ -125,21 +159,24 @@ export function resolveNotes(data) {
 		const cards = (deck.cards || []).map((card) => {
 			const note = noteById.get(card.noteId);
 			const template = card.template || 'forward';
-			const { front, back } = cardText(note, template);
-			const partnerCardId = cardsByNote
-				.get(card.noteId)
-				.find((id) => id !== card.cardId);
+			const derived = cardText(note, template, card.ord);
+			// Only a basic card's reversed card is its partner; cloze cards
+			// of one note are siblings, found by their shared noteId
+			derived.partnerCardId = isClozeNote(note)
+				? undefined
+				: cardsByNote.get(card.noteId).find((id) => id !== card.cardId);
 			if (
-				card.front === front &&
-				card.back === back &&
-				card.partnerCardId === partnerCardId &&
-				card.template === template
+				card.template === template &&
+				DERIVED_FIELDS.every((field) => card[field] === derived[field])
 			) {
 				return card;
 			}
 			changed = true;
-			const next = { ...card, template, front, back, partnerCardId };
-			if (!partnerCardId) delete next.partnerCardId;
+			const next = { ...card, template };
+			DERIVED_FIELDS.forEach((field) => {
+				if (derived[field] === undefined) delete next[field];
+				else next[field] = derived[field];
+			});
 			return next;
 		});
 		if (!changed) return deck;
@@ -183,13 +220,17 @@ export function stripNoteFields(data) {
 
 /**
  * Change the text a card shows, by changing its note. Its reversed partner,
- * if any, changes with it.
+ * if any, changes with it. For a cloze card, `front` is the note's text and
+ * `back` its extra (see setClozeText).
  */
 export function setCardText(data, deckId, cardId, front, back) {
 	const card = (data.decks || [])
 		.find((d) => d.deckId === deckId)
 		?.cards?.find((c) => c.cardId === cardId);
 	if (!card?.noteId) return data;
+	if (card.template === 'cloze') {
+		return setClozeText(data, deckId, card.noteId, front, back);
+	}
 	const text = noteTextFor(card.template, front, back);
 	return {
 		...data,
@@ -199,11 +240,90 @@ export function setCardText(data, deckId, cardId, front, back) {
 	};
 }
 
+/**
+ * Change a cloze note's text, keeping one card per cloze number: numbers new
+ * to the text get a card in `deckId`; cards whose number is gone are deleted.
+ */
+export function setClozeText(data, deckId, noteId, text, extra = '') {
+	const ords = clozeOrds(text);
+	const have = new Set();
+	(data.decks || []).forEach((deck) =>
+		(deck.cards || []).forEach((card) => {
+			if (card.noteId === noteId) have.add(card.ord);
+		})
+	);
+	const now = Date.now();
+	const added = ords
+		.filter((ord) => !have.has(ord))
+		.map((ord) => newClozeCard(noteId, ord, now));
+	const keep = new Set(ords);
+
+	return {
+		...data,
+		notes: (data.notes || []).map((note) =>
+			note.noteId === noteId ? clozeNote(note, text, extra) : note
+		),
+		decks: (data.decks || []).map((deck) => {
+			const touched =
+				deck.deckId === deckId ||
+				deck.cards?.some(
+					(c) => c.noteId === noteId && !keep.has(c.ord)
+				);
+			if (!touched) return deck;
+			const cards = deck.cards.filter(
+				(c) => c.noteId !== noteId || keep.has(c.ord)
+			);
+			return {
+				...deck,
+				cards: deck.deckId === deckId ? [...cards, ...added] : cards,
+			};
+		}),
+	};
+}
+
+function clozeNote(note, text, extra) {
+	const next = { ...note, type: 'cloze', text };
+	if (extra?.trim()) next.extra = extra;
+	else delete next.extra;
+	return next;
+}
+
+function newClozeCard(noteId, ord, now) {
+	return {
+		cardId: newCardId(
+			now,
+			`c${ord}-${Math.random().toString(36).slice(2, 9)}`
+		),
+		noteId,
+		template: 'cloze',
+		ord,
+		reviews: [],
+		whenDue: now,
+		createdAt: now,
+	};
+}
+
+/**
+ * A new cloze note and one card per cloze number in its text
+ * @returns {{ note, cards }} cards is empty if the text has no deletions
+ */
+export function newClozeNoteAndCards(text, extra = '', now = Date.now()) {
+	const note = clozeNote(
+		{ noteId: newNoteId(), createdAt: now },
+		text,
+		extra
+	);
+	const cards = clozeOrds(text).map((ord) =>
+		newClozeCard(note.noteId, ord, now)
+	);
+	return { note, cards };
+}
+
 /** A new note and its forward card */
 export function newNoteAndCard(front, back, now = Date.now()) {
 	const note = { noteId: newNoteId(), front, back, createdAt: now };
 	const card = {
-		cardId: `${now}-${Math.random().toString(36).slice(2, 11)}`,
+		cardId: newCardId(now),
 		noteId: note.noteId,
 		template: 'forward',
 		reviews: [],

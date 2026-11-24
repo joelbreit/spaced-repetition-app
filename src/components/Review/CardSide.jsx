@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import { Star, Flag } from 'lucide-react';
 import ContainerIcon from '../ContainerIcon';
+import ClozeText from '../ClozeText';
 import { getContainerColor } from '../../config/containerColors';
 
 // Short prompts read best big and centered; paragraphs and lists read best
@@ -21,6 +22,7 @@ const CardSide = forwardRef(function CardSide(
 	{
 		side,
 		text,
+		cloze, // ClozeText props for a cloze card, or null
 		animationResult,
 		animationColor,
 		isStarred,
@@ -121,7 +123,7 @@ const CardSide = forwardRef(function CardSide(
 				<div
 					className={`m-auto w-full max-w-prose whitespace-pre-wrap break-words font-medium text-gray-900 dark:text-white ${getTextClasses(text)}`}
 				>
-					{text}
+					{cloze ? <ClozeText {...cloze} /> : text}
 				</div>
 			</div>
 

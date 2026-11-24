@@ -4,7 +4,13 @@ import {
 	DEFAULT_FOLDER_ICON,
 } from '../config/containerIcons';
 import { DEFAULT_CONTAINER_COLOR } from '../config/containerColors';
-import { newNoteAndCard, reversedCard, setCardText } from '../services/notes';
+import {
+	canReverse,
+	newClozeNoteAndCards,
+	newNoteAndCard,
+	reversedCard,
+	setCardText,
+} from '../services/notes';
 
 export function useDeckOperations() {
 	const { setAppData } = useAppData();
@@ -97,6 +103,21 @@ export function useDeckOperations() {
 		}));
 	};
 
+	// A cloze note and one card per cloze number in `text`
+	const addClozeNote = (deckId, text, extra = '') => {
+		const { note, cards } = newClozeNoteAndCards(text, extra);
+		if (cards.length === 0) return;
+		setAppData((prev) => ({
+			...prev,
+			notes: [...(prev.notes || []), note],
+			decks: (prev.decks || []).map((deck) =>
+				deck.deckId === deckId
+					? { ...deck, cards: [...deck.cards, ...cards] }
+					: deck
+			),
+		}));
+	};
+
 	// Changes the card's note, so a reversed partner card changes with it
 	const updateCard = (deckId, cardId, front, back) => {
 		setAppData((prev) => setCardText(prev, deckId, cardId, front, back));
@@ -171,10 +192,8 @@ export function useDeckOperations() {
 
 			const now = Date.now();
 
-			// Only cards whose note has no reversed card yet
-			const cardsToDuplicate = deck.cards.filter(
-				(card) => !card.partnerCardId
-			);
+			// Only basic cards whose note has no reversed card yet
+			const cardsToDuplicate = deck.cards.filter(canReverse);
 
 			if (cardsToDuplicate.length === 0) return prev;
 
@@ -358,6 +377,7 @@ export function useDeckOperations() {
 		moveDeck,
 		reorderDecks,
 		addCard,
+		addClozeNote,
 		updateCard,
 		deleteCard,
 		toggleCardFlag,

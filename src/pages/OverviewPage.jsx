@@ -439,6 +439,8 @@ function OverviewPage() {
 							...c,
 							front: s.front,
 							back: s.back,
+							clozeText: s.clozeText,
+							clozeExtra: s.clozeExtra,
 							isStarred: s.isStarred,
 							isFlagged: s.isFlagged,
 						}

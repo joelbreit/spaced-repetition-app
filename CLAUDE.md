@@ -43,6 +43,7 @@ Key files:
 - `src/services/apiStorage.js` - API client (`/data` GET/POST/PATCH, `/reviews` GET/POST)
 - `src/services/reviewLog.js` - Reviews live in a separate monthly review log in S3, put back on cards in memory
 - `src/services/notes.js` - Card text lives in notes; reversed partners are two cards of one note. Edit text through the note, not `card.front`
+- `src/services/cloze.js` - Cloze deletions (`{{c1::answer::hint}}`); a cloze note makes one card per number
 - `backend/template.yaml` - SAM template (all backend infrastructure)
 - `backend/src/functions/flashcards-api/index.mjs` - Lambda CRUD endpoint
 - `backend/src/functions/flashcards-read-aloud/index.mjs` - AWS Polly TTS endpoint

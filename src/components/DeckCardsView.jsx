@@ -31,6 +31,9 @@ import {
 	getReps,
 	isReviewed,
 } from '../services/cardCalculations';
+import { canReverse } from '../services/notes';
+import { clozeOrds } from '../services/cloze';
+import ClozeFields from './ClozeFields';
 import CardListItem from './CardListItem';
 import { MoveCardsDialog, DeleteCardsDialog } from './CardSelectionDialogs';
 import Breadcrumbs from './Breadcrumbs';
@@ -43,6 +46,7 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const { appData } = useAppData();
 	const {
 		addCard,
+		addClozeNote,
 		deleteCard,
 		toggleCardFlag,
 		toggleCardStar,
@@ -56,6 +60,11 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	const [newCardFront, setNewCardFront] = useState('');
 	const [newCardBack, setNewCardBack] = useState('');
 	const newCardFrontRef = useRef(null);
+	// 'basic' (front/back) or 'cloze'; kept while the page is open
+	const [newCardType, setNewCardType] = useState('basic');
+	const [newClozeText, setNewClozeText] = useState('');
+	const [newClozeExtra, setNewClozeExtra] = useState('');
+	const newClozeTextRef = useRef(null);
 	const newCardBackRef = useRef(null);
 	const [showNewCardForm, setShowNewCardForm] = useState(false);
 	const [cardSearchTerm, setCardSearchTerm] = useState('');
@@ -285,6 +294,18 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 		cardSearchTerm || sortBy !== 'default' || filterBy !== 'all';
 
 	const handleAddCard = ({ keepOpen = false } = {}) => {
+		if (newCardType === 'cloze') {
+			if (clozeOrds(newClozeText).length === 0) return;
+			addClozeNote(deckId, newClozeText.trim(), newClozeExtra.trim());
+			setNewClozeText('');
+			setNewClozeExtra('');
+			if (keepOpen) {
+				newClozeTextRef.current?.focus();
+			} else {
+				setShowNewCardForm(false);
+			}
+			return;
+		}
 		if (newCardFront.trim() && newCardBack.trim()) {
 			addCard(deckId, newCardFront.trim(), newCardBack.trim());
 			setNewCardFront('');
@@ -301,6 +322,8 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 		setShowNewCardForm(false);
 		setNewCardFront('');
 		setNewCardBack('');
+		setNewClozeText('');
+		setNewClozeExtra('');
 	};
 
 	// Enter on the front moves to the back; Ctrl/Cmd+Enter adds the card and
@@ -382,15 +405,22 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 			return;
 		}
 
-		const numWithoutPartnerCards = selectedDeck.cards.filter(
-			(card) => !card.partnerCardId
+		const numWithoutPartnerCards =
+			selectedDeck.cards.filter(canReverse).length;
+		const numCloze = selectedDeck.cards.filter(
+			(card) => card.template === 'cloze'
 		).length;
+		const numWithPartner =
+			selectedDeck.cards.length - numWithoutPartnerCards - numCloze;
 
 		let confirmMessage = `This will create ${numWithoutPartnerCards} new card(s) with reversed front/back values`;
-		if (numWithoutPartnerCards !== selectedDeck.cards.length) {
-			confirmMessage += ` (${
-				selectedDeck.cards.length - numWithoutPartnerCards
-			} card(s) already have a partner card)`;
+		const skipped = [
+			numWithPartner > 0 &&
+				`${numWithPartner} card(s) already have a partner card`,
+			numCloze > 0 && `${numCloze} cloze card(s) can't be reversed`,
+		].filter(Boolean);
+		if (skipped.length > 0) {
+			confirmMessage += ` (${skipped.join('; ')})`;
 		}
 		confirmMessage += `. Continue?`;
 
@@ -778,31 +808,74 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 				{/* Add Card Form */}
 				{showNewCardForm ? (
 					<div className="mb-6 rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700 p-6 bg-gray-50 dark:bg-slate-700/50">
-						<h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-slate-100">
-							Add New Card
-						</h3>
+						<div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+							<h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+								Add New Card
+							</h3>
+							<div
+								role="radiogroup"
+								aria-label="Card type"
+								className="inline-flex rounded-lg bg-gray-200/70 dark:bg-slate-800 p-1"
+							>
+								{[
+									['basic', 'Basic'],
+									['cloze', 'Cloze'],
+								].map(([value, label]) => (
+									<button
+										key={value}
+										type="button"
+										role="radio"
+										aria-checked={newCardType === value}
+										onClick={() => setNewCardType(value)}
+										className={`px-3 py-1 text-sm font-medium rounded-md transition-colors duration-200 ${
+											newCardType === value
+												? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 shadow-sm'
+												: 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200'
+										}`}
+									>
+										{label}
+									</button>
+								))}
+							</div>
+						</div>
 						<div className="space-y-4">
-							<input
-								ref={newCardFrontRef}
-								type="text"
-								placeholder="Front of card..."
-								value={newCardFront}
-								onChange={(e) =>
-									setNewCardFront(e.target.value)
-								}
-								onKeyDown={handleNewCardKeyDown}
-								autoFocus
-								className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-							/>
-							<textarea
-								ref={newCardBackRef}
-								placeholder="Back of card..."
-								value={newCardBack}
-								onChange={(e) => setNewCardBack(e.target.value)}
-								onKeyDown={handleNewCardKeyDown}
-								rows={4}
-								className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none transition-all duration-200"
-							/>
+							{newCardType === 'cloze' ? (
+								<ClozeFields
+									text={newClozeText}
+									onTextChange={setNewClozeText}
+									extra={newClozeExtra}
+									onExtraChange={setNewClozeExtra}
+									onKeyDown={handleNewCardKeyDown}
+									textRef={newClozeTextRef}
+									autoFocus
+								/>
+							) : (
+								<>
+									<input
+										ref={newCardFrontRef}
+										type="text"
+										placeholder="Front of card..."
+										value={newCardFront}
+										onChange={(e) =>
+											setNewCardFront(e.target.value)
+										}
+										onKeyDown={handleNewCardKeyDown}
+										autoFocus
+										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+									/>
+									<textarea
+										ref={newCardBackRef}
+										placeholder="Back of card..."
+										value={newCardBack}
+										onChange={(e) =>
+											setNewCardBack(e.target.value)
+										}
+										onKeyDown={handleNewCardKeyDown}
+										rows={4}
+										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none transition-all duration-200"
+									/>
+								</>
+							)}
 							<div className="flex gap-3">
 								<button
 									onClick={() => handleAddCard()}
@@ -817,7 +890,8 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 									Cancel
 								</button>
 								<span className="hidden pointer-fine:flex items-center ml-auto text-xs text-gray-400 dark:text-slate-500">
-									Ctrl/⌘ + Enter adds and starts the next card
+									Ctrl/⌘ + Enter adds and starts the next{' '}
+									{newCardType === 'cloze' ? 'note' : 'card'}
 								</span>
 							</div>
 						</div>

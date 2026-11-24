@@ -8,6 +8,8 @@ import {
 	ChevronUp,
 	Link2,
 } from 'lucide-react';
+import ClozeFields from './ClozeFields';
+import { clozeOrds } from '../services/cloze';
 
 export default function CardEditView({
 	appData,
@@ -25,6 +27,11 @@ export default function CardEditView({
 	const [partnerCardId, setPartnerCardId] = useState(null);
 	const [reviews, setReviews] = useState([]);
 	const [showReviews, setShowReviews] = useState(false);
+	// For a cloze card: its number, and its note's numbers as saved. Its
+	// note's text is edited in `front`, the extra in `back`.
+	const [clozeOrd, setClozeOrd] = useState(null);
+	const [savedOrds, setSavedOrds] = useState([]);
+	const [noteId, setNoteId] = useState(null);
 
 	useEffect(() => {
 		if (cardId && deckId) {
@@ -32,8 +39,12 @@ export default function CardEditView({
 			if (deck) {
 				const card = deck.cards.find((c) => c.cardId === cardId);
 				if (card) {
-					setFront(card.front);
-					setBack(card.back);
+					const isCloze = card.template === 'cloze';
+					setFront(isCloze ? card.clozeText : card.front);
+					setBack(isCloze ? card.clozeExtra || '' : card.back);
+					setClozeOrd(isCloze ? card.ord : null);
+					setSavedOrds(isCloze ? clozeOrds(card.clozeText) : []);
+					setNoteId(card.noteId || null);
 					setIsStarred(card.isStarred || false);
 					setIsFlagged(card.isFlagged || false);
 					setPartnerCardId(card.partnerCardId || null);
@@ -48,10 +59,20 @@ export default function CardEditView({
 			setIsFlagged(false);
 			setPartnerCardId(null);
 			setReviews([]);
+			setClozeOrd(null);
+			setSavedOrds([]);
+			setNoteId(null);
 		}
 	}, [cardId, deckId, appData]);
 
 	const handleSave = () => {
+		if (clozeOrd) {
+			// Saves the note: all its cloze cards change, and numbers added
+			// or removed add or delete cards
+			if (clozeOrds(front).length === 0) return;
+			onSave(deckId, cardId, front.trim(), back.trim());
+			return;
+		}
 		if (front.trim() && back.trim()) {
 			const trimmedFront = front.trim();
 			const trimmedBack = back.trim();
@@ -130,6 +151,14 @@ export default function CardEditView({
 			'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
 		);
 	};
+
+	// Other cloze cards of the same note, in any deck
+	const siblingCount = noteId
+		? appData.decks
+				.flatMap((d) => d.cards || [])
+				.filter((c) => c.noteId === noteId && c.cardId !== cardId)
+				.length
+		: 0;
 
 	// Partners share a note, so they can be in different decks
 	const partnerCard = partnerCardId
@@ -317,41 +346,74 @@ export default function CardEditView({
 						)}
 
 						{/* Form Fields Section */}
-						<div className="space-y-6 pt-2">
-							{/* Front Input */}
-							<div className="space-y-2">
+						{clozeOrd ? (
+							<div className="space-y-2 pt-2">
 								<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
-									Front
+									Cloze text{' '}
+									<span className="normal-case font-normal text-gray-500 dark:text-slate-400">
+										(this card hides c{clozeOrd})
+									</span>
 								</label>
-								<textarea
-									value={front}
-									onChange={(e) => setFront(e.target.value)}
-									autoFocus={!cardId}
-									placeholder="Enter the front of the card"
-									rows={5}
-									className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 resize-y min-h-[120px] font-medium"
-								/>
-							</div>
-
-							{/* Back Input */}
-							<div className="space-y-2">
-								<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
-									Back
-								</label>
-								<textarea
-									value={back}
-									onChange={(e) => setBack(e.target.value)}
-									placeholder="Enter the back of the card"
+								<ClozeFields
+									text={front}
+									onTextChange={setFront}
+									extra={back}
+									onExtraChange={setBack}
+									savedOrds={savedOrds}
 									rows={6}
-									className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-y transition-all duration-200 min-h-[140px] font-medium"
 								/>
 							</div>
-						</div>
+						) : (
+							<div className="space-y-6 pt-2">
+								{/* Front Input */}
+								<div className="space-y-2">
+									<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
+										Front
+									</label>
+									<textarea
+										value={front}
+										onChange={(e) =>
+											setFront(e.target.value)
+										}
+										autoFocus={!cardId}
+										placeholder="Enter the front of the card"
+										rows={5}
+										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 resize-y min-h-[120px] font-medium"
+									/>
+								</div>
+
+								{/* Back Input */}
+								<div className="space-y-2">
+									<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
+										Back
+									</label>
+									<textarea
+										value={back}
+										onChange={(e) =>
+											setBack(e.target.value)
+										}
+										placeholder="Enter the back of the card"
+										rows={6}
+										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-y transition-all duration-200 min-h-[140px] font-medium"
+									/>
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 
 				{/* Footer with Buttons */}
 				<div className="px-6 py-5 border-t border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 space-y-4">
+					{clozeOrd && siblingCount > 0 && (
+						<p className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+							<Link2 className="h-4 w-4 shrink-0" />
+							This note's other{' '}
+							{siblingCount === 1
+								? 'cloze card shares this text and updates'
+								: `${siblingCount} cloze cards share this text and update`}{' '}
+							with it.
+						</p>
+					)}
 					{cardId && partnerCard && (
 						<p className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
 							<Link2 className="h-4 w-4 shrink-0" />
@@ -368,7 +430,11 @@ export default function CardEditView({
 						</button>
 						<button
 							onClick={handleSave}
-							disabled={!front.trim() || !back.trim()}
+							disabled={
+								clozeOrd
+									? clozeOrds(front).length === 0
+									: !front.trim() || !back.trim()
+							}
 							className="flex-1 px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
 						>
 							{cardId ? 'Update Card' : 'Create Card'}

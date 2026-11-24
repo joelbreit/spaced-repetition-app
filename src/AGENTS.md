@@ -236,6 +236,14 @@ and `card.partnerCardId` are filled in from the note after every
 partner changes too. New cards: `newNoteAndCard()`; a reversed partner:
 `reversedCard()`.
 
+Cloze notes (`services/cloze.js`): `addClozeNote(deckId, text, extra)` makes
+one card per `{{cN::...}}` number. Editing a cloze card through `updateCard`
+passes the note's text as `front` and its extra as `back`, and adds or
+deletes cards as numbers appear or disappear. Render a cloze side with
+`<ClozeText {...clozeProps(card, side)} />`; `card.front`/`card.back` are the
+plain-text forms (search, read-aloud, stats). Use `canReverse(card)` rather
+than checking `partnerCardId`.
+
 ### Adding Reviews
 
 Use `applyReview()` from `services/cardCalculations.js`: it appends the review

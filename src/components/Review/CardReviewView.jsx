@@ -19,6 +19,7 @@ import {
 import { useState, useEffect, useRef, useCallback } from 'react';
 import SegmentedProgressBar from '../SegmentedProgressBar';
 import CardSide from './CardSide';
+import { clozeProps, speakableText } from '../../services/cloze';
 import ReviewSettingsModal from './ReviewSettingsModal';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import AudioProgressBorder from './AudioProgressBorder';
@@ -266,7 +267,7 @@ export default function CardReviewView({
 
 		for (let i = currentCardIndex; i < end; i++) {
 			const card = cards[i];
-			for (const text of [card.front, card.back]) {
+			for (const text of [card.front, card.back].map(speakableText)) {
 				if (!text?.trim()) continue;
 				const key = `${voiceId}|${engine}|${text}`;
 				if (
@@ -361,7 +362,9 @@ export default function CardReviewView({
 
 	// Handle Read Aloud
 	const handleReadAloud = useCallback(async () => {
-		const textToRead = isFlipped ? currentCard?.back : currentCard?.front;
+		const textToRead = speakableText(
+			isFlipped ? currentCard?.back : currentCard?.front
+		);
 		if (!textToRead?.trim()) return;
 
 		const audioPlayer = audioPlayerRef.current;
@@ -812,6 +815,7 @@ export default function CardReviewView({
 					<CardSide
 						side="Front"
 						text={currentCard.front}
+						cloze={clozeProps(currentCard, 'front')}
 						animationResult={animationResult}
 						animationColor={getAnimationColor()}
 						isStarred={isStarred}
@@ -830,6 +834,7 @@ export default function CardReviewView({
 					<CardSide
 						side="Back"
 						text={currentCard.back}
+						cloze={clozeProps(currentCard, 'back')}
 						animationResult={animationResult}
 						animationColor={getAnimationColor()}
 						isStarred={isStarred}

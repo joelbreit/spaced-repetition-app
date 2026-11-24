@@ -42,6 +42,18 @@ update. They aren't stored. To change a card's text, change its note
 (`setCardText()`), never `card.front`/`card.back`: those are overwritten from
 the note.
 
+**Cloze notes** (`type: "cloze"`) hold `text` with deletions in Anki's syntax,
+`{{c1::answer}}` or `{{c1::answer::hint}}`, and an optional `extra` shown on
+the back. They make one `cloze` card per cloze number; the card's `ord` is its
+number. On card N every `cN` deletion is a blank (`[...]` or `[hint]`) on the
+front and highlighted on the back; other numbers show as plain text
+(`src/services/cloze.js`). Editing the text keeps one card per number
+(`setClozeText()`): a new number gets a card, and a card whose number is gone
+is deleted with its review history (the editor warns first). Cloze cards of
+one note are siblings, not partners: they have no `partnerCardId`, can't be
+reversed, and the review order spreads them apart like partners. In memory a
+cloze card also has `clozeText` and `clozeExtra` for rendering.
+
 Cards saved before notes existed have `front`, `back` and `partnerCardId` on
 the card. Loading gives each one a note (ID `note-<cardId>`); a pair whose
 `partnerCardId`s point at each other and whose text mirrors shares one, with
@@ -62,6 +74,13 @@ the older card as `forward`. The next auto-save stores them that way.
 			"front": "Front text",
 			"back": "Back text",
 			"createdAt": 1234567890 // may be missing
+		},
+		{
+			"noteId": "unique-id",
+			"type": "cloze", // v6; missing = basic front/back note
+			"text": "The {{c1::mitochondria}} is the {{c2::powerhouse::energy}} of the cell",
+			"extra": "Optional, shown on the back",
+			"createdAt": 1234567890
 		}
 	],
 	// Folders added in v2
@@ -91,7 +110,8 @@ the older card as `forward`. The next auto-save stores them that way.
 				{
 					"cardId": "unique-id",
 					"noteId": "unique-id", // v5: the note holding this card's text
-					"template": "reverse", // v5: "forward" (default, omitted) or "reverse"
+					"template": "reverse", // v5: "forward" (default, omitted) or "reverse"; v6: "cloze"
+					"ord": 2, // v6, cloze cards only: the cloze number this card hides
 					"whenDue": 1234567890,
 					// v4 scheduling state, missing on new cards
 					"interval": 1234567890, // ms, set by the last review
@@ -133,6 +153,11 @@ the older card as `forward`. The next auto-save stores them that way.
 	]
 }
 ```
+
+## v6 (cloze)
+
+- [x] Cloze notes (`type: "cloze"`, `text`, `extra`) with one `cloze` card per number (`ord`)
+- Note: no migration; existing notes are basic
 
 ## v5 (notes)
 
