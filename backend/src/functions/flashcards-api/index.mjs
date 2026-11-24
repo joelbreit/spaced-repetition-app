@@ -2,6 +2,8 @@ import {
 	S3Client,
 	GetObjectCommand,
 	PutObjectCommand,
+	DeleteObjectCommand,
+	ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { gzipSync } from 'node:zlib';
@@ -25,6 +27,122 @@ const headers = {
 	'Access-Control-Max-Age': '86400',
 	'Content-Type': 'application/json',
 };
+
+// Reviews live outside data.json, one object per UTC month of the review's
+// timestamp: users/{id}/reviews/YYYY-MM.json = { reviews: [...] }, sorted by
+// timestamp. Each review carries its cardId. A month file is small, so adding
+// a review rewrites one month rather than the user's whole dataset.
+const reviewsPrefix = (userId) => `users/${userId}/reviews/`;
+const monthOf = (timestamp) =>
+	new Date(timestamp || 0).toISOString().slice(0, 7);
+const reviewKey = (review) => `${review.cardId}:${review.reviewId}`;
+
+async function readJson(key, fallback) {
+	try {
+		const response = await s3Client.send(
+			new GetObjectCommand({ Bucket: BUCKET, Key: key })
+		);
+		return JSON.parse(await response.Body.transformToString());
+	} catch (error) {
+		if (error.name === 'NoSuchKey') return fallback;
+		throw error;
+	}
+}
+
+async function listReviewMonthKeys(userId) {
+	const keys = [];
+	let ContinuationToken;
+	do {
+		const page = await s3Client.send(
+			new ListObjectsV2Command({
+				Bucket: BUCKET,
+				Prefix: reviewsPrefix(userId),
+				ContinuationToken,
+			})
+		);
+		(page.Contents || []).forEach((object) => keys.push(object.Key));
+		ContinuationToken = page.IsTruncated
+			? page.NextContinuationToken
+			: undefined;
+	} while (ContinuationToken);
+	return keys.sort();
+}
+
+async function loadAllReviews(userId) {
+	const keys = await listReviewMonthKeys(userId);
+	const months = await Promise.all(
+		keys.map((key) => readJson(key, { reviews: [] }))
+	);
+	return months.flatMap((month) => month.reviews || []);
+}
+
+// Add and remove reviews, touching only the months involved. Adding is
+// idempotent: a review already stored (same cardId and reviewId) is replaced,
+// so a retried save never duplicates history.
+async function updateReviews(userId, add = [], remove = []) {
+	const byMonth = new Map();
+	const monthEntry = (timestamp) => {
+		const month = monthOf(timestamp);
+		if (!byMonth.has(month)) byMonth.set(month, { add: [], remove: [] });
+		return byMonth.get(month);
+	};
+	add.forEach((review) => monthEntry(review.timestamp).add.push(review));
+	remove.forEach((review) =>
+		monthEntry(review.timestamp).remove.push(reviewKey(review))
+	);
+
+	await Promise.all(
+		[...byMonth].map(async ([month, changes]) => {
+			const key = `${reviewsPrefix(userId)}${month}.json`;
+			const stored = await readJson(key, { reviews: [] });
+			const reviews = new Map(
+				(stored.reviews || []).map((review) => [
+					reviewKey(review),
+					review,
+				])
+			);
+			changes.remove.forEach((k) => reviews.delete(k));
+			changes.add.forEach((review) =>
+				reviews.set(reviewKey(review), review)
+			);
+
+			if (reviews.size === 0) {
+				await s3Client.send(
+					new DeleteObjectCommand({ Bucket: BUCKET, Key: key })
+				);
+				return;
+			}
+			const sorted = [...reviews.values()].sort(
+				(a, b) => a.timestamp - b.timestamp
+			);
+			await s3Client.send(
+				new PutObjectCommand({
+					Bucket: BUCKET,
+					Key: key,
+					Body: JSON.stringify({ reviews: sorted }),
+					ContentType: 'application/json',
+				})
+			);
+		})
+	);
+}
+
+const isValidReview = (review) =>
+	review &&
+	typeof review.cardId === 'string' &&
+	typeof review.reviewId === 'string' &&
+	Number.isFinite(review.timestamp);
+
+// Lambda caps response payloads at 6 MB (after the body is escaped into the
+// proxy envelope). Large datasets blew past that and API Gateway returned
+// 500. Gzip the body - JSON compresses ~5-10x and browsers decode it
+// transparently.
+const gzipResponse = (jsonString) => ({
+	statusCode: 200,
+	headers: { ...headers, 'Content-Encoding': 'gzip' },
+	isBase64Encoded: true,
+	body: gzipSync(jsonString).toString('base64'),
+});
 
 async function verifyToken(authHeader) {
 	if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -85,6 +203,54 @@ export const handler = async (event) => {
 		}
 
 		const key = `users/${userId}/data.json`;
+		const path =
+			event.requestContext?.http?.path ??
+			event.rawPath ??
+			event.path ??
+			'';
+
+		if (path.endsWith('/reviews')) {
+			if (method === 'GET') {
+				const reviews = await loadAllReviews(userId);
+				return gzipResponse(JSON.stringify({ reviews }));
+			}
+
+			if (method === 'POST') {
+				const { add = [], remove = [] } = JSON.parse(
+					event.body || '{}'
+				);
+				if (
+					!Array.isArray(add) ||
+					!Array.isArray(remove) ||
+					!add.every(isValidReview) ||
+					!remove.every(isValidReview)
+				) {
+					return {
+						statusCode: 400,
+						headers,
+						body: JSON.stringify({
+							error: 'Each review needs cardId, reviewId and timestamp',
+						}),
+					};
+				}
+				await updateReviews(userId, add, remove);
+				return {
+					statusCode: 200,
+					headers,
+					body: JSON.stringify({
+						success: true,
+						added: add.length,
+						removed: remove.length,
+					}),
+				};
+			}
+
+			return {
+				statusCode: 405,
+				headers,
+				body: JSON.stringify({ error: 'Method not allowed' }),
+			};
+		}
 
 		if (method === 'GET') {
 			try {
@@ -95,17 +261,7 @@ export const handler = async (event) => {
 
 				const response = await s3Client.send(command);
 				const jsonString = await response.Body.transformToString();
-
-				// Lambda caps response payloads at 6 MB (after the body is
-				// escaped into the proxy envelope). Large datasets blew past
-				// that and API Gateway returned 500. Gzip the body - JSON
-				// compresses ~5-10x and browsers decode it transparently.
-				return {
-					statusCode: 200,
-					headers: { ...headers, 'Content-Encoding': 'gzip' },
-					isBase64Encoded: true,
-					body: gzipSync(jsonString).toString('base64'),
-				};
+				return gzipResponse(jsonString);
 			} catch (error) {
 				if (error.name === 'NoSuchKey') {
 					const initialData = { folders: [], decks: [] };

@@ -12,6 +12,7 @@ import {
 import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
+	getReps,
 } from '../services/cardCalculations';
 import ContainerIcon from './ContainerIcon';
 import { getContainerColor } from '../config/containerColors';
@@ -197,7 +198,7 @@ export default function CardListItem({
 			<div className="flex flex-wrap items-center gap-2">
 				<span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-medium rounded-md">
 					<BookOpen className="h-3 w-3" />
-					{card.reviews.length} reviews
+					{getReps(card)} reviews
 				</span>
 				<span
 					className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md ${getMasteryBadgeColors(

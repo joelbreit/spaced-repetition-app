@@ -1,6 +1,7 @@
 import {
 	getActiveReschedule,
 	getInterval,
+	isReviewed,
 	MIN_INTERVAL,
 } from './cardCalculations';
 import { DAY, startOfDay } from './statsCalculations';
@@ -19,7 +20,7 @@ export const UNDO_WINDOW = DAY;
 
 const cardKey = (deckId, cardId) => `${deckId}:${cardId}`;
 
-const isStudied = (card) => card.reviews && card.reviews.length > 0;
+const isStudied = isReviewed;
 
 // Archived decks are left alone unless one is picked on purpose
 const inScope = (deck, deckId) =>

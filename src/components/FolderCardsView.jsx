@@ -21,6 +21,8 @@ import { useDeckOperations } from '../hooks/useDeckOperations';
 import {
 	calculateLearningStrength,
 	getPerDayReviewRate,
+	getReps,
+	isReviewed,
 } from '../services/cardCalculations';
 import CardListItem from './CardListItem';
 import Breadcrumbs from './Breadcrumbs';
@@ -112,18 +114,16 @@ export default function FolderCardsView({ onEditCard }) {
 		// Apply category filter
 		switch (filterBy) {
 			case 'new':
-				cards = cards.filter((card) => card.reviews.length === 0);
+				cards = cards.filter((card) => !isReviewed(card));
 				break;
 			case 'due':
 				cards = cards.filter(
-					(card) =>
-						card.whenDue <= Date.now() && card.reviews.length > 0
+					(card) => card.whenDue <= Date.now() && isReviewed(card)
 				);
 				break;
 			case 'learned':
 				cards = cards.filter(
-					(card) =>
-						card.reviews.length > 0 && card.whenDue > Date.now()
+					(card) => isReviewed(card) && card.whenDue > Date.now()
 				);
 				break;
 			case 'flagged':
@@ -143,8 +143,8 @@ export default function FolderCardsView({ onEditCard }) {
 
 				switch (sortBy) {
 					case 'reviews':
-						aValue = a.reviews.length;
-						bValue = b.reviews.length;
+						aValue = getReps(a);
+						bValue = getReps(b);
 						break;
 					case 'mastery':
 						aValue = calculateLearningStrength(a);

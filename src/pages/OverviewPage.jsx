@@ -15,7 +15,11 @@ import Footer from '../components/Footer.jsx';
 import DemoBanner from '../components/DemoBanner';
 import { useAppData } from '../contexts/AppDataContext';
 import { useDeckOperations } from '../hooks/useDeckOperations';
-import { applyReview } from '../services/cardCalculations';
+import {
+	applyReview,
+	isReviewed,
+	pickSchedule,
+} from '../services/cardCalculations';
 import { calculateStreakStats } from '../services/streak';
 import { getFlipDuration } from '../services/reviewSettings';
 import { shuffleSpreadingPartners } from '../services/reviewOrder';
@@ -61,13 +65,13 @@ function OverviewPage() {
 			const now = Date.now();
 
 			const dueCards = cards.filter(
-				(card) => card.whenDue <= now && card.reviews.length > 0
+				(card) => card.whenDue <= now && isReviewed(card)
 			);
 			const newCards = shuffleSpreadingPartners(
-				cards.filter((card) => card.reviews.length === 0)
+				cards.filter((card) => !isReviewed(card))
 			);
 			const notYetDueCards = cards.filter(
-				(card) => card.whenDue > now && card.reviews.length > 0
+				(card) => card.whenDue > now && isReviewed(card)
 			);
 
 			dueCards.sort((a, b) => b.whenDue - a.whenDue);
@@ -163,13 +167,13 @@ function OverviewPage() {
 		const now = Date.now();
 
 		const dueCards = allCards.filter(
-			(card) => card.whenDue <= now && card.reviews.length > 0
+			(card) => card.whenDue <= now && isReviewed(card)
 		);
 		const newCards = shuffleSpreadingPartners(
-			allCards.filter((card) => card.reviews.length === 0)
+			allCards.filter((card) => !isReviewed(card))
 		);
 		const notYetDueCards = allCards.filter(
-			(card) => card.whenDue > now && card.reviews.length > 0
+			(card) => card.whenDue > now && isReviewed(card)
 		);
 
 		dueCards.sort((a, b) => b.whenDue - a.whenDue);
@@ -230,8 +234,7 @@ function OverviewPage() {
 				cardIndex: currentCardIndex,
 				deckId,
 				cardId: card.cardId,
-				reviews: card.reviews,
-				whenDue: card.whenDue,
+				schedule: pickSchedule(card),
 			},
 		]);
 
@@ -255,8 +258,7 @@ function OverviewPage() {
 								c.cardId === card.cardId
 									? {
 											...c,
-											reviews: updatedCard.reviews,
-											whenDue: updatedCard.whenDue,
+											...pickSchedule(updatedCard),
 										}
 									: c
 							),
@@ -301,9 +303,7 @@ function OverviewPage() {
 
 		// Only scheduling is rolled back; edits, stars and flags made since are kept
 		const restore = (c) =>
-			c.cardId === last.cardId
-				? { ...c, reviews: last.reviews, whenDue: last.whenDue }
-				: c;
+			c.cardId === last.cardId ? { ...c, ...last.schedule } : c;
 
 		setAppData((prev) => ({
 			...prev,

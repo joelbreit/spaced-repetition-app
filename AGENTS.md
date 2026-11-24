@@ -53,7 +53,10 @@ User (Browser)
 
 ## Data Structure
 
-User data is stored as JSON in S3 at `users/{userId}/data.json`:
+User data is stored as JSON in S3 at `users/{userId}/data.json`, with reviews in
+a separate review log at `users/{userId}/reviews/YYYY-MM.json` (see
+`docs/Data.md`). In memory, reviews are put back on their cards as `card.reviews`.
+`data.json`:
 
 ```json
 {
@@ -79,15 +82,10 @@ User data is stored as JSON in S3 at `users/{userId}/data.json`:
 					"front": "Question",
 					"back": "Answer",
 					"whenDue": 1234567890, // Unix timestamp (ms)
-					"reviews": [
-						{
-							"reviewId": "uuid",
-							"timestamp": 1234567890,
-							"result": "forgot|sooner|right|later",
-							"interval": 86400000,
-							"reviewDuration": 5000
-						}
-					],
+					"interval": 86400000, // scheduling state, missing on new cards
+					"reps": 3,
+					"lapses": 1,
+					"lastReviewed": 1234567890,
 					"isFlagged": false,
 					"isStarred": false,
 					"partnerCardId": "uuid" // For reverse cards
@@ -172,7 +170,7 @@ full details:
 - **S3 Bucket**: `spaced-rep-flashcards-data` (versioning enabled) — _imported_
 - **Cognito**: `flashcards-users` pool with email-based auth — _imported_
 - **Lambda**: data function (S3 CRUD) + read-aloud function (Polly), Node.js 20.x
-- **API Gateway**: HTTP API with `/data` and `/read-aloud` endpoints
+- **API Gateway**: HTTP API with `/data`, `/reviews` and `/read-aloud` endpoints
 
 The bucket and user pool were created before CloudFormation and are managed via
 resource import. Their physical IDs are load-bearing — S3 keys are

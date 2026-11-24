@@ -1,5 +1,87 @@
+import { normalizeResult } from './grades';
+
 // 10 seconds
 export const MIN_INTERVAL = 10 * 1000;
+
+// ============================================
+// Scheduling state
+//
+// Each card stores what scheduling needs, so it never has to read the
+// review history (which lives in a separate review log, see docs/Data.md):
+//   interval      ms, set by the last review
+//   reps          how many times it's been reviewed
+//   lapses        how many of those were graded Unfamiliar (`forgot`)
+//   lastReviewed  timestamp of the last review
+// New cards may have none of these. The fallbacks below read `reviews` for
+// cards saved before these fields existed.
+// ============================================
+
+// The fields a review changes, for undoing one
+export const SCHEDULE_FIELDS = [
+	'reviews',
+	'whenDue',
+	'interval',
+	'reps',
+	'lapses',
+	'lastReviewed',
+];
+
+export function pickSchedule(card) {
+	return Object.fromEntries(SCHEDULE_FIELDS.map((f) => [f, card[f]]));
+}
+
+export function getReps(card) {
+	return card.reps ?? card.reviews?.length ?? 0;
+}
+
+// Has the card been reviewed at least once? (New cards haven't.)
+export function isReviewed(card) {
+	return getReps(card) > 0;
+}
+
+export function getLastReviewed(card) {
+	if (card.lastReviewed) return card.lastReviewed;
+	const reviews = card.reviews || [];
+	return reviews.length > 0 ? reviews[reviews.length - 1].timestamp : null;
+}
+
+// The interval from review history alone, for cards without a stored one
+function intervalFromReviews(card) {
+	const reviews = card.reviews || [];
+	if (reviews.length === 0) return MIN_INTERVAL;
+	const last = reviews[reviews.length - 1];
+	// Previous interval available
+	if (last.interval) return last.interval;
+	// Previous interval not available, try dueDate - last review timestamp
+	if (card.whenDue) return card.whenDue - last.timestamp || MIN_INTERVAL;
+	// Else, just use time since last review
+	return Date.now() - last.timestamp || MIN_INTERVAL;
+}
+
+/**
+ * The card with its scheduling state worked out from its reviews. Used when
+ * loading, for cards saved before the state was stored or whose state no
+ * longer matches their history.
+ */
+export function deriveSchedulingState(card) {
+	const reviews = card.reviews || [];
+	if (reviews.length === 0) {
+		// New cards don't store it: the defaults are all there is
+		const rest = { ...card };
+		['interval', 'reps', 'lapses', 'lastReviewed'].forEach(
+			(field) => delete rest[field]
+		);
+		return rest;
+	}
+	return {
+		...card,
+		interval: intervalFromReviews(card),
+		reps: reviews.length,
+		lapses: reviews.filter((r) => normalizeResult(r.result) === 'forgot')
+			.length,
+		lastReviewed: reviews[reviews.length - 1].timestamp,
+	};
+}
 
 export function prettyPrintInterval(interval) {
 	// days
@@ -46,14 +128,11 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 		return MIN_INTERVAL;
 	}
 
-	const reviews = card.reviews || [];
+	const lastReviewed = getLastReviewed(card);
+	const timeSinceLastReview = lastReviewed
+		? timestamp - lastReviewed
+		: MIN_INTERVAL;
 
-	const timeSinceLastReview =
-		reviews.length > 0
-			? timestamp - reviews[reviews.length - 1].timestamp
-			: MIN_INTERVAL;
-
-	// const previousInterval = reviews.length > 0 && reviews[reviews.length - 1].interval ? reviews[reviews.length - 1].interval : timeSinceLastReview;
 	const previousInterval = getInterval(card);
 
 	// 0.5x MIN(last interval, time since last review)
@@ -86,8 +165,8 @@ export function calculateNextInterval(result, card, timestamp = Date.now()) {
 	return MIN_INTERVAL;
 }
 
-// The card as it will be after this grade: the review appended and the next
-// due date set. Shared by recording a review and previewing its stats.
+// The card as it will be after this grade: the review appended and its
+// scheduling state and next due date set. Shared by recording a review and previewing its stats.
 export function applyReview(
 	card,
 	result,
@@ -106,53 +185,27 @@ export function applyReview(
 		...card,
 		reviews: [...(card.reviews || []), review],
 		whenDue: timestamp + interval,
+		interval,
+		reps: getReps(card) + 1,
+		lapses: (card.lapses ?? 0) + (result === 'forgot' ? 1 : 0),
+		lastReviewed: timestamp,
 	};
 }
 
 // A catch-up reschedule (see services/catchUp.js) applies until the card's
 // next real review
 export function getActiveReschedule(card) {
-	const reviews = card.reviews || [];
-	const lastReview = reviews[reviews.length - 1];
 	const { reschedule } = card;
 	if (!reschedule) return null;
-	return !lastReview || reschedule.at > lastReview.timestamp
-		? reschedule
-		: null;
+	const lastReviewed = getLastReviewed(card);
+	return !lastReviewed || reschedule.at > lastReviewed ? reschedule : null;
 }
 
 export function getInterval(card) {
 	const reschedule = getActiveReschedule(card);
 	if (reschedule) return reschedule.interval;
-
-	let interval = 0;
-	// Previous interval available
-	if (
-		card.reviews &&
-		card.reviews.length > 0 &&
-		card.reviews[card.reviews.length - 1].interval
-	) {
-		interval = card.reviews[card.reviews.length - 1].interval;
-	}
-
-	// Previous interval not available, try dueDate - last review timestamp
-	else if (card.whenDue && card.reviews.length > 0) {
-		interval =
-			card.whenDue - card.reviews[card.reviews.length - 1].timestamp;
-	}
-
-	// Else, just use time since last review
-	else {
-		const reviews = card.reviews || [];
-
-		if (reviews.length === 0) {
-			interval = MIN_INTERVAL;
-		} else {
-			interval = Date.now() - reviews[reviews.length - 1].timestamp;
-		}
-	}
-
-	return interval || MIN_INTERVAL;
+	if (card.interval) return card.interval;
+	return intervalFromReviews(card);
 }
 
 // How well each grade shows a card was remembered, from 0 to 1. Used for
@@ -214,9 +267,7 @@ export function getPerDayReviewRate(card) {
 export function calculateAverageMastery(cards, reviewedOnly = false) {
 	if (!cards || cards.length === 0) return 0;
 
-	const targetCards = reviewedOnly
-		? cards.filter((card) => card.reviews && card.reviews.length > 0)
-		: cards;
+	const targetCards = reviewedOnly ? cards.filter(isReviewed) : cards;
 
 	if (targetCards.length === 0) return 0;
 
@@ -285,17 +336,13 @@ export function calculateCardCounts(cards) {
 	}
 
 	const now = Date.now();
-	const newCount = cards.filter(
-		(card) => !card.reviews || card.reviews.length === 0
-	).length;
-	const reviewedCount = cards.filter(
-		(card) => card.reviews && card.reviews.length > 0
-	).length;
+	const reviewedCount = cards.filter(isReviewed).length;
+	const newCount = cards.length - reviewedCount;
 	const dueCount = cards.filter(
-		(card) => card.reviews && card.reviews.length > 0 && card.whenDue <= now
+		(card) => isReviewed(card) && card.whenDue <= now
 	).length;
 	const learnedCount = cards.filter(
-		(card) => card.reviews && card.reviews.length > 0 && card.whenDue > now
+		(card) => isReviewed(card) && card.whenDue > now
 	).length;
 
 	return {
@@ -315,7 +362,7 @@ export function calculateCardCounts(cards) {
 export function calculateReviewedCardsBurden(cards) {
 	if (!cards || cards.length === 0) return 0;
 	return cards
-		.filter((card) => card.reviews && card.reviews.length > 0)
+		.filter(isReviewed)
 		.reduce((sum, card) => sum + getPerDayReviewRate(card), 0);
 }
 

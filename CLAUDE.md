@@ -40,7 +40,8 @@ Key files:
 - `src/contexts/AppDataContext.jsx` - Central data state, auto-save with 10s debounce, PATCH optimization
 - `src/contexts/AuthContext.jsx` - Cognito auth, token refresh every 45 min
 - `src/services/cardCalculations.js` - Spaced repetition algorithm
-- `src/services/apiStorage.js` - API client (GET/POST/PATCH)
+- `src/services/apiStorage.js` - API client (`/data` GET/POST/PATCH, `/reviews` GET/POST)
+- `src/services/reviewLog.js` - Reviews live in a separate monthly review log in S3, put back on cards in memory
 - `backend/template.yaml` - SAM template (all backend infrastructure)
 - `backend/src/functions/flashcards-api/index.mjs` - Lambda CRUD endpoint
 - `backend/src/functions/flashcards-read-aloud/index.mjs` - AWS Polly TTS endpoint

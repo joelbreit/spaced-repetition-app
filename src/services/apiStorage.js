@@ -172,6 +172,83 @@ export async function patchToAPI(patchData, authToken, refreshToken = null) {
 	}
 }
 
+// A request to the API, retried once with a fresh token if it has expired
+async function requestAPI(path, options, authToken, refreshToken) {
+	const send = (token) =>
+		fetch(`${API_ENDPOINT}${path}`, {
+			...options,
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+	let response = await send(authToken);
+	if (response.status === 401 && refreshToken) {
+		console.log('Token expired, refreshing...');
+		const newToken = await refreshToken();
+		if (newToken) response = await send(newToken);
+	}
+	if (response.status === 401) {
+		throw new Error('Unauthorized - please log in again');
+	}
+	if (!response.ok) {
+		throw new Error(`HTTP error! status: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Load every review in the user's review log
+ * @param {string} authToken - JWT token from Cognito
+ * @param {Function} [refreshToken] - Optional function to refresh the token if it expires
+ * @returns {Promise<Array>} Reviews, each with its cardId
+ */
+export async function loadReviewsFromAPI(authToken, refreshToken = null) {
+	const { reviews } = await requestAPI(
+		'/reviews',
+		{ method: 'GET' },
+		authToken,
+		refreshToken
+	);
+	return reviews || [];
+}
+
+// Requests stay well under Lambda's 6 MB payload limit (a review is ~120 bytes)
+const REVIEW_BATCH_SIZE = 5000;
+
+/**
+ * Add reviews to the review log and remove others. Large changes (the first
+ * save after migrating) go in batches, one after another.
+ * @param {{ add: Array, remove: Array }} changes - Reviews with cardId, reviewId and timestamp
+ * @param {string} authToken - JWT token from Cognito
+ * @param {Function} [refreshToken] - Optional function to refresh the token if it expires
+ */
+export async function saveReviewsToAPI(
+	{ add = [], remove = [] },
+	authToken,
+	refreshToken = null
+) {
+	const batches = [];
+	for (let i = 0; i < add.length; i += REVIEW_BATCH_SIZE) {
+		batches.push({ add: add.slice(i, i + REVIEW_BATCH_SIZE), remove: [] });
+	}
+	for (let i = 0; i < remove.length; i += REVIEW_BATCH_SIZE) {
+		batches.push({
+			add: [],
+			remove: remove.slice(i, i + REVIEW_BATCH_SIZE),
+		});
+	}
+	for (const batch of batches) {
+		await requestAPI(
+			'/reviews',
+			{ method: 'POST', body: JSON.stringify(batch) },
+			authToken,
+			refreshToken
+		);
+	}
+}
+
 /**
  * Check if the API is accessible
  * @returns {Promise<boolean>}

@@ -129,6 +129,8 @@ API client for backend communication:
 loadFromAPI(authToken, refreshToken); // GET /data
 saveToAPI(data, authToken, refreshToken); // POST /data (full save)
 patchToAPI(patchData, authToken, refreshToken); // PATCH /data (incremental)
+loadReviewsFromAPI(authToken, refreshToken); // GET /reviews (the whole review log)
+saveReviewsToAPI({ add, remove }, authToken, refreshToken); // POST /reviews (batched)
 checkAPIHealth(); // OPTIONS /data
 readAloudAPI(text); // POST /read-aloud
 ```
@@ -227,22 +229,17 @@ setAppData((prev) => ({
 
 ### Adding Reviews
 
-```jsx
-const newReview = {
-	reviewId: crypto.randomUUID(),
-	timestamp: Date.now(),
-	result: 'right',
-	interval: newInterval,
-	reviewDuration: timeSpentMs,
-};
+Use `applyReview()` from `services/cardCalculations.js`: it appends the review
+and updates the card's scheduling state (`whenDue`, `interval`, `reps`,
+`lapses`, `lastReviewed`) together. Code that restores a card's schedule (like
+undo) should copy all of `SCHEDULE_FIELDS` (`pickSchedule(card)`). Check
+whether a card is new with `isReviewed(card)`, not `card.reviews.length`.
 
-// Update card with new review
-const updatedCard = {
-	...card,
-	reviews: [...card.reviews, newReview],
-	whenDue: Date.now() + newInterval,
-};
+```jsx
+const updatedCard = applyReview(card, 'right', Date.now(), timeSpentMs);
 ```
+
+Auto-save sends the new review to the review log; no other step is needed.
 
 ## Navigation
 

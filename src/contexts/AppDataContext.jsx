@@ -14,8 +14,17 @@ import {
 	saveToAPI,
 	patchToAPI,
 	checkAPIHealth,
+	loadReviewsFromAPI,
+	saveReviewsToAPI,
 } from '../services/apiStorage';
 import { migrateGrades } from '../services/grades';
+import {
+	attachReviews,
+	stripReviews,
+	collectReviews,
+	diffReviews,
+	reviewKey,
+} from '../services/reviewLog';
 
 const AppDataContext = createContext();
 
@@ -88,7 +97,10 @@ export function AppDataProvider({ children }) {
 	const saveTimeoutRef = useRef(null);
 	const lastSaveTime = useRef(null);
 	const appDataRef = useRef(appData);
+	// data.json as last saved: the app data without reviews
 	const lastSavedStateRef = useRef(null);
+	// The reviews the review log holds, keyed by cardId and reviewId
+	const savedReviewsRef = useRef(new Map());
 	const hasLoadedFromCloudRef = useRef(false);
 	const healthCheckInProgress = useRef(false);
 
@@ -134,6 +146,7 @@ export function AppDataProvider({ children }) {
 			// Guest mode: always start from demo data (in-memory only, no persistence)
 			if (!isAuthenticated || !authToken) {
 				hasLoadedFromCloudRef.current = false;
+				savedReviewsRef.current = new Map();
 				setAppData(demoData);
 				lastSavedStateRef.current = JSON.parse(
 					JSON.stringify(demoData)
@@ -145,7 +158,10 @@ export function AppDataProvider({ children }) {
 
 			// Authenticated mode: load from API
 			try {
-				const cloudData = await loadFromAPI(authToken, refreshToken);
+				const [cloudData, logReviews] = await Promise.all([
+					loadFromAPI(authToken, refreshToken),
+					loadReviewsFromAPI(authToken, refreshToken),
+				]);
 
 				// Keep folders even when there are no decks yet
 				const loadedData = {
@@ -154,12 +170,24 @@ export function AppDataProvider({ children }) {
 					decks: cloudData?.decks || [],
 				};
 
-				// Grades saved under the old Again/Hard/Good/Easy names are
-				// renamed here. The last-saved snapshot stays as loaded, so
-				// the next auto-save writes the renamed decks back to the cloud.
-				setAppData(migrateGrades(loadedData));
+				// Reviews come back onto their cards. Data saved before the
+				// review log existed still has them nested in data.json; the
+				// last-saved snapshots below record only what's stored where
+				// it now belongs, so the next auto-save moves those reviews
+				// into the log and saves data.json without them. Grades saved
+				// under the old Again/Hard/Good/Easy names are renamed here and
+				// written back the same way.
+				setAppData(
+					migrateGrades(attachReviews(loadedData, logReviews))
+				);
+				savedReviewsRef.current = new Map(
+					logReviews.map((review) => [
+						reviewKey(review.cardId, review.reviewId),
+						review,
+					])
+				);
 				lastSavedStateRef.current = JSON.parse(
-					JSON.stringify(loadedData)
+					JSON.stringify(stripReviews(loadedData))
 				);
 				hasLoadedFromCloudRef.current = true;
 				setIsOnline(true);
@@ -168,6 +196,7 @@ export function AppDataProvider({ children }) {
 				showError('Failed to load data from cloud.');
 				setIsOnline(false);
 				const emptyData = { folders: [], decks: [] };
+				savedReviewsRef.current = new Map();
 				setAppData(emptyData);
 				lastSavedStateRef.current = JSON.parse(
 					JSON.stringify(emptyData)
@@ -355,28 +384,52 @@ export function AppDataProvider({ children }) {
 			// Authenticated mode: save to cloud
 			const currentAuthToken = authToken;
 			try {
-				// Try to compute patch data
+				const currentReviews = collectReviews(dataToSave);
+				const reviewChanges = diffReviews(
+					currentReviews,
+					savedReviewsRef.current
+				);
+				const hasReviewChanges =
+					reviewChanges.add.length > 0 ||
+					reviewChanges.remove.length > 0;
+
+				// data.json holds everything but the reviews
+				const storedData = stripReviews(dataToSave);
 				const patchData = computePatchData(
-					dataToSave,
+					storedData,
 					lastSavedStateRef.current
 				);
 
-				if (patchData === false) {
+				if (patchData === false && !hasReviewChanges) {
 					// No changes — nothing to save
 					setIsSaving(false);
 					saveTimeoutRef.current = null;
 					return;
-				} else if (patchData) {
+				}
+
+				// Reviews go first: data.json saved without nested reviews
+				// must never reach the cloud before those reviews are in the
+				// log. If this fails, nothing else is saved.
+				if (hasReviewChanges) {
+					await saveReviewsToAPI(
+						reviewChanges,
+						currentAuthToken,
+						refreshToken
+					);
+					savedReviewsRef.current = currentReviews;
+				}
+
+				if (patchData) {
 					// Use PATCH for incremental update
 					await patchToAPI(patchData, currentAuthToken, refreshToken);
-				} else {
+				} else if (patchData === null) {
 					// null = fall back to POST for full save
-					await saveToAPI(dataToSave, currentAuthToken, refreshToken);
+					await saveToAPI(storedData, currentAuthToken, refreshToken);
 				}
 
 				// Update last saved state
 				lastSavedStateRef.current = JSON.parse(
-					JSON.stringify(dataToSave)
+					JSON.stringify(storedData)
 				);
 				setIsOnline(true);
 				lastSaveTime.current = Date.now();

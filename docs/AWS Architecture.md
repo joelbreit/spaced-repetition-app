@@ -27,8 +27,10 @@ Browser (flashcards.joelbreit.com)
   └── HTTP API 3u15oyvpok  stage /prod
         │
         ├── GET|POST|PATCH|OPTIONS /data ──▶ DataFunction
+        ├── GET|POST /reviews ─────────────▶ DataFunction
         │        verifies the Cognito JWT in code, then reads/writes
         │        s3://spaced-rep-flashcards-data/users/{sub}/data.json
+        │        s3://spaced-rep-flashcards-data/users/{sub}/reviews/YYYY-MM.json
         │
         └── POST /read-aloud ─────────────▶ ReadAloudFunction
                  no auth (see Known gaps) ──▶ Amazon Polly
@@ -91,7 +93,9 @@ Amplify job finishes ──▶ EventBridge "Amplify Deployment Status Change"
 
 ## Data storage
 
-Per-user JSON at `users/{cognito sub}/data.json`. **The Cognito sub is the
+Per-user JSON at `users/{cognito sub}/data.json`, with the review log beside it
+at `users/{cognito sub}/reviews/YYYY-MM.json` (one object per month; see
+`docs/Data.md`). **The Cognito sub is the
 storage key**, which is why the user pool can never be replaced — a new pool
 issues new subs and orphans every user's data.
 
