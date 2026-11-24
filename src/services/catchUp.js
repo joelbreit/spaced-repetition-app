@@ -5,15 +5,19 @@ import {
 	MIN_INTERVAL,
 } from './cardCalculations';
 import { DAY, startOfDay } from './statsCalculations';
+import { RESCHEDULE } from './reviewLog';
 
 // Catch-up: reschedule overdue cards as if each were graded Too Difficult once (half
 // its interval), spread over the coming days so no day gets more than a daily
 // limit. No reviews are recorded, so review history and every stat built on
-// it stay true. Each card keeps what it needs for one undo:
+// it stay true. Each rescheduled card gets the new `whenDue` and `interval`,
+// and an entry in the review log (kept on `card.reschedules` in memory, apart
+// from its reviews) with what it needs to be undone:
 //
-//   card.reschedule = { at, interval, previousWhenDue, previousReschedule? }
+//   { reviewId, type: 'reschedule', timestamp, interval,
+//     lastInterval, previousWhenDue }
 //
-// getInterval() uses reschedule.interval until the card's next real review.
+// Undo puts back previousWhenDue and lastInterval and removes the entry.
 
 // How long a catch-up can still be undone
 export const UNDO_WINDOW = DAY;
@@ -132,6 +136,8 @@ export function planCatchUp(decks, { dailyLimit, deckId = null, now }) {
 	return { items, days, dayCount };
 }
 
+const rescheduleId = (at) => `reschedule-${at}`;
+
 export function applyCatchUp(appData, plan, now = Date.now()) {
 	const byKey = new Map(
 		plan.items.map((item) => [cardKey(item.deckId, item.cardId), item])
@@ -154,14 +160,18 @@ export function applyCatchUp(appData, plan, now = Date.now()) {
 					return {
 						...card,
 						whenDue: item.whenDue,
-						reschedule: {
-							at: now,
-							interval: item.interval,
-							previousWhenDue: card.whenDue,
-							...(card.reschedule && {
-								previousReschedule: card.reschedule,
-							}),
-						},
+						interval: item.interval,
+						reschedules: [
+							...(card.reschedules || []),
+							{
+								reviewId: rescheduleId(now),
+								type: RESCHEDULE,
+								timestamp: now,
+								interval: item.interval,
+								lastInterval: card.interval ?? null,
+								previousWhenDue: card.whenDue,
+							},
+						],
 					};
 				}),
 			};
@@ -175,7 +185,8 @@ export function findUndoableCatchUp(decks, now = Date.now()) {
 	let latest = 0;
 	(decks || []).forEach((deck) =>
 		(deck.cards || []).forEach((card) => {
-			latest = Math.max(latest, card.reschedule?.at || 0);
+			const last = card.reschedules?.[card.reschedules.length - 1];
+			latest = Math.max(latest, last?.timestamp || 0);
 		})
 	);
 	if (!latest || now - latest > UNDO_WINDOW) return null;
@@ -183,31 +194,97 @@ export function findUndoableCatchUp(decks, now = Date.now()) {
 	let count = 0;
 	(decks || []).forEach((deck) =>
 		(deck.cards || []).forEach((card) => {
-			if (getActiveReschedule(card)?.at === latest) count++;
+			if (getActiveReschedule(card)?.timestamp === latest) count++;
 		})
 	);
 	return count > 0 ? { at: latest, count } : null;
 }
 
-// Put back the due dates from before the catch-up at `at`. Cards reviewed
-// since then keep their new schedule: that review is real.
+// Put back the schedules from before the catch-up at `at`, and drop its
+// entries. Cards reviewed since then keep their new schedule: that review is
+// real.
 export function undoCatchUp(appData, at) {
 	const restore = (card) => {
-		if (getActiveReschedule(card)?.at !== at) return card;
-		const { reschedule, ...rest } = card;
-		return {
-			...rest,
-			whenDue: reschedule.previousWhenDue,
-			...(reschedule.previousReschedule && {
-				reschedule: reschedule.previousReschedule,
-			}),
+		const entry = getActiveReschedule(card);
+		if (entry?.timestamp !== at) return card;
+		const restored = {
+			...card,
+			whenDue: entry.previousWhenDue,
+			interval: entry.lastInterval,
+			reschedules: card.reschedules.slice(0, -1),
 		};
+		if (restored.interval == null) delete restored.interval;
+		if (restored.reschedules.length === 0) delete restored.reschedules;
+		return restored;
 	};
 	return {
 		...appData,
 		decks: appData.decks.map((deck) =>
-			deck.cards?.some((card) => card.reschedule?.at === at)
+			deck.cards?.some(
+				(card) => getActiveReschedule(card)?.timestamp === at
+			)
 				? { ...deck, cards: deck.cards.map(restore) }
+				: deck
+		),
+	};
+}
+
+/**
+ * Turn catch-ups saved the old way, as a `card.reschedule` chain
+ * ({ at, interval, previousWhenDue, previousReschedule? }), into reschedule
+ * entries, and store an active one's interval on the card as catch-ups now
+ * do. Entry IDs come from their times, so migrating twice gives the same
+ * entries. Needs the cards' reviews attached.
+ */
+export function migrateReschedules(appData) {
+	if (!appData?.decks?.some((d) => d.cards?.some((c) => c.reschedule))) {
+		return appData;
+	}
+	const migrate = (card) => {
+		const chain = [];
+		for (let r = card.reschedule; r; r = r.previousReschedule) {
+			chain.unshift(r); // oldest first
+		}
+		const reviews = card.reviews || [];
+		const intervalBefore = (at, previous) => {
+			const lastReview = [...reviews]
+				.reverse()
+				.find((review) => review.timestamp < at);
+			// Back-to-back catch-ups: the earlier one set the interval
+			if (previous && previous.at > (lastReview?.timestamp || 0)) {
+				return previous.interval;
+			}
+			return lastReview?.interval ?? card.interval ?? null;
+		};
+		const entries = chain.map((r, i) => ({
+			reviewId: rescheduleId(r.at),
+			type: RESCHEDULE,
+			timestamp: r.at,
+			interval: r.interval,
+			lastInterval: intervalBefore(r.at, chain[i - 1]),
+			previousWhenDue: r.previousWhenDue,
+		}));
+		const migrated = { ...card };
+		delete migrated.reschedule;
+		const known = new Set((card.reschedules || []).map((e) => e.reviewId));
+		migrated.reschedules = [
+			...(card.reschedules || []),
+			...entries.filter((e) => !known.has(e.reviewId)),
+		].sort((a, b) => a.timestamp - b.timestamp);
+		const active = getActiveReschedule(migrated);
+		if (active) migrated.interval = active.interval;
+		return migrated;
+	};
+	return {
+		...appData,
+		decks: appData.decks.map((deck) =>
+			deck.cards?.some((c) => c.reschedule)
+				? {
+						...deck,
+						cards: deck.cards.map((c) =>
+							c.reschedule ? migrate(c) : c
+						),
+					}
 				: deck
 		),
 	};

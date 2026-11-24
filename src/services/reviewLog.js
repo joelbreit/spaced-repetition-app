@@ -2,8 +2,19 @@
 // docs/Data.md). In memory each card still has its `reviews` array, so stats
 // and history read them as before; these helpers move reviews between the
 // two shapes and work out what to send to the log on save.
+//
+// The log also holds catch-up reschedules (`type: 'reschedule'`, see
+// services/catchUp.js). In memory those go on `card.reschedules`, apart from
+// `card.reviews`, so nothing that counts reviews counts them.
 
 import { deriveSchedulingState } from './cardCalculations';
+
+export const RESCHEDULE = 'reschedule';
+
+// Log entries kept on each card in memory, by kind
+const ENTRY_LISTS = ['reviews', 'reschedules'];
+const listFor = (entry) =>
+	entry.type === RESCHEDULE ? 'reschedules' : 'reviews';
 
 export const reviewKey = (cardId, reviewId) => `${cardId}:${reviewId}`;
 
@@ -26,50 +37,67 @@ const mapCards = (data, fn) => ({
  */
 export function attachReviews(data, logReviews) {
 	const byCard = new Map();
-	(logReviews || []).forEach(({ cardId, ...review }) => {
-		if (!byCard.has(cardId)) byCard.set(cardId, []);
-		byCard.get(cardId).push(review);
+	(logReviews || []).forEach(({ cardId, ...entry }) => {
+		if (!byCard.has(cardId)) {
+			byCard.set(cardId, { reviews: [], reschedules: [] });
+		}
+		byCard.get(cardId)[listFor(entry)].push(entry);
 	});
 
-	return mapCards(data, (card) => {
+	const merge = (...lists) => {
 		const merged = new Map();
-		[...(card.reviews || []), ...(byCard.get(card.cardId) || [])].forEach(
-			(review) => merged.set(review.reviewId, review)
+		lists.flat().forEach((entry) => merged.set(entry.reviewId, entry));
+		return [...merged.values()].sort((a, b) => a.timestamp - b.timestamp);
+	};
+
+	return mapCards(data, (card) => {
+		const fromLog = byCard.get(card.cardId);
+		const reviews = merge(card.reviews || [], fromLog?.reviews || []);
+		const reschedules = merge(
+			card.reschedules || [],
+			fromLog?.reschedules || []
 		);
-		const reviews = [...merged.values()].sort(
-			(a, b) => a.timestamp - b.timestamp
-		);
+		const withEntries = { ...card, reviews };
+		if (reschedules.length) withEntries.reschedules = reschedules;
+		else delete withEntries.reschedules;
 		// Stored state is trusted while it agrees with the history; cards
 		// saved before it existed, or changed by an older version of the
 		// app, get it worked out again
-		return (card.reps ?? 0) === reviews.length
-			? { ...card, reviews }
-			: deriveSchedulingState({ ...card, reviews });
+		if ((card.reps ?? 0) === reviews.length) return withEntries;
+		const derived = deriveSchedulingState(withEntries);
+		// A catch-up since the last review sets the interval
+		const last = reschedules[reschedules.length - 1];
+		return last && last.timestamp > (derived.lastReviewed || 0)
+			? { ...derived, interval: last.interval }
+			: derived;
 	});
 }
 
-/** The app data as data.json stores it: cards without their reviews. */
+/** The app data as data.json stores it: cards without log entries. */
 export function stripReviews(data) {
 	return mapCards(data, (card) => {
 		const stored = { ...card };
-		delete stored.reviews;
+		ENTRY_LISTS.forEach((list) => delete stored[list]);
 		return stored;
 	});
 }
 
 /**
- * Every review in the app data, keyed by cardId and reviewId.
- * @returns {Map<string, Object>} key → review with its cardId
+ * Every review-log entry in the app data (reviews and reschedules), keyed by
+ * cardId and reviewId.
+ * @returns {Map<string, Object>} key → entry with its cardId
  */
 export function collectReviews(data) {
 	const all = new Map();
 	(data.decks || []).forEach((deck) =>
 		(deck.cards || []).forEach((card) =>
-			(card.reviews || []).forEach((review) =>
-				all.set(reviewKey(card.cardId, review.reviewId), {
-					...review,
-					cardId: card.cardId,
-				})
+			ENTRY_LISTS.forEach((list) =>
+				(card[list] || []).forEach((entry) =>
+					all.set(reviewKey(card.cardId, entry.reviewId), {
+						...entry,
+						cardId: card.cardId,
+					})
+				)
 			)
 		)
 	);

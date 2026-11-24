@@ -150,22 +150,16 @@ deck isn't synced: a card that moves or comes back is added at the end.
 					"ord": 2, // v6, cloze cards only: the cloze number this card hides
 					"whenDue": 1234567890,
 					// v4 scheduling state, missing on new cards
-					"interval": 1234567890, // ms, set by the last review
+					"interval": 1234567890, // ms, set by the last review, or halved by a catch-up since (v8)
 					"reps": 3, // times reviewed
 					"lapses": 1, // times graded Unfamiliar (`forgot`)
 					"lastReviewed": 1234567890, // timestamp of the last review
 					"isFlagged": false,
 					"isStarred": false,
-					"createdAt": 1234567890, // added later, may be missing
-					// optional, set by a catch-up (src/services/catchUp.js): the card was
-					// rescheduled as if graded Too Difficult (`sooner`), without recording a review.
-					// getInterval() uses `interval` until the next real review.
-					"reschedule": {
-						"at": 1234567890, // when the catch-up ran
-						"interval": 1234567890, // halved interval, ms
-						"previousWhenDue": 1234567890, // for undo
-						"previousReschedule": {} // optional, an earlier reschedule, for undo
-					}
+					"createdAt": 1234567890 // added later, may be missing
+					// Before v8 a catch-up stored "reschedule": { at, interval,
+					// previousWhenDue, previousReschedule? } here; loading turns it into
+					// reschedule entries in the review log
 				}
 			]
 		}
@@ -185,10 +179,34 @@ deck isn't synced: a card that moves or comes back is added at the end.
 			"reviewDuration": 1234567890, // v3: ms spent reviewing the card, may be missing
 			"interval": 1234567890, // added later, may be missing
 			"result": "forgot" | "sooner" | "right" | "later" // older data may have "again" | "hard" | "good" | "easy", renamed on load
+		},
+		{
+			// v8: a catch-up (src/services/catchUp.js) rescheduled the card as if
+			// graded Too Difficult, without a review. In memory these are on
+			// `card.reschedules`, not `card.reviews`, so review stats skip them.
+			"cardId": "unique-id",
+			"reviewId": "reschedule-1234567890", // from the catch-up's time
+			"type": "reschedule", // missing on reviews
+			"timestamp": 1234567890, // when the catch-up ran
+			"interval": 1234567890, // the halved interval, also stored on the card
+			"lastInterval": 1234567890, // the card's interval before, for undo (null if it had none)
+			"previousWhenDue": 1234567890 // for undo
 		}
 	]
 }
 ```
+
+A card's newest reschedule entry is active until its next review
+(`getActiveReschedule()`). Undoing a catch-up puts back each active entry's
+`previousWhenDue` and `lastInterval` and removes the entry, so the log keeps
+only catch-ups that stand.
+
+## v8 (reschedules in the review log)
+
+- [x] Catch-ups write `type: "reschedule"` entries to the review log and set
+      the card's `interval`, replacing the nested `card.reschedule` chain
+- Note: existing `card.reschedule` chains are migrated on load (entries first,
+  then data.json without the field)
 
 ## v7 (sync)
 

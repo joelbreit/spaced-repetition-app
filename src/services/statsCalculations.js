@@ -506,7 +506,10 @@ export function computeDailyHistory(appData, now = Date.now()) {
 				addScheduled(interval, from, to, review.timestamp + interval);
 			} else if (reschedule) {
 				// Original schedule until the catch-up, the new one after
-				const catchUpDay = Math.max(from, dayIndex(reschedule.at));
+				const catchUpDay = Math.max(
+					from,
+					dayIndex(reschedule.timestamp)
+				);
 				addScheduled(interval, from, catchUpDay, due);
 				addScheduled(
 					reschedule.interval,
@@ -518,10 +521,11 @@ export function computeDailyHistory(appData, now = Date.now()) {
 				addScheduled(interval, from, to, due);
 			}
 		});
-		if (card.reschedule?.at) {
-			const index = dayIndex(card.reschedule.at);
+		// Every catch-up, not just the latest
+		(card.reschedules || []).forEach((entry) => {
+			const index = dayIndex(entry.timestamp);
 			if (index < dayCount) catchUps[index]++;
-		}
+		});
 	});
 
 	const prefixSums = [0];

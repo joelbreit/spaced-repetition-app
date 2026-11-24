@@ -17,6 +17,7 @@ import {
 	saveReviewsToAPI,
 } from '../services/apiStorage';
 import { migrateGrades } from '../services/grades';
+import { migrateReschedules } from '../services/catchUp';
 import {
 	attachReviews,
 	stripReviews,
@@ -223,8 +224,12 @@ export function AppDataProvider({ children }) {
 				// under the old Again/Hard/Good/Easy names are renamed here and
 				// written back the same way. Cards saved before notes existed
 				// get notes here (resolveNotes) and are saved that way next.
+				// Catch-ups saved as a `card.reschedule` chain become review-log
+				// entries the same way.
 				setAppData(
-					migrateGrades(attachReviews(loadedData, logReviews))
+					migrateReschedules(
+						migrateGrades(attachReviews(loadedData, logReviews))
+					)
 				);
 				savedReviewsRef.current = new Map(
 					logReviews.map((review) => [

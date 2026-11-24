@@ -193,12 +193,14 @@ export function applyReview(
 }
 
 // A catch-up reschedule (see services/catchUp.js) applies until the card's
-// next real review
+// next real review: the card's newest reschedule entry, if it came after the
+// last review. Its `interval` is also stored on the card.
 export function getActiveReschedule(card) {
-	const { reschedule } = card;
-	if (!reschedule) return null;
+	const reschedules = card.reschedules || [];
+	const last = reschedules[reschedules.length - 1];
+	if (!last) return null;
 	const lastReviewed = getLastReviewed(card);
-	return !lastReviewed || reschedule.at > lastReviewed ? reschedule : null;
+	return !lastReviewed || last.timestamp > lastReviewed ? last : null;
 }
 
 export function getInterval(card) {
