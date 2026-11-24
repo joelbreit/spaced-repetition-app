@@ -52,7 +52,7 @@ Browser (flashcards.joelbreit.com)
 | `DeployNotificationsTopic` (+ policy)      | SNS `flashcards-deploy-notifications`                  | SAM        |
 | `DeploySucceededRule`, `DeployFailedRule`  | EventBridge rules on the default bus                   | SAM        |
 
-Both Lambdas are Node.js 20.x, 256 MB, 30 s timeout, x86_64. IAM is least
+Both Lambdas are Node.js 24.x, 256 MB, 30 s timeout, x86_64. IAM is least
 privilege: the data function gets `GetObject`/`PutObject`/`DeleteObject` on
 `spaced-rep-flashcards-data/*` plus `ListBucket`, and the read-aloud function
 gets only `polly:SynthesizeSpeech`. Both log groups retain 30 days.
@@ -129,8 +129,6 @@ bucket policy or CORS configuration — browsers never talk to S3 directly.
   `bookmarks` stack uses an `HttpApi` `DefaultAuthorizer`, which is the better
   pattern.
 - **No API Gateway access logging** on the `prod` stage.
-- **Node 20 deprecation**: the AWS SDK warns that versions published after early
-  January 2027 will require Node >= 22. The functions will need a runtime bump.
 
 ## Cost
 

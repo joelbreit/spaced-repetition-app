@@ -139,8 +139,8 @@ Gateway.
 - [ ] Add a gateway JWT authorizer for `/data` (replacing in-handler
       verification) — see `backend/README.md`
 - [ ] Add API Gateway access logging on the `prod` stage
-- [ ] Bump Lambda runtime to Node 22 before January 2027 (AWS SDK deprecation
-      warning is already appearing in logs)
+- [x] Bump Lambda runtime off Node 20 (AWS SDK deprecation warning): now
+      Node 24, supported until April 2028
 
 ## Clean Up
 

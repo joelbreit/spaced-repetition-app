@@ -24,7 +24,7 @@ sam deploy           # Deploy the `flashcards` stack
 ## Tech Stack
 
 - **Frontend**: React 19 + Tailwind CSS v4 + Vite 6
-- **Backend**: AWS Lambda (Node.js 20.x) + API Gateway + S3 + Cognito
+- **Backend**: AWS Lambda (Node.js 24.x) + API Gateway + S3 + Cognito
 - **Infrastructure**: AWS SAM (`backend/template.yaml`, stack name `flashcards`)
 - **State**: React Context (Theme → Auth → Notification → AppData)
 - **Icons**: lucide-react only

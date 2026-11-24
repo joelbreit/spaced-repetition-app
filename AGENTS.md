@@ -178,7 +178,7 @@ full details:
 
 - **S3 Bucket**: `spaced-rep-flashcards-data` (versioning enabled) — _imported_
 - **Cognito**: `flashcards-users` pool with email-based auth — _imported_
-- **Lambda**: data function (S3 CRUD) + read-aloud function (Polly), Node.js 20.x
+- **Lambda**: data function (S3 CRUD) + read-aloud function (Polly), Node.js 24.x
 - **API Gateway**: HTTP API with `/data`, `/reviews` and `/read-aloud` endpoints
 
 The bucket and user pool were created before CloudFormation and are managed via
