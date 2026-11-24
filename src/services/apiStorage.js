@@ -284,3 +284,37 @@ export async function readAloudAPI(
 		throw error;
 	}
 }
+
+/**
+ * Ask where to upload an image (see services/media.js)
+ * @param {{ name: string, type: string, size: number }} image
+ * @returns {Promise<{ exists: true } | { url: string, fields: Object }>}
+ *   a signed S3 form upload, or exists if the image is already stored
+ */
+export async function requestMediaUpload(
+	image,
+	authToken,
+	refreshToken = null
+) {
+	return requestAPI(
+		'/media',
+		{ method: 'POST', body: JSON.stringify(image) },
+		authToken,
+		refreshToken
+	);
+}
+
+/**
+ * Short-lived download links for images
+ * @param {string[]} names - up to 200 image names
+ * @returns {Promise<Object<string, string>>} link by name
+ */
+export async function requestMediaUrls(names, authToken, refreshToken = null) {
+	const { urls } = await requestAPI(
+		'/media/urls',
+		{ method: 'POST', body: JSON.stringify({ names }) },
+		authToken,
+		refreshToken
+	);
+	return urls || {};
+}

@@ -9,6 +9,7 @@ import {
 	Link2,
 } from 'lucide-react';
 import ClozeFields from './ClozeFields';
+import MarkdownTextarea from './MarkdownTextarea';
 import CardPreview from './CardPreview';
 import PreviewToggle from './PreviewToggle';
 import { useShowPreview } from '../hooks/useShowPreview';
@@ -388,11 +389,9 @@ export default function CardEditView({
 											<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
 												Front
 											</label>
-											<textarea
+											<MarkdownTextarea
 												value={front}
-												onChange={(e) =>
-													setFront(e.target.value)
-												}
+												onChange={setFront}
 												autoFocus={!cardId}
 												placeholder="Enter the front of the card"
 												rows={5}
@@ -405,11 +404,9 @@ export default function CardEditView({
 											<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
 												Back
 											</label>
-											<textarea
+											<MarkdownTextarea
 												value={back}
-												onChange={(e) =>
-													setBack(e.target.value)
-												}
+												onChange={setBack}
 												placeholder="Enter the back of the card"
 												rows={6}
 												className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-y transition-all duration-200 min-h-[140px] font-medium"

@@ -26,6 +26,23 @@ Data saved before the review log existed has reviews nested in each card in
 `data.json`. Loading still reads them, and the next auto-save moves them into
 the log.
 
+### Images
+
+Card images are separate objects, `users/{sub}/media/{sha256}.{ext}` (`jpg`,
+`png`, `gif`, `webp` or `svg`, up to 5 MB), named after their bytes, so an
+image is stored once however many cards use it and never changes. Card text
+refers to one as `![alt](media:{sha256}.{ext})`; nothing else in `data.json`
+knows about images, so sync is unchanged.
+
+The browser uploads and downloads them straight from S3 with short-lived
+signed URLs (`POST /media`, `POST /media/urls`) and keeps the bytes in Cache
+Storage, so each image downloads once per device (`src/services/media.js`).
+Before upload, JPEGs are re-encoded (dropping EXIF data such as location),
+JPEG/PNG/WebP images are scaled to at most 2000 px on their longer side, and
+SVGs are cleaned with DOMPurify; images are only ever shown with `<img>`.
+An upload that fails is retried next time the app is signed in. Images of
+deleted cards stay in S3 for now (no cleanup yet).
+
 ### Notes and cards
 
 A card's text lives in a **note** (`notes` in `data.json`); the card holds

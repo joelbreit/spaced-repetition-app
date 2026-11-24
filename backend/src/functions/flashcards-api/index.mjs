@@ -8,6 +8,12 @@ import {
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { gzipSync } from 'node:zlib';
 import { applySync } from './merge.mjs';
+import {
+	MAX_URLS_PER_REQUEST,
+	createDownloadUrls,
+	createUpload,
+	validateUpload,
+} from './media.mjs';
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 const BUCKET = process.env.S3_BUCKET;
@@ -262,6 +268,62 @@ export const handler = async (event) => {
 			event.rawPath ??
 			event.path ??
 			'';
+
+		if (path.endsWith('/media') || path.endsWith('/media/urls')) {
+			if (method !== 'POST') {
+				return {
+					statusCode: 405,
+					headers,
+					body: JSON.stringify({ error: 'Method not allowed' }),
+				};
+			}
+			const request = JSON.parse(event.body || '{}');
+			if (path.endsWith('/media/urls')) {
+				const { names } = request;
+				if (
+					!Array.isArray(names) ||
+					names.length > MAX_URLS_PER_REQUEST
+				) {
+					return {
+						statusCode: 400,
+						headers,
+						body: JSON.stringify({
+							error: `names must be a list of up to ${MAX_URLS_PER_REQUEST} image names`,
+						}),
+					};
+				}
+				const urls = await createDownloadUrls(
+					s3Client,
+					BUCKET,
+					userId,
+					names
+				);
+				return {
+					statusCode: 200,
+					headers,
+					body: JSON.stringify({ urls }),
+				};
+			}
+			const invalid = validateUpload(request);
+			if (invalid) {
+				return {
+					statusCode: 400,
+					headers,
+					body: JSON.stringify({ error: invalid }),
+				};
+			}
+			const upload = await createUpload(
+				s3Client,
+				BUCKET,
+				userId,
+				request
+			);
+			return {
+				statusCode: 200,
+				headers,
+				body: JSON.stringify(upload),
+			};
+		}
 
 		if (path.endsWith('/sync')) {
 			if (method !== 'POST') {

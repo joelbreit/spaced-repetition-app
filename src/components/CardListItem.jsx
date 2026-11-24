@@ -190,7 +190,7 @@ export default function CardListItem({
 			</div>
 
 			{/* Front content */}
-			<div className="text-base text-gray-900 dark:text-slate-100 font-medium mb-3 break-words">
+			<div className="text-base text-gray-900 dark:text-slate-100 font-medium mb-3 break-words [&_img]:max-h-48">
 				<CardText text={card.front} cloze={clozeProps(card, 'front')} />
 			</div>
 
@@ -199,7 +199,7 @@ export default function CardListItem({
 				<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
 					Back
 				</h4>
-				<div className="text-base text-gray-700 dark:text-slate-300 break-words">
+				<div className="text-base text-gray-700 dark:text-slate-300 break-words [&_img]:max-h-48">
 					<CardText
 						text={card.back}
 						cloze={clozeProps(card, 'back')}

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import ClozeFields from './ClozeFields';
+import MarkdownTextarea from './MarkdownTextarea';
 import CardPreview from './CardPreview';
 import PreviewToggle from './PreviewToggle';
 import { useShowPreview } from '../hooks/useShowPreview';
@@ -171,14 +172,12 @@ export default function NewCardModal({
 										>
 											Front
 										</label>
-										<textarea
+										<MarkdownTextarea
 											id="new-card-front"
-											ref={frontRef}
+											textareaRef={frontRef}
 											placeholder="Front of card..."
 											value={front}
-											onChange={(e) =>
-												setFront(e.target.value)
-											}
+											onChange={setFront}
 											rows={4}
 											autoFocus
 											className={inputClasses}
@@ -191,13 +190,11 @@ export default function NewCardModal({
 										>
 											Back
 										</label>
-										<textarea
+										<MarkdownTextarea
 											id="new-card-back"
 											placeholder="Back of card..."
 											value={back}
-											onChange={(e) =>
-												setBack(e.target.value)
-											}
+											onChange={setBack}
 											rows={6}
 											className={inputClasses}
 										/>

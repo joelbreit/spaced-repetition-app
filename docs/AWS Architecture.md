@@ -29,9 +29,15 @@ Browser (flashcards.joelbreit.com)
         ├── GET|POST|PATCH|OPTIONS /data ──▶ DataFunction
         ├── POST /sync ────────────────────▶ DataFunction (merge, see docs/Data.md)
         ├── GET|POST /reviews ─────────────▶ DataFunction
+        ├── POST /media, /media/urls ──────▶ DataFunction (signed S3 URLs)
         │        verifies the Cognito JWT in code, then reads/writes
         │        s3://spaced-rep-flashcards-data/users/{sub}/data.json
         │        s3://spaced-rep-flashcards-data/users/{sub}/reviews/YYYY-MM.json
+        │        and signs uploads/downloads of
+        │        s3://spaced-rep-flashcards-data/users/{sub}/media/{sha256}.{ext}
+        │
+        ├── Browser ⇄ S3 directly, card images only, with those signed URLs
+        │        (bucket CORS allows GET/POST from the app's origins)
         │
         └── POST /read-aloud ─────────────▶ ReadAloudFunction
                  Cognito JWT authorizer ────▶ Amazon Polly
@@ -39,18 +45,18 @@ Browser (flashcards.joelbreit.com)
 
 ## Stack resources
 
-| Logical ID                                 | Physical                                               | Managed by |
-| ------------------------------------------ | ------------------------------------------------------ | ---------- |
-| `FlashcardsDataBucket`                     | `spaced-rep-flashcards-data`                           | imported   |
-| `UserPool`                                 | `us-east-1_RtLlfMBtw` (`flashcards-users`)             | imported   |
-| `UserPoolClient`                           | `3enq795nvhpdcnqubr7dt8l44k` (`flashcards-web-client`) | imported   |
-| `HttpApi` + `HttpApiprodStage`             | API `3u15oyvpok`, stage `prod`                         | SAM        |
-| `DataFunction` (+ role, 4 permissions)     | auto-named                                             | SAM        |
-| `ReadAloudFunction` (+ role, 1 permission) | auto-named                                             | SAM        |
-| `DataFunctionLogGroup`                     | `/aws/lambda/flashcards/data`                          | SAM        |
-| `ReadAloudFunctionLogGroup`                | `/aws/lambda/flashcards/read-aloud`                    | SAM        |
-| `DeployNotificationsTopic` (+ policy)      | SNS `flashcards-deploy-notifications`                  | SAM        |
-| `DeploySucceededRule`, `DeployFailedRule`  | EventBridge rules on the default bus                   | SAM        |
+| Logical ID                                  | Physical                                               | Managed by |
+| ------------------------------------------- | ------------------------------------------------------ | ---------- |
+| `FlashcardsDataBucket`                      | `spaced-rep-flashcards-data`                           | imported   |
+| `UserPool`                                  | `us-east-1_RtLlfMBtw` (`flashcards-users`)             | imported   |
+| `UserPoolClient`                            | `3enq795nvhpdcnqubr7dt8l44k` (`flashcards-web-client`) | imported   |
+| `HttpApi` + `HttpApiprodStage`              | API `3u15oyvpok`, stage `prod`                         | SAM        |
+| `DataFunction` (+ role, 1 permission/route) | auto-named                                             | SAM        |
+| `ReadAloudFunction` (+ role, 1 permission)  | auto-named                                             | SAM        |
+| `DataFunctionLogGroup`                      | `/aws/lambda/flashcards/data`                          | SAM        |
+| `ReadAloudFunctionLogGroup`                 | `/aws/lambda/flashcards/read-aloud`                    | SAM        |
+| `DeployNotificationsTopic` (+ policy)       | SNS `flashcards-deploy-notifications`                  | SAM        |
+| `DeploySucceededRule`, `DeployFailedRule`   | EventBridge rules on the default bus                   | SAM        |
 
 Both Lambdas are Node.js 24.x, 256 MB, 30 s timeout, x86_64. IAM is least
 privilege: the data function gets `GetObject`/`PutObject`/`DeleteObject` on

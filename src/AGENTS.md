@@ -86,6 +86,8 @@ The app wraps contexts in this order (outermost to innermost):
 | `CardEditView.jsx`          | Modal for editing a card, with preview    |
 | `NewCardModal.jsx`          | Modal for adding basic or cloze cards     |
 | `CardPreview.jsx`           | Live Markdown preview of a card's sides   |
+| `MarkdownTextarea.jsx`      | Card text field that takes images         |
+| `MediaImage.jsx`            | Shows an uploaded card image              |
 | `SortableContainerItem.jsx` | Draggable folder/deck item (uses dnd-kit) |
 | `StudyStatistics.jsx`       | Stats display (due/new/learned, mastery)  |
 | `AuthView.jsx`              | Login/signup forms                        |

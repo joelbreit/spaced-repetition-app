@@ -26,6 +26,7 @@ import {
 	reviewKey,
 } from '../services/reviewLog';
 import { resolveNotes, stripNoteFields } from '../services/notes';
+import { setMediaAuth } from '../services/media';
 import {
 	computeChangeset,
 	applyRemoteChanges,
@@ -108,6 +109,13 @@ export function AppDataProvider({ children }) {
 	const { showError } = useNotification();
 
 	const [appData, setAppDataRaw] = useState(demoState);
+
+	// Card images upload and download with this session (none for guests)
+	useEffect(() => {
+		setMediaAuth(
+			isAuthenticated && authToken ? { authToken, refreshToken } : null
+		);
+	}, [isAuthenticated, authToken, refreshToken]);
 
 	// Every update is brought in line with its notes, so cards always show
 	// their note's text and partner, and unused notes are dropped

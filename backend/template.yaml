@@ -53,10 +53,24 @@ Resources:
             OwnershipControls:
                 Rules:
                     - ObjectOwnership: BucketOwnerEnforced
-            # No CorsConfiguration: browsers never talk to this bucket directly.
-            # The Lambda calls S3 server-side, where CORS does not apply. The old
-            # rules (localhost:5173, *.netlify.app, *.vercel.app) were leftovers
-            # from an abandoned design and were removed 2026-08.
+            # CORS is only for card images (users/{id}/media/*): the browser
+            # uploads and downloads them directly with signed URLs from the
+            # API (POST /media, POST /media/urls). Everything else still goes
+            # through the Lambda. CORS isn't what protects the data - each
+            # signed URL is - it only lets the app read the responses.
+            # (The 2026-08 cleanup removed older leftover rules.)
+            CorsConfiguration:
+                CorsRules:
+                    - Id: card-images
+                      AllowedMethods:
+                          - GET
+                          - POST
+                      AllowedOrigins:
+                          - https://flashcards.joelbreit.com
+                          - https://www.flashcards.joelbreit.com
+                          - !Sub 'https://main.${AmplifyAppId}.amplifyapp.com'
+                          - http://localhost:5173
+                      MaxAge: 3600
             #
             # Versioning is kept - it is the recovery path for the data-erasure
             # race fixed in 2363cf3 - but noncurrent versions are expired. Without
@@ -289,6 +303,18 @@ Resources:
                     Properties:
                         ApiId: !Ref HttpApi
                         Path: /sync
+                        Method: POST
+                PostMedia:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref HttpApi
+                        Path: /media
+                        Method: POST
+                PostMediaUrls:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref HttpApi
+                        Path: /media/urls
                         Method: POST
                 # Redundant with the API-level CORS config above, but the pre-migration
                 # stack routed OPTIONS /data to the Lambda, so it is preserved.

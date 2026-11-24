@@ -1,9 +1,11 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { clozeParts } from '../services/cloze';
 import { clozeMarkdown, hastText, rehypeCloze } from '../services/markdown';
+import { MEDIA_PREFIX, mediaNameOf } from '../services/media';
+import MediaImage from './MediaImage';
 
 const MermaidDiagram = lazy(() => import('./MermaidDiagram'));
 
@@ -40,10 +42,25 @@ const Link = ({ node, ...props }) => (
 	<a {...props} target="_blank" rel="noopener noreferrer" />
 );
 
+// media: links are uploaded images; other URLs get react-markdown's usual
+// filtering (no javascript: and the like)
+const urlTransform = (url) =>
+	url.startsWith(MEDIA_PREFIX) ? url : defaultUrlTransform(url);
+
+// eslint-disable-next-line no-unused-vars
+const Image = ({ node, src = '', alt, title, ...props }) => {
+	if (src.startsWith(MEDIA_PREFIX)) {
+		const name = mediaNameOf(src);
+		return name ? <MediaImage name={name} alt={alt} title={title} /> : null;
+	}
+	return <img src={src} alt={alt} title={title} loading="lazy" {...props} />;
+};
+
 // Inline Markdown only, for a cloze answer: no paragraph around it
 const inlineComponents = {
 	p: ({ children }) => <>{children}</>,
 	a: Link,
+	img: Image,
 };
 
 const CLOZE_CLASSES = {
@@ -65,6 +82,7 @@ function Markdown({ source, parts }) {
 	const components = useMemo(
 		() => ({
 			a: Link,
+			img: Image,
 			pre: ({ node, children, ...props }) => {
 				const code = node?.children?.find((c) => c.tagName === 'code');
 				const classes = code?.properties?.className || [];
@@ -94,6 +112,7 @@ function Markdown({ source, parts }) {
 							<ReactMarkdown
 								remarkPlugins={[remarkGfm]}
 								components={inlineComponents}
+								urlTransform={urlTransform}
 							>
 								{part.text}
 							</ReactMarkdown>
@@ -111,6 +130,7 @@ function Markdown({ source, parts }) {
 			remarkPlugins={REMARK}
 			rehypePlugins={rehype}
 			components={components}
+			urlTransform={urlTransform}
 		>
 			{source}
 		</ReactMarkdown>
