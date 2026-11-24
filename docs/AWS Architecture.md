@@ -146,3 +146,8 @@ SAM, and the legacy API, Lambdas, roles, policies, and the `flashcards-app-user`
 IAM user (which held a long-lived access key from an abandoned
 browser-writes-to-S3 design) were deleted. The setup scripts were removed at the
 same time. See [`backend/import/README.md`](../backend/import/README.md).
+
+`POST /read-aloud` was carried over open (no authorizer) and locked down on
+2026-11-23 with a per-route Cognito JWT authorizer; read aloud became
+signed-in only. See the Authentication section of
+[`backend/README.md`](../backend/README.md).

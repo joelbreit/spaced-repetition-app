@@ -179,7 +179,9 @@ full details:
 - **S3 Bucket**: `spaced-rep-flashcards-data` (versioning enabled) — _imported_
 - **Cognito**: `flashcards-users` pool with email-based auth — _imported_
 - **Lambda**: data function (S3 CRUD) + read-aloud function (Polly), Node.js 24.x
-- **API Gateway**: HTTP API with `/data`, `/reviews` and `/read-aloud` endpoints
+- **API Gateway**: HTTP API with `/data`, `/sync`, `/reviews` and `/read-aloud`
+  endpoints. `/read-aloud` is behind a gateway Cognito JWT authorizer; the data
+  routes verify the JWT in the handler
 
 The bucket and user pool were created before CloudFormation and are managed via
 resource import. Their physical IDs are load-bearing — S3 keys are
@@ -215,6 +217,8 @@ used — see `backend/README.md`.
 
 - Guest mode is ephemeral — demo data resets on page reload (no localStorage)
 - Guests who edit data and sign up see an export checkbox to download their work
+- Read aloud is signed-in only (the endpoint needs a Cognito token): guests see a
+  disabled Listen button, and auto-read, prefetch and voice preview are skipped
 - Authenticated users can import JSON from the Profile page to merge decks/folders
 - Auth token expires after 1 hour; refresh happens every 45 minutes
 - Saves merge per object (last save wins per folder/deck/card/note); card order within a deck isn't synced

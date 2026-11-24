@@ -65,6 +65,27 @@ Rule of thumb: run `sam deploy` and **read the changeset before confirming**. An
 `Replacement: True` on an imported resource, or any `Attribute: Properties` entry
 against Cognito, means stop.
 
+## Authentication
+
+`HttpApi` defines one JWT authorizer, `CognitoAuthorizer` (issuer: the user
+pool, audience: the web client). It is attached per route, not as a
+`DefaultAuthorizer`:
+
+| Route                        | Auth                                                  |
+| ---------------------------- | ----------------------------------------------------- |
+| `POST /read-aloud`           | `CognitoAuthorizer` at the gateway; 401 before Lambda |
+| `/data`, `/sync`, `/reviews` | None at the gateway; the handler verifies the JWT     |
+| `OPTIONS` preflight          | None (API-level CORS)                                 |
+
+The frontend sends the Cognito **access** token. It has no `aud` claim, so the
+authorizer matches its `client_id` against the audience instead. Adding a route
+that calls Polly or anything else billed per call? Give it
+`Auth: Authorizer: CognitoAuthorizer`.
+
+`/read-aloud` was open until 2026-11-23 (carried over from the pre-SAM stack).
+Locking it down needed the frontend to send `Authorization`, so the frontend
+deploy has to go out before or with a backend deploy that changes auth.
+
 ## Deliberately preserved quirks
 
 The migration was a behaviour-preserving lift-and-shift, so a few things are
@@ -72,8 +93,6 @@ carried over as-is rather than fixed:
 
 - **`/data` verifies JWTs in the handler, not at the gateway.** The `bookmarks`
   stack uses an `HttpApi` `DefaultAuthorizer`, which is the better pattern.
-  `POST /read-aloud` already uses the gateway `CognitoAuthorizer` (it was open
-  before the migration and was locked down afterwards).
 - **`OPTIONS /data` routes to the Lambda** even though API-level CORS already
   handles preflight. Redundant, but it is what the old stack did.
 - **The bucket's CORS rules** reference `localhost:5173`, `*.netlify.app`, and

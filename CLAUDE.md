@@ -33,7 +33,7 @@ sam deploy           # Deploy the `flashcards` stack
 
 ## Architecture
 
-Guest mode uses localStorage; authenticated mode uses AWS (Cognito → API Gateway → Lambda → S3).
+Guest mode is in-memory demo data (resets on reload); authenticated mode uses AWS (Cognito → API Gateway → Lambda → S3). Read aloud is signed-in only.
 
 Key files:
 
@@ -47,7 +47,7 @@ Key files:
 - `src/services/cloze.js` - Cloze deletions (`{{c1::answer::hint}}`); a cloze note makes one card per number
 - `backend/template.yaml` - SAM template (all backend infrastructure)
 - `backend/src/functions/flashcards-api/index.mjs` - Lambda CRUD endpoint
-- `backend/src/functions/flashcards-read-aloud/index.mjs` - AWS Polly TTS endpoint
+- `backend/src/functions/flashcards-read-aloud/index.mjs` - AWS Polly TTS endpoint (Cognito JWT authorizer at the gateway; `readAloudAPI()` takes `{ authToken, refreshToken }`)
 
 ## Code Patterns
 

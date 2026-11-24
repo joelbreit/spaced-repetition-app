@@ -97,6 +97,8 @@ Gateway.
 - [ ] Cache audio for a side of a card after read aloud button has been used once
 - [ ] Retreive neural voices
 - [ ] Exclude generative voices
+- [ ] Cap `/read-aloud` cost per request: allowlist engines server-side and cap
+      text length (signed-in users can still pick generative at $30/M chars)
 
 ### Card View
 
@@ -136,8 +138,10 @@ Gateway.
       a lifecycle rule now expires noncurrent versions after 30 days (keeping the
       newest 10), which was the actual problem: 16,074 versions / 32.3 GB against
       4.6 MiB of live data.
+- [x] Require sign-in for `/read-aloud`: per-route `CognitoAuthorizer` at the
+      gateway, frontend sends the access token (2026-11-23)
 - [ ] Add a gateway JWT authorizer for `/data` (replacing in-handler
-      verification) — see `backend/README.md`
+      verification). `CognitoAuthorizer` already exists, see `backend/README.md`
 - [ ] Add API Gateway access logging on the `prod` stage
 - [x] Bump Lambda runtime off Node 20 (AWS SDK deprecation warning): now
       Node 24, supported until April 2028
