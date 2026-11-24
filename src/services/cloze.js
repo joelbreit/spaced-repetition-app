@@ -74,12 +74,7 @@ export function wrapCloze(text, start, end, ord = nextClozeOrd(text)) {
 	};
 }
 
-/** Text read aloud for a cloze front: the blank is said, not spelled out */
-export function speakableText(text = '') {
-	return text.replace(/\[\.\.\.\]/g, 'blank');
-}
-
-/** The props ClozeText needs for one side of a card, or null if not cloze */
+/** The props CardText's `cloze` needs for one side of a card, or null if not cloze */
 export function clozeProps(card, side) {
 	if (card?.template !== 'cloze') return null;
 	return {

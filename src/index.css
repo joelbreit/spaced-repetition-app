@@ -144,3 +144,270 @@ html {
 .dark ::-webkit-scrollbar-thumb:hover {
 	background: #64748b;
 }
+
+/* Card text rendered from Markdown (components/CardText.jsx). Sizes are in
+   em so they follow the card's text size. */
+@layer components {
+	.card-md > :first-child,
+	.card-md > div > :first-child {
+		margin-top: 0;
+	}
+	.card-md > :last-child,
+	.card-md > div > :last-child {
+		margin-bottom: 0;
+	}
+	.card-md :is(p, ul, ol, blockquote, pre, table, .card-md-mermaid) {
+		margin-block: 0.6em;
+	}
+	.card-md :is(h1, h2, h3, h4, h5, h6) {
+		margin-block: 0.7em 0.4em;
+		font-weight: 700;
+		line-height: 1.25;
+	}
+	.card-md h1 {
+		font-size: 1.4em;
+	}
+	.card-md h2 {
+		font-size: 1.25em;
+	}
+	.card-md h3 {
+		font-size: 1.1em;
+	}
+	.card-md strong {
+		font-weight: 700;
+	}
+	.card-md a {
+		color: var(--color-teal-600);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+	.dark .card-md a {
+		color: var(--color-teal-400);
+	}
+	.card-md :is(ul, ol) {
+		display: inline-block;
+		text-align: left;
+		padding-left: 1.4em;
+	}
+	.card-md li > :is(ul, ol) {
+		display: block;
+		margin-block: 0.2em;
+	}
+	.card-md ul {
+		list-style: disc;
+	}
+	.card-md ol {
+		list-style: decimal;
+	}
+	.card-md li + li {
+		margin-top: 0.2em;
+	}
+	.card-md li.task-list-item {
+		list-style: none;
+		margin-left: -1.2em;
+	}
+	.card-md input[type='checkbox'] {
+		margin-right: 0.4em;
+		accent-color: var(--color-teal-500);
+	}
+	.card-md blockquote {
+		text-align: left;
+		border-left: 3px solid var(--color-teal-300);
+		padding-left: 0.8em;
+		color: var(--color-gray-600);
+	}
+	.dark .card-md blockquote {
+		border-color: var(--color-teal-700);
+		color: var(--color-slate-400);
+	}
+	.card-md hr {
+		margin-block: 1em;
+		border-color: var(--color-gray-200);
+	}
+	.dark .card-md hr {
+		border-color: var(--color-slate-700);
+	}
+	.card-md img {
+		display: inline-block;
+		max-width: 100%;
+		border-radius: 0.5rem;
+	}
+	.card-md :not(pre) > code {
+		font-size: 0.85em;
+		padding: 0.1em 0.35em;
+		border-radius: 0.3em;
+		background: var(--color-gray-100);
+		color: var(--color-pink-700);
+	}
+	.dark .card-md :not(pre) > code {
+		background: var(--color-slate-700);
+		color: var(--color-pink-300);
+	}
+	.card-md pre,
+	.card-md-pre {
+		text-align: left;
+		font-size: 0.875rem;
+		line-height: 1.5;
+		font-weight: 400;
+		padding: 0.75em 1em;
+		border-radius: 0.6rem;
+		overflow-x: auto;
+		white-space: pre;
+		background: var(--color-gray-50);
+		border: 1px solid var(--color-gray-200);
+		color: var(--color-gray-800);
+	}
+	.dark .card-md pre,
+	.dark .card-md-pre {
+		background: var(--color-slate-900);
+		border-color: var(--color-slate-700);
+		color: var(--color-slate-200);
+	}
+	.card-md table {
+		display: inline-block;
+		max-width: 100%;
+		overflow-x: auto;
+		border-collapse: collapse;
+		font-size: 0.85em;
+		text-align: left;
+	}
+	.card-md :is(th, td) {
+		padding: 0.3em 0.7em;
+		border: 1px solid var(--color-gray-200);
+	}
+	.dark .card-md :is(th, td) {
+		border-color: var(--color-slate-700);
+	}
+	.card-md th {
+		font-weight: 700;
+		background: var(--color-gray-50);
+	}
+	.dark .card-md th {
+		background: var(--color-slate-900);
+	}
+	.card-md-mermaid {
+		display: flex;
+		justify-content: center;
+		font-size: 1rem;
+		font-weight: 400;
+	}
+	.card-md-mermaid svg {
+		max-width: 100%;
+		height: auto;
+	}
+
+	/* Code highlighting (highlight.js classes), GitHub-like colors */
+	.card-md .hljs-comment,
+	.card-md .hljs-quote {
+		color: var(--color-gray-500);
+		font-style: italic;
+	}
+	.card-md
+		:is(
+			.hljs-keyword,
+			.hljs-selector-tag,
+			.hljs-literal,
+			.hljs-type,
+			.hljs-meta .hljs-keyword
+		) {
+		color: #cf222e;
+	}
+	.card-md
+		:is(
+			.hljs-string,
+			.hljs-regexp,
+			.hljs-addition,
+			.hljs-meta .hljs-string
+		) {
+		color: #0a3069;
+	}
+	.card-md
+		:is(
+			.hljs-number,
+			.hljs-attr,
+			.hljs-attribute,
+			.hljs-variable,
+			.hljs-template-variable,
+			.hljs-built_in,
+			.hljs-symbol,
+			.hljs-bullet
+		) {
+		color: #0550ae;
+	}
+	.card-md
+		:is(
+			.hljs-title,
+			.hljs-section,
+			.hljs-name,
+			.hljs-selector-id,
+			.hljs-selector-class
+		) {
+		color: #8250df;
+	}
+	.card-md :is(.hljs-tag, .hljs-meta) {
+		color: #116329;
+	}
+	.card-md .hljs-deletion {
+		color: #82071e;
+		background: #ffebe9;
+	}
+	.dark
+		.card-md
+		:is(
+			.hljs-keyword,
+			.hljs-selector-tag,
+			.hljs-literal,
+			.hljs-type,
+			.hljs-meta .hljs-keyword
+		) {
+		color: #ff7b72;
+	}
+	.dark
+		.card-md
+		:is(
+			.hljs-string,
+			.hljs-regexp,
+			.hljs-addition,
+			.hljs-meta .hljs-string
+		) {
+		color: #a5d6ff;
+	}
+	.dark
+		.card-md
+		:is(
+			.hljs-number,
+			.hljs-attr,
+			.hljs-attribute,
+			.hljs-variable,
+			.hljs-template-variable,
+			.hljs-built_in,
+			.hljs-symbol,
+			.hljs-bullet
+		) {
+		color: #79c0ff;
+	}
+	.dark
+		.card-md
+		:is(
+			.hljs-title,
+			.hljs-section,
+			.hljs-name,
+			.hljs-selector-id,
+			.hljs-selector-class
+		) {
+		color: #d2a8ff;
+	}
+	.dark .card-md :is(.hljs-tag, .hljs-meta) {
+		color: #7ee787;
+	}
+	.dark .card-md .hljs-deletion {
+		color: #ffdcd7;
+		background: #67060c;
+	}
+	.card-md :is(.hljs-emphasis) {
+		font-style: italic;
+	}
+	.card-md :is(.hljs-strong) {
+		font-weight: 700;
+	}
+}

@@ -1,15 +1,20 @@
 import { forwardRef } from 'react';
 import { Star, Flag } from 'lucide-react';
 import ContainerIcon from '../ContainerIcon';
-import ClozeText from '../ClozeText';
+import CardText from '../CardText';
 import { getContainerColor } from '../../config/containerColors';
+import { hasBlockMarkdown } from '../../services/markdown';
 
 // Short prompts read best big and centered; paragraphs and lists read best
 // smaller and left-aligned, so size the text to fit what's on the card.
+// Lists, tables, quotes and code read best left-aligned at any length.
 function getTextClasses(text = '') {
 	const length = text.length;
 	const lineCount = text.split('\n').length;
-	const align = lineCount > 2 || length > 400 ? 'text-left' : 'text-center';
+	const align =
+		lineCount > 2 || length > 400 || hasBlockMarkdown(text)
+			? 'text-left'
+			: 'text-center';
 	if (length <= 40 && lineCount <= 2) {
 		return `text-3xl sm:text-4xl leading-snug ${align}`;
 	}
@@ -22,7 +27,7 @@ const CardSide = forwardRef(function CardSide(
 	{
 		side,
 		text,
-		cloze, // ClozeText props for a cloze card, or null
+		cloze, // CardText cloze props for a cloze card, or null
 		animationResult,
 		animationColor,
 		isStarred,
@@ -121,9 +126,9 @@ const CardSide = forwardRef(function CardSide(
 			{/* m-auto centers short content but lets long content scroll from the top */}
 			<div className="flex-1 flex min-h-[180px] max-h-[55vh] overflow-y-auto overscroll-contain p-6">
 				<div
-					className={`m-auto w-full max-w-prose whitespace-pre-wrap break-words font-medium text-gray-900 dark:text-white ${getTextClasses(text)}`}
+					className={`m-auto w-full max-w-prose break-words font-medium text-gray-900 dark:text-white ${getTextClasses(text)}`}
 				>
-					{cloze ? <ClozeText {...cloze} /> : text}
+					<CardText text={text} cloze={cloze} />
 				</div>
 			</div>
 

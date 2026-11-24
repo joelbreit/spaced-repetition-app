@@ -15,7 +15,7 @@ import {
 	getReps,
 } from '../services/cardCalculations';
 import ContainerIcon from './ContainerIcon';
-import ClozeText from './ClozeText';
+import CardText from './CardText';
 import { clozeProps } from '../services/cloze';
 import { getContainerColor } from '../config/containerColors';
 
@@ -190,26 +190,21 @@ export default function CardListItem({
 			</div>
 
 			{/* Front content */}
-			<p className="text-base text-gray-900 dark:text-slate-100 font-medium mb-3 whitespace-pre-wrap break-words">
-				{card.template === 'cloze' ? (
-					<ClozeText {...clozeProps(card, 'front')} />
-				) : (
-					card.front
-				)}
-			</p>
+			<div className="text-base text-gray-900 dark:text-slate-100 font-medium mb-3 break-words">
+				<CardText text={card.front} cloze={clozeProps(card, 'front')} />
+			</div>
 
 			{/* Back section */}
 			<div className="mb-3">
 				<h4 className="text-sm font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1">
 					Back
 				</h4>
-				<p className="text-base text-gray-700 dark:text-slate-300 whitespace-pre-wrap break-words">
-					{card.template === 'cloze' ? (
-						<ClozeText {...clozeProps(card, 'back')} />
-					) : (
-						card.back
-					)}
-				</p>
+				<div className="text-base text-gray-700 dark:text-slate-300 break-words">
+					<CardText
+						text={card.back}
+						cloze={clozeProps(card, 'back')}
+					/>
+				</div>
 			</div>
 
 			{/* Stats badges */}

@@ -54,6 +54,15 @@ one note are siblings, not partners: they have no `partnerCardId`, can't be
 reversed, and the review order spreads them apart like partners. In memory a
 cloze card also has `clozeText` and `clozeExtra` for rendering.
 
+**Card text is Markdown**: a note's `front`, `back`, `text` and `extra` are
+stored as written and rendered by `src/components/CardText.jsx`: GitHub
+flavored Markdown (tables, task lists, strikethrough), with single line breaks
+kept, code highlighted in fenced blocks that name a language, and
+` ```mermaid ` blocks drawn as diagrams. Raw HTML isn't rendered. Cloze
+deletions work anywhere in the text, code blocks included. Read aloud speaks
+the text without Markdown syntax, code blocks or diagrams
+(`speakableText()` in `src/services/markdown.js`).
+
 Cards saved before notes existed have `front`, `back` and `partnerCardId` on
 the card. Loading gives each one a note (ID `note-<cardId>`); a pair whose
 `partnerCardId`s point at each other and whose text mirrors shares one, with

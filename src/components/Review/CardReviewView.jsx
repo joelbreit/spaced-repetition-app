@@ -19,7 +19,8 @@ import {
 import { useState, useEffect, useRef, useCallback } from 'react';
 import SegmentedProgressBar from '../SegmentedProgressBar';
 import CardSide from './CardSide';
-import { clozeProps, speakableText } from '../../services/cloze';
+import { clozeProps } from '../../services/cloze';
+import { speakableText } from '../../services/markdown';
 import ReviewSettingsModal from './ReviewSettingsModal';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import AudioProgressBorder from './AudioProgressBorder';
