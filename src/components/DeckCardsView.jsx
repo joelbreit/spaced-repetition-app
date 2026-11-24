@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
 	Plus,
@@ -32,8 +32,7 @@ import {
 	isReviewed,
 } from '../services/cardCalculations';
 import { canReverse } from '../services/notes';
-import { clozeOrds } from '../services/cloze';
-import ClozeFields from './ClozeFields';
+import NewCardModal from './NewCardModal';
 import CardListItem from './CardListItem';
 import { MoveCardsDialog, DeleteCardsDialog } from './CardSelectionDialogs';
 import Breadcrumbs from './Breadcrumbs';
@@ -57,15 +56,8 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 	} = useDeckOperations();
 	const { showConfirmation, showSuccess, showError } = useNotification();
 
-	const [newCardFront, setNewCardFront] = useState('');
-	const [newCardBack, setNewCardBack] = useState('');
-	const newCardFrontRef = useRef(null);
 	// 'basic' (front/back) or 'cloze'; kept while the page is open
 	const [newCardType, setNewCardType] = useState('basic');
-	const [newClozeText, setNewClozeText] = useState('');
-	const [newClozeExtra, setNewClozeExtra] = useState('');
-	const newClozeTextRef = useRef(null);
-	const newCardBackRef = useRef(null);
 	const [showNewCardForm, setShowNewCardForm] = useState(false);
 	const [cardSearchTerm, setCardSearchTerm] = useState('');
 	const [sortBy, setSortBy] = useState('default');
@@ -292,56 +284,6 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 
 	const hasActiveFilters =
 		cardSearchTerm || sortBy !== 'default' || filterBy !== 'all';
-
-	const handleAddCard = ({ keepOpen = false } = {}) => {
-		if (newCardType === 'cloze') {
-			if (clozeOrds(newClozeText).length === 0) return;
-			addClozeNote(deckId, newClozeText.trim(), newClozeExtra.trim());
-			setNewClozeText('');
-			setNewClozeExtra('');
-			if (keepOpen) {
-				newClozeTextRef.current?.focus();
-			} else {
-				setShowNewCardForm(false);
-			}
-			return;
-		}
-		if (newCardFront.trim() && newCardBack.trim()) {
-			addCard(deckId, newCardFront.trim(), newCardBack.trim());
-			setNewCardFront('');
-			setNewCardBack('');
-			if (keepOpen) {
-				newCardFrontRef.current?.focus();
-			} else {
-				setShowNewCardForm(false);
-			}
-		}
-	};
-
-	const cancelNewCard = () => {
-		setShowNewCardForm(false);
-		setNewCardFront('');
-		setNewCardBack('');
-		setNewClozeText('');
-		setNewClozeExtra('');
-	};
-
-	// Enter on the front moves to the back; Ctrl/Cmd+Enter adds the card and
-	// starts the next one, so a batch can be typed without touching the mouse
-	const handleNewCardKeyDown = (e) => {
-		if (e.key === 'Escape') {
-			e.preventDefault();
-			cancelNewCard();
-		} else if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-			if (e.ctrlKey || e.metaKey) {
-				e.preventDefault();
-				handleAddCard({ keepOpen: true });
-			} else if (e.target === newCardFrontRef.current) {
-				e.preventDefault();
-				newCardBackRef.current?.focus();
-			}
-		}
-	};
 
 	const handleDeleteCard = async (deckId, cardId) => {
 		// Find the card to check for partner
@@ -805,105 +747,26 @@ export default function DeckCardsView({ onEditCard, onStartReview }) {
 					</div>
 				)}
 
-				{/* Add Card Form */}
-				{showNewCardForm ? (
-					<div className="mb-6 rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700 p-6 bg-gray-50 dark:bg-slate-700/50">
-						<div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-							<h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
-								Add New Card
-							</h3>
-							<div
-								role="radiogroup"
-								aria-label="Card type"
-								className="inline-flex rounded-lg bg-gray-200/70 dark:bg-slate-800 p-1"
-							>
-								{[
-									['basic', 'Basic'],
-									['cloze', 'Cloze'],
-								].map(([value, label]) => (
-									<button
-										key={value}
-										type="button"
-										role="radio"
-										aria-checked={newCardType === value}
-										onClick={() => setNewCardType(value)}
-										className={`px-3 py-1 text-sm font-medium rounded-md transition-colors duration-200 ${
-											newCardType === value
-												? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 shadow-sm'
-												: 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200'
-										}`}
-									>
-										{label}
-									</button>
-								))}
-							</div>
-						</div>
-						<div className="space-y-4">
-							{newCardType === 'cloze' ? (
-								<ClozeFields
-									text={newClozeText}
-									onTextChange={setNewClozeText}
-									extra={newClozeExtra}
-									onExtraChange={setNewClozeExtra}
-									onKeyDown={handleNewCardKeyDown}
-									textRef={newClozeTextRef}
-									autoFocus
-								/>
-							) : (
-								<>
-									<input
-										ref={newCardFrontRef}
-										type="text"
-										placeholder="Front of card..."
-										value={newCardFront}
-										onChange={(e) =>
-											setNewCardFront(e.target.value)
-										}
-										onKeyDown={handleNewCardKeyDown}
-										autoFocus
-										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-									/>
-									<textarea
-										ref={newCardBackRef}
-										placeholder="Back of card..."
-										value={newCardBack}
-										onChange={(e) =>
-											setNewCardBack(e.target.value)
-										}
-										onKeyDown={handleNewCardKeyDown}
-										rows={4}
-										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none transition-all duration-200"
-									/>
-								</>
-							)}
-							<div className="flex gap-3">
-								<button
-									onClick={() => handleAddCard()}
-									className="px-6 py-3 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-								>
-									Add Card
-								</button>
-								<button
-									onClick={cancelNewCard}
-									className="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-								>
-									Cancel
-								</button>
-								<span className="hidden pointer-fine:flex items-center ml-auto text-xs text-gray-400 dark:text-slate-500">
-									Ctrl/⌘ + Enter adds and starts the next{' '}
-									{newCardType === 'cloze' ? 'note' : 'card'}
-								</span>
-							</div>
-						</div>
-					</div>
-				) : (
-					<button
-						onClick={() => setShowNewCardForm(true)}
-						className="mb-6 flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
-					>
-						<Plus className="h-5 w-5" />
-						Add New Card
-					</button>
+				{/* Add Card */}
+				<button
+					onClick={() => setShowNewCardForm(true)}
+					className="mb-6 flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
+				>
+					<Plus className="h-5 w-5" />
+					Add New Card
+				</button>
+				{showNewCardForm && (
+					<NewCardModal
+						type={newCardType}
+						onTypeChange={setNewCardType}
+						onAddBasic={(front, back) =>
+							addCard(deckId, front, back)
+						}
+						onAddCloze={(text, extra) =>
+							addClozeNote(deckId, text, extra)
+						}
+						onClose={() => setShowNewCardForm(false)}
+					/>
 				)}
 
 				{/* Cards List */}

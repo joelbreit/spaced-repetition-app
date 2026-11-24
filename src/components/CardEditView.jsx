@@ -9,6 +9,9 @@ import {
 	Link2,
 } from 'lucide-react';
 import ClozeFields from './ClozeFields';
+import CardPreview from './CardPreview';
+import PreviewToggle from './PreviewToggle';
+import { useShowPreview } from '../hooks/useShowPreview';
 import { clozeOrds } from '../services/cloze';
 
 export default function CardEditView({
@@ -32,6 +35,7 @@ export default function CardEditView({
 	const [clozeOrd, setClozeOrd] = useState(null);
 	const [savedOrds, setSavedOrds] = useState([]);
 	const [noteId, setNoteId] = useState(null);
+	const [showPreview, togglePreview] = useShowPreview();
 
 	useEffect(() => {
 		if (cardId && deckId) {
@@ -172,19 +176,27 @@ export default function CardEditView({
 			className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
 			onClick={handleBackdropClick}
 		>
-			<div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
+			<div
+				className={`bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 w-full ${showPreview ? 'max-w-5xl' : 'max-w-3xl'} max-h-[90vh] overflow-hidden flex flex-col animate-scale-in`}
+			>
 				{/* Header */}
 				<div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50">
 					<h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
 						{cardId ? 'Edit Card' : 'Create New Card'}
 					</h2>
-					<button
-						onClick={onCancel}
-						className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700"
-						aria-label="Close"
-					>
-						<X className="h-5 w-5" />
-					</button>
+					<div className="ml-auto flex items-center gap-1">
+						<PreviewToggle
+							show={showPreview}
+							onToggle={togglePreview}
+						/>
+						<button
+							onClick={onCancel}
+							className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700"
+							aria-label="Close"
+						>
+							<X className="h-5 w-5" />
+						</button>
+					</div>
 				</div>
 
 				{/* Scrollable Content */}
@@ -345,60 +357,84 @@ export default function CardEditView({
 							</div>
 						)}
 
-						{/* Form Fields Section */}
-						{clozeOrd ? (
-							<div className="space-y-2 pt-2">
-								<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
-									Cloze text{' '}
-									<span className="normal-case font-normal text-gray-500 dark:text-slate-400">
-										(this card hides c{clozeOrd})
-									</span>
-								</label>
-								<ClozeFields
-									text={front}
-									onTextChange={setFront}
-									extra={back}
-									onExtraChange={setBack}
-									savedOrds={savedOrds}
-									rows={6}
-								/>
-							</div>
-						) : (
-							<div className="space-y-6 pt-2">
-								{/* Front Input */}
-								<div className="space-y-2">
-									<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
-										Front
-									</label>
-									<textarea
-										value={front}
-										onChange={(e) =>
-											setFront(e.target.value)
-										}
-										autoFocus={!cardId}
-										placeholder="Enter the front of the card"
-										rows={5}
-										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 resize-y min-h-[120px] font-medium"
-									/>
-								</div>
+						{/* Form Fields Section, with the preview beside it */}
+						<div
+							className={`grid gap-6 ${
+								showPreview ? 'lg:grid-cols-2' : ''
+							}`}
+						>
+							<div className="min-w-0">
+								{clozeOrd ? (
+									<div className="space-y-2 pt-2">
+										<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
+											Cloze text{' '}
+											<span className="normal-case font-normal text-gray-500 dark:text-slate-400">
+												(this card hides c{clozeOrd})
+											</span>
+										</label>
+										<ClozeFields
+											text={front}
+											onTextChange={setFront}
+											extra={back}
+											onExtraChange={setBack}
+											savedOrds={savedOrds}
+											rows={6}
+										/>
+									</div>
+								) : (
+									<div className="space-y-6 pt-2">
+										{/* Front Input */}
+										<div className="space-y-2">
+											<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
+												Front
+											</label>
+											<textarea
+												value={front}
+												onChange={(e) =>
+													setFront(e.target.value)
+												}
+												autoFocus={!cardId}
+												placeholder="Enter the front of the card"
+												rows={5}
+												className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 resize-y min-h-[120px] font-medium"
+											/>
+										</div>
 
-								{/* Back Input */}
-								<div className="space-y-2">
-									<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
-										Back
-									</label>
-									<textarea
-										value={back}
-										onChange={(e) =>
-											setBack(e.target.value)
-										}
-										placeholder="Enter the back of the card"
-										rows={6}
-										className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-y transition-all duration-200 min-h-[140px] font-medium"
-									/>
-								</div>
+										{/* Back Input */}
+										<div className="space-y-2">
+											<label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
+												Back
+											</label>
+											<textarea
+												value={back}
+												onChange={(e) =>
+													setBack(e.target.value)
+												}
+												placeholder="Enter the back of the card"
+												rows={6}
+												className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-y transition-all duration-200 min-h-[140px] font-medium"
+											/>
+										</div>
+									</div>
+								)}
 							</div>
-						)}
+							{showPreview && (
+								<div className="min-w-0 pt-2">
+									{clozeOrd ? (
+										<CardPreview
+											clozeText={front}
+											clozeExtra={back}
+											ord={clozeOrd}
+										/>
+									) : (
+										<CardPreview
+											front={front}
+											back={back}
+										/>
+									)}
+								</div>
+							)}
+						</div>
 					</div>
 				</div>
 
