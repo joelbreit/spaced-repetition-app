@@ -28,8 +28,10 @@ const DERIVED_FIELDS = [
 
 export const newNoteId = () => crypto.randomUUID();
 
-const newCardId = (now, suffix = Math.random().toString(36).slice(2, 11)) =>
-	`${now}-${suffix}`;
+export const newCardId = (
+	now,
+	suffix = Math.random().toString(36).slice(2, 11)
+) => `${now}-${suffix}`;
 
 export const isClozeNote = (note) => note?.type === 'cloze';
 

@@ -322,19 +322,38 @@ async function retryPendingUploads() {
 }
 
 /**
- * Prepare and store an image for a card: shown at once from this browser,
- * uploaded in the background when signed in
- * @param {File} file
- * @returns {Promise<{ name: string, uploaded: Promise<void> }>} the name for
- *   a media: link, and the upload (rejects if it fails; it's retried later)
+ * An image as it will be stored, and its name, without storing it
+ * @param {File|Blob} file
+ * @returns {Promise<{ blob: Blob, name: string }>}
  */
-export async function addImage(file) {
+export async function prepareNamedImage(file) {
 	const blob = await prepareImage(file);
-	const name = await nameFor(blob);
+	return { blob, name: await nameFor(blob) };
+}
+
+/**
+ * Store a prepared image: shown at once from this browser, uploaded in the
+ * background when signed in
+ * @returns {Promise<{ uploaded: Promise<void> }>} the upload (rejects if
+ *   it fails; it's retried later), wrapped so awaiting this doesn't wait for it
+ */
+export async function storeImage({ blob, name }) {
 	rememberBlob(name, blob);
 	await cachePut(name, blob);
 	if (auth) markPending(name);
-	return { name, uploaded: startUpload(name, blob) };
+	return { uploaded: startUpload(name, blob) };
+}
+
+/**
+ * Prepare and store an image for a card
+ * @param {File} file
+ * @returns {Promise<{ name: string, uploaded: Promise<void> }>} the name for
+ *   a media: link, and the upload
+ */
+export async function addImage(file) {
+	const prepared = await prepareNamedImage(file);
+	const { uploaded } = await storeImage(prepared);
+	return { name: prepared.name, uploaded };
 }
 
 /** Markdown for an image: alt text from the file name, if it has one */

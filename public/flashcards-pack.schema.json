@@ -1,0 +1,297 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://flashcards.joelbreit.com/flashcards-pack.schema.json",
+	"title": "Flashcards pack",
+	"description": "Folders, decks and cards to import into the flashcards app. See https://flashcards.joelbreit.com/agents.md",
+	"type": "object",
+	"required": ["format", "version"],
+	"anyOf": [
+		{
+			"required": ["folders"]
+		},
+		{
+			"required": ["decks"]
+		}
+	],
+	"properties": {
+		"format": {
+			"const": "flashcards-pack"
+		},
+		"version": {
+			"const": 1
+		},
+		"id": {
+			"type": "string",
+			"minLength": 1,
+			"description": "Identifies the pack, so importing it again updates the items with keys"
+		},
+		"folders": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/folder"
+			}
+		},
+		"decks": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/deck"
+			}
+		},
+		"assets": {
+			"type": "object",
+			"description": "Images cards use as ![alt](asset:NAME): SVG text, or a data: URI (image/svg+xml, png, jpeg, gif, webp)",
+			"additionalProperties": {
+				"type": "string",
+				"anyOf": [
+					{
+						"pattern": "<svg[\\s>]"
+					},
+					{
+						"pattern": "^data:image/(svg\\+xml|png|jpeg|gif|webp)[;,]"
+					}
+				]
+			}
+		}
+	},
+	"additionalProperties": false,
+	"$defs": {
+		"color": {
+			"enum": [
+				"teal",
+				"blue",
+				"indigo",
+				"violet",
+				"pink",
+				"red",
+				"orange",
+				"amber",
+				"green",
+				"slate"
+			]
+		},
+		"symbol": {
+			"enum": [
+				"book-open",
+				"folder",
+				"library",
+				"notebook",
+				"notebook-pen",
+				"bookmark",
+				"graduation-cap",
+				"school",
+				"lightbulb",
+				"star",
+				"trophy",
+				"rocket",
+				"cloud",
+				"cloud-cog",
+				"server",
+				"server-cog",
+				"network",
+				"container",
+				"boxes",
+				"workflow",
+				"shield-check",
+				"key",
+				"globe",
+				"code",
+				"code-xml",
+				"braces",
+				"terminal",
+				"cpu",
+				"binary",
+				"git-branch",
+				"bug",
+				"laptop",
+				"database",
+				"database-zap",
+				"table",
+				"sheet",
+				"spreadsheet",
+				"brain",
+				"brain-circuit",
+				"waypoints",
+				"bot",
+				"sparkles",
+				"languages",
+				"book-a",
+				"spell-check",
+				"whole-word",
+				"type",
+				"messages",
+				"quote",
+				"text-quote",
+				"scan-text",
+				"audio-lines",
+				"chart-column",
+				"chart-line",
+				"chart-scatter",
+				"chart-spline",
+				"chart-pie",
+				"trending-up",
+				"sigma",
+				"function",
+				"variable",
+				"pi",
+				"radical",
+				"percent",
+				"calculator",
+				"pill",
+				"tablets",
+				"syringe",
+				"stethoscope",
+				"heart-pulse",
+				"activity",
+				"hospital",
+				"microscope",
+				"dna",
+				"test-tube",
+				"test-tubes",
+				"flask",
+				"atom",
+				"orbit",
+				"telescope",
+				"magnet",
+				"zap",
+				"leaf",
+				"landmark",
+				"scale",
+				"briefcase",
+				"heart",
+				"music",
+				"palette",
+				"feather",
+				"camera",
+				"utensils",
+				"dumbbell",
+				"gamepad",
+				"plane",
+				"map",
+				"paw"
+			]
+		},
+		"folder": {
+			"type": "object",
+			"required": ["name"],
+			"additionalProperties": false,
+			"properties": {
+				"key": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Stable id, unique within the pack for its kind; with the pack id, re-imports update this item"
+				},
+				"name": {
+					"type": "string",
+					"minLength": 1,
+					"pattern": "\\S"
+				},
+				"description": {
+					"type": "string"
+				},
+				"color": {
+					"$ref": "#/$defs/color"
+				},
+				"symbol": {
+					"$ref": "#/$defs/symbol"
+				},
+				"folders": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/folder"
+					}
+				},
+				"decks": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/deck"
+					}
+				}
+			}
+		},
+		"deck": {
+			"type": "object",
+			"required": ["name"],
+			"additionalProperties": false,
+			"properties": {
+				"key": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Stable id, unique within the pack for its kind; with the pack id, re-imports update this item"
+				},
+				"name": {
+					"type": "string",
+					"minLength": 1,
+					"pattern": "\\S"
+				},
+				"color": {
+					"$ref": "#/$defs/color"
+				},
+				"symbol": {
+					"$ref": "#/$defs/symbol"
+				},
+				"cards": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/card"
+					}
+				}
+			}
+		},
+		"card": {
+			"oneOf": [
+				{
+					"title": "Basic card",
+					"type": "object",
+					"required": ["front", "back"],
+					"additionalProperties": false,
+					"properties": {
+						"key": {
+							"type": "string",
+							"minLength": 1,
+							"description": "Stable id, unique within the pack for its kind; with the pack id, re-imports update this item"
+						},
+						"front": {
+							"type": "string",
+							"minLength": 1,
+							"pattern": "\\S",
+							"description": "Markdown"
+						},
+						"back": {
+							"type": "string",
+							"minLength": 1,
+							"pattern": "\\S",
+							"description": "Markdown"
+						},
+						"reverse": {
+							"type": "boolean",
+							"description": "Also add the back-to-front card"
+						}
+					}
+				},
+				{
+					"title": "Cloze card",
+					"type": "object",
+					"required": ["cloze"],
+					"additionalProperties": false,
+					"properties": {
+						"key": {
+							"type": "string",
+							"minLength": 1,
+							"description": "Stable id, unique within the pack for its kind; with the pack id, re-imports update this item"
+						},
+						"cloze": {
+							"type": "string",
+							"minLength": 1,
+							"pattern": "\\{\\{c[1-9][0-9]*::",
+							"description": "Markdown with deletions {{c1::answer}} or {{c1::answer::hint}}; one card per number"
+						},
+						"extra": {
+							"type": "string",
+							"description": "Markdown shown on the back"
+						}
+					}
+				}
+			]
+		}
+	}
+}

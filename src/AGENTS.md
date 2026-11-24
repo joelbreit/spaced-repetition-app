@@ -88,6 +88,7 @@ The app wraps contexts in this order (outermost to innermost):
 | `CardPreview.jsx`           | Live Markdown preview of a card's sides   |
 | `MarkdownTextarea.jsx`      | Card text field that takes images         |
 | `MediaImage.jsx`            | Shows an uploaded card image              |
+| `ImportPackModal.jsx`       | Import Pack: check, preview, apply a pack |
 | `SortableContainerItem.jsx` | Draggable folder/deck item (uses dnd-kit) |
 | `StudyStatistics.jsx`       | Stats display (due/new/learned, mastery)  |
 | `AuthView.jsx`              | Login/signup forms                        |

@@ -8,6 +8,7 @@ import {
 	Eye,
 	Library,
 	Folder,
+	PackageOpen,
 } from 'lucide-react';
 import {
 	DndContext,
@@ -28,6 +29,7 @@ import StudyStatistics from './StudyStatistics';
 import SortableContainerItem from './SortableContainerItem';
 import Breadcrumbs from './Breadcrumbs';
 import IconPicker from './IconPicker';
+import ImportPackModal from './ImportPackModal';
 import {
 	DEFAULT_DECK_ICON,
 	DEFAULT_FOLDER_ICON,
@@ -66,6 +68,7 @@ export default function FolderBrowserView({
 	);
 	const [editingColor, setEditingColor] = useState(DEFAULT_CONTAINER_COLOR);
 	const [showNewDeckForm, setShowNewDeckForm] = useState(false);
+	const [showImportPack, setShowImportPack] = useState(false);
 	const [showNewFolderForm, setShowNewFolderForm] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
 
@@ -449,7 +452,24 @@ export default function FolderBrowserView({
 						Create Deck
 					</button>
 				)}
+
+				{!showNewFolderForm && !showNewDeckForm && (
+					<button
+						onClick={() => setShowImportPack(true)}
+						title="Import folders, decks and cards from a pack file, e.g. one an AI agent wrote"
+						className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200"
+					>
+						<PackageOpen className="h-5 w-5" />
+						Import Pack
+					</button>
+				)}
 			</div>
+			{showImportPack && (
+				<ImportPackModal
+					parentFolderId={folderId || null}
+					onClose={() => setShowImportPack(false)}
+				/>
+			)}
 
 			{/* Items Grid */}
 			{filteredItems.length === 0 ? (

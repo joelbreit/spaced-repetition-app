@@ -135,6 +135,7 @@ deck isn't synced: a card that moves or comes back is added at the end.
 			"noteId": "unique-id",
 			"front": "Front text",
 			"back": "Back text",
+			"importKey": "pack-id/key", // optional, as for folders: a pack card's key is on its note
 			"createdAt": 1234567890 // may be missing
 		},
 		{
@@ -154,6 +155,7 @@ deck isn't synced: a card that moves or comes back is added at the end.
 			"folderColor": "blue", // optional key from src/config/containerColors.js, defaults to "teal"
 			"folderSymbol": "folder", // lucide icon key from src/config/containerIcons.js
 			"parentFolderId": null, // null or missing = root level, otherwise references another folderId
+			"importKey": "pack-id/key", // optional: made by Import Pack (src/services/pack.js), so re-importing the pack updates it
 			"createdAt": 1234567890,
 			"updatedAt": 1234567890 // v7: set by sync
 		}
@@ -165,6 +167,7 @@ deck isn't synced: a card that moves or comes back is added at the end.
 			"deckSymbol": "book-open", // optional lucide icon key from src/config/containerIcons.js; unknown values (e.g. legacy emoji) render the default
 			"deckColor": "violet", // optional key from src/config/containerColors.js, defaults to "teal"
 			"parentFolderId": null, // v2, null or missing = root level, otherwise references another folderId
+			"importKey": "pack-id/key", // optional, as for folders
 			"isArchived": false, // optional, defaults to false. Archived decks are excluded from folder stats and Study All, but still viewable and studyable directly
 			"createdAt": 1234567890, // added later, may be missing
 			"updatedAt": 1234567890, // v7: set by sync

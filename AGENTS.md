@@ -207,6 +207,18 @@ data. Read `backend/README.md` before touching them.
 The legacy `scripts/*.sh` deploy scripts are superseded by SAM and should not be
 used — see `backend/README.md`.
 
+### Creating Flashcard Content (Packs)
+
+To make folders, decks and cards for the user, write a **pack**: one JSON file
+in the format described in `public/agents.md` (served at
+https://flashcards.joelbreit.com/agents.md, with the JSON Schema
+`public/flashcards-pack.schema.json`). The user imports it with **Import
+Pack** on the home page. Don't edit S3 data directly.
+
+Changing the pack format means changing `src/services/pack.js` (reading,
+checking, applying), `public/agents.md` and the schema together; keep
+`version: 1` packs importable.
+
 ### Adding New Card/Deck Properties
 
 1. Add to data schema in `docs/Data.md`

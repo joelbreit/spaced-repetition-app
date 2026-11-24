@@ -46,6 +46,7 @@ Key files:
 - `src/services/notes.js` - Card text lives in notes; reversed partners are two cards of one note. Edit text through the note, not `card.front`
 - `src/services/cloze.js` - Cloze deletions (`{{c1::answer::hint}}`); a cloze note makes one card per number
 - `src/services/media.js` + `backend/.../media.mjs` - Card images: `![alt](media:{sha256}.{ext})`, one S3 object each, uploaded/downloaded with signed URLs and cached in the browser
+- `src/services/pack.js` + `ImportPackModal.jsx` - Import Pack: JSON/.zip packs of folders, decks, cards and images; the format for agents is `public/agents.md` + `public/flashcards-pack.schema.json` (keep all three in step)
 - `src/components/CardText.jsx` - Renders card text as Markdown (highlighting and Mermaid load on demand); `src/services/markdown.js` has the cloze plugin and `speakableText`
 - `backend/template.yaml` - SAM template (all backend infrastructure)
 - `backend/src/functions/flashcards-api/index.mjs` - Lambda CRUD endpoint
